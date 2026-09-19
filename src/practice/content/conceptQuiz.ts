@@ -191,9 +191,13 @@ export function givesItAway(text: string, term: string): boolean {
   return wanted.every((w) => words.has(w));
 }
 
-/** Terms that are proper names keep their capitals mid-sentence. */
+/**
+ * Terms that are proper names keep their capitals mid-sentence. The word can
+ * sit anywhere in the name: "Multiplication Property of Equality" ends with
+ * "Equality", not with "Property".
+ */
 const inSentence = (term: string) =>
-  /(Theorem|Postulate|Property)$/.test(term) || /^Law of /.test(term)
+  /\b(Theorem|Postulate|Property|Law)\b/.test(term)
     ? term
     : term.charAt(0).toLowerCase() + term.slice(1);
 
