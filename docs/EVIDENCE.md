@@ -140,8 +140,8 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 
 ### Automated
 
-- `npm run check`: 116 tests, TypeScript, and the production build pass
-  (40 pre-existing whiteboard tests, 76 new).
+- `npm run check`: 118 tests, TypeScript, and the production build pass
+  (40 pre-existing whiteboard tests, 78 new).
 - Every generated multiple-choice card is asserted to carry four distinct
   options with a valid answer index and a real explanation.
 - Every one of the 11 authored proofs is replayed through the strict validator
@@ -445,6 +445,19 @@ missed three whole answer formats and one problem type. All four are built.
   and the reference says either is usually accepted, so a label that would have
   been allowed must never be marked wrong. The explanation shown for a spoiled
   row is the validator's own message.
+
+### Tenth pass — questions in parts
+
+The paper asks two questions in parts, where the figure and the work are
+shared and Part A usually produces something Part B needs. Both are built,
+along with a generator for the shape the reference warns about most: Part A
+asks for x, Part B asks for the measure the question was about, and entering
+x there is named as such.
+
+A finished part stays on screen with its answer, because hiding it would make
+Part B harder than the paper intends. Tests assert that the two parts of a
+generated question never share an answer — Part B would teach nothing — and
+that Part B's trap value is exactly Part A's answer.
 
 ### Limitations
 

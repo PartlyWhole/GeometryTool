@@ -7,6 +7,7 @@ import { Figure } from "./Figure";
 import { NUMERIC_ITEMS, type NumericItem, generatedNumeric } from "./content/numeric";
 import { type Tally, loadTally, record, saveTally } from "./progress";
 import { Hints, Scoreboard, Verdict } from "./ui";
+import { NumberEntry, numberOf } from "./NumberEntry";
 
 const close = (a: number, b: number, tol: number) => Math.abs(a - b) <= tol;
 
@@ -25,15 +26,8 @@ export function NumericExercise() {
   const item: NumericItem | undefined = items[i];
   if (!item) return <p className="muted">No questions.</p>;
 
-  const value = entry === "" || entry === "." ? undefined : Number(entry);
+  const value = numberOf(entry);
   const tol = item.tolerance ?? 1e-6;
-
-  const press = (ch: string) => {
-    if (result !== null) return;
-    if (ch === "." && entry.includes(".")) return;
-    if (entry.length > 9) return;
-    setEntry(entry + ch);
-  };
 
   const check = () => {
     if (value === undefined) return;
@@ -99,34 +93,12 @@ export function NumericExercise() {
         )}
 
         <div className="exercise-side">
-          <div className="answer-line">
-            <span className="answer-label">Your answer</span>
-            <code className={entry ? "answer" : "answer empty"}>
-              {entry || "Use the keypad"}
-              {entry && item.unit ? " " + item.unit : ""}
-            </code>
-          </div>
-
-          <div className="keypad">
-            {["7", "8", "9", "4", "5", "6", "1", "2", "3", "0", "."].map((k) => (
-              <button
-                key={k}
-                className="chip num"
-                disabled={result !== null}
-                onClick={() => press(k)}
-              >
-                {k}
-              </button>
-            ))}
-            <button
-              className="chip warn"
-              aria-label="Delete last digit"
-              disabled={!entry || result !== null}
-              onClick={() => setEntry(entry.slice(0, -1))}
-            >
-              ⌫
-            </button>
-          </div>
+          <NumberEntry
+            value={entry}
+            onChange={setEntry}
+            unit={item.unit}
+            disabled={result !== null}
+          />
 
           <div className="row">
             <button

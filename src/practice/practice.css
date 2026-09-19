@@ -956,3 +956,29 @@ code.answer.empty { color: var(--muted); font-size: 14px; }
 .claim-note { font-size: 13px; color: #8f2f28; line-height: 1.45; }
 
 .proof-tabs { display: flex; justify-content: flex-start; margin-bottom: 14px; }
+
+.part {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--card);
+}
+.part.done {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 12px;
+  background: var(--ok-soft);
+  border-color: #bfe0cf;
+}
+.part-label {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.part.done .part-label { color: var(--ok); }
+.part-answer { font-size: 15px; font-variant-numeric: tabular-nums; }
+.part-prompt { margin: 0; font-size: 15.5px; line-height: 1.45; }

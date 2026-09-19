@@ -1390,3 +1390,56 @@ describe("fraction-clearing questions are exact", () => {
     expect(seen).toBeGreaterThan(20);
   });
 });
+
+describe("multi-part questions", () => {
+  it("states parts whose answers its own figure and stem support", async () => {
+    const { MULTIPART_ITEMS } = await import("../src/practice/content/multipart");
+    const { marked, measureOf } = await import("../src/practice/oracle");
+    const { statementText } = await import("../src/practice/notation");
+    for (const item of MULTIPART_ITEMS) {
+      expect(item.parts.length, item.id).toBeGreaterThan(1);
+      for (const part of item.parts) {
+        if (part.body.kind === "claims") {
+          // Judged by what the figure marks, as everywhere else.
+          for (const c of part.body.claims)
+            expect(
+              marked(item.figure!, c.statement),
+              item.id + " :: " + statementText(c.statement),
+            ).toBe(c.holds);
+          expect(part.body.claims.some((c) => c.holds), item.id).toBe(true);
+          expect(part.body.claims.some((c) => !c.holds), item.id).toBe(true);
+        } else {
+          expect(Number.isFinite(part.body.answer), item.id).toBe(true);
+          if (part.body.trap)
+            expect(
+              Math.abs(part.body.trap.value - part.body.answer),
+              item.id + " trap equals the answer",
+            ).toBeGreaterThan(1e-6);
+        }
+        expect(part.why.length, item.id).toBeGreaterThan(20);
+      }
+    }
+    // The Q13 figure must measure what both its parts claim.
+    const q13 = MULTIPART_ITEMS.find((x) => x.id === "fa13")!;
+    expect(measureOf(q13.figure!, ang("EXD"))).toBeCloseTo(67.5, 3);
+    expect(measureOf(q13.figure!, ang("DXF"))).toBeCloseTo(112.5, 3);
+  });
+
+  it("makes Part B genuinely different from Part A", async () => {
+    const { generatedMultiPart } = await import("../src/practice/content/multipart");
+    for (let seed = 1; seed <= 60; seed++)
+      for (const item of generatedMultiPart(seed, 4)) {
+        const [a, b] = item.parts;
+        expect(a.body.kind === "numeric" && b.body.kind === "numeric").toBe(true);
+        if (a.body.kind === "numeric" && b.body.kind === "numeric") {
+          // If the two parts shared an answer, Part B would teach nothing.
+          expect(
+            Math.abs(a.body.answer - b.body.answer),
+            item.id + " both parts answer the same number",
+          ).toBeGreaterThan(1e-6);
+          // Part B must warn about carrying x across.
+          expect(b.body.trap?.value, item.id).toBeCloseTo(a.body.answer, 9);
+        }
+      }
+  });
+});

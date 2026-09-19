@@ -4,7 +4,7 @@ import { NameExercise } from "./NameExercise";
 import { ConceptExercise } from "./ConceptExercise";
 import { TranslateExercise } from "./TranslateExercise";
 import { ProofExercise } from "./ProofExercise";
-import { NumericExercise } from "./NumericExercise";
+import { SolveExercise } from "./SolveExercise";
 import { Tabs } from "./ui";
 
 export type Mode = "name" | "concepts" | "translate" | "solve" | "proof";
@@ -33,7 +33,7 @@ export function Practice(props: { mode?: Mode; onMode?: (m: Mode) => void }) {
       {mode === "name" && <NameExercise />}
       {mode === "concepts" && <ConceptExercise />}
       {mode === "translate" && <TranslateExercise />}
-      {mode === "solve" && <NumericExercise />}
+      {mode === "solve" && <SolveExercise />}
       {mode === "proof" && <ProofExercise />}
     </div>
   );
