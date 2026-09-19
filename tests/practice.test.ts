@@ -1171,6 +1171,33 @@ describe("logic statements read as English in every form", () => {
   });
 });
 
+describe("the equation checker accepts a correct answer however it is built", () => {
+  // A review of these items concluded that only the keyed form is accepted,
+  // reading the accept lists rather than the comparator. The comparator
+  // normalises, so these all pass; the test pins that down.
+  it("takes operands in either order, sides either way round, and angle names reversed", async () => {
+    const { READ_ITEMS } = await import("../src/practice/content/translate");
+    const T = await import("../src/practice/terms");
+    const { matchesAccepted, add, len, meas, num, mul, ang } = T;
+    const accept = (id: string, st: any) => {
+      const item = READ_ITEMS.find((i) => i.id === id)!;
+      return matchesAccepted(st, item.accept);
+    };
+    const L = (a: string, b: string) => len(a, b);
+    // Keyed AB + BC = AC.
+    expect(accept("between-sum", { k: "eq", l: add(L("B", "C"), L("A", "B")), r: L("A", "C") })).toBe(true);
+    expect(accept("between-sum", { k: "eq", l: L("A", "C"), r: add(L("A", "B"), L("B", "C")) })).toBe(true);
+    // Keyed m∠WVX + m∠XVY = m∠WVY.
+    expect(accept("whole-from-parts", { k: "eq", l: meas("WVY"), r: add(meas("WVX"), meas("XVY")) })).toBe(true);
+    // Keyed m∠AVC = 2 m∠AVD.
+    expect(accept("double-part", { k: "eq", l: mul(num(2), meas("AVD")), r: meas("AVC") })).toBe(true);
+    // Keyed ∠RVS ≅ ∠UVT; an angle may be named from either arm.
+    expect(accept("three-concurrent", { k: "cong", l: ang("RVS"), r: ang("TVU") })).toBe(true);
+    // The figure prints ∠DBA, so a student copying the figure builds that name.
+    expect(accept("linear-pair-180", { k: "eq", l: add(meas("DBA"), meas("DBC")), r: num(180) })).toBe(true);
+  });
+});
+
 describe("authored items are identified uniquely", () => {
   // Two items sharing an id collide wherever an id is used as a key. One such
   // pair went unnoticed until the content was listed out in full.

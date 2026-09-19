@@ -444,7 +444,7 @@ export const CONCEPTS: Concept[] = [
       "It is the vertical-angle argument stated in general: share a supplement, and what is left after subtracting it must be equal.",
     section: "§9",
     examples: [
-      { text: "∠1 and ∠3 are both supplements of ∠2, so the two must have equal measure." },
+      { text: "∠A and ∠B are both supplements of ∠C, so they must have equal measure." },
     ],
   },
   {
@@ -458,7 +458,7 @@ export const CONCEPTS: Concept[] = [
     section: "§9",
     examples: [
       { figure: "congruentComplements", caption: "∠1 and ∠3 are each complementary to the ∠2 between them." },
-      { text: "∠1 and ∠2 are each complements of ∠3, so the two must have equal measure." },
+      { text: "∠A is complementary to ∠C, ∠B is complementary to ∠D, and ∠C and ∠D have equal measure — so ∠A and ∠B do too." },
     ],
   },
   {

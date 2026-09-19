@@ -110,8 +110,8 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "perpendicular-bisector",
     steps: [
-      { text: "A perpendicular bisector does two jobs at once.", figure: "perpendicular" },
-      { text: "It passes through the midpoint, so it halves the segment.", marks: [shared(pt("P"))], assert: [{ statement: { k: "midpoint", p: "P", seg: seg("A", "B") }, holds: true }] },
+      { text: "A perpendicular bisector does two jobs at once.", figure: "perpBisector" },
+      { text: "The ticks mark AP ≅ PB, so P is the midpoint and the line halves AB. That is the first job, and it is the one the square does not tell you.", marks: [given(seg("A", "P")), given(seg("P", "B")), shared(pt("P"))], assert: [{ statement: { k: "midpoint", p: "P", seg: seg("A", "B") }, holds: true }] },
       { text: "And it meets the segment at 90°, marked by the square.", marks: [given(ang("APQ"))], assert: [{ statement: { k: "angleClass", ang: ang("APQ"), cls: "right" }, holds: true }] },
       { text: "Every perpendicular bisector is a bisector, but not every bisector is perpendicular. The arrow only points one way." },
     ],
