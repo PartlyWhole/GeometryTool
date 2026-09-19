@@ -385,11 +385,11 @@ export const COUNTEREXAMPLES: CounterexampleItem[] = [
       "Two 50° angles in different figures",
       "Two vertical angles at a crossing",
       "A 50° angle and a 130° angle",
-      "Two adjacent angles on a line",
+      "Two adjacent angles on a line measuring 120° and 60°",
     ],
     correct: 0,
     why:
-      "Congruent but unrelated angles satisfy the hypothesis and fail the conclusion. Option B confirms the claim rather than attacking it.",
+      "Congruent but unrelated angles satisfy the hypothesis and fail the conclusion. The vertical pair confirms the claim rather than attacking it, and the other two are not congruent at all, so they never satisfy the hypothesis.",
   },
   {
     id: "midpoint-converse",

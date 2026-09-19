@@ -99,7 +99,7 @@ export const CONCEPTS: Concept[] = [
     section: "§6",
     examples: [
       { figure: "markedPair", caption: "Matching tick marks say AD ≅ BC." },
-      { text: "AD measures 5 cm and BC measures 5 cm, so both carry one tick." },
+      { text: "AD measures 5 cm and BC measures 5 cm, so each carries the same tick mark." },
     ],
     watch:
       "One tick matches one tick; different numbers of ticks say nothing about each other.",

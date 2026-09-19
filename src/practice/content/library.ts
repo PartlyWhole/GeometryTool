@@ -401,6 +401,24 @@ export const linearPairCaseA = (): Board => measuredPair(130);
 export const linearPairCaseB = (): Board => measuredPair(90);
 export const linearPairCaseC = (): Board => measuredPair(35);
 
+/**
+ * The perpendicular figure with the halves ticked as well. A perpendicular
+ * bisector asserts two things, and a figure that marks only the right angle
+ * leaves the student to read the halving off the drawing — which is the habit
+ * the module exists to break.
+ */
+export const perpBisector = (): Board => {
+  const f = fig("Perpendicular bisector");
+  f.at("A", -160, 0).at("B", 160, 0);
+  f.seg("A", "B");
+  f.on("P", "A", "B", 0.5);
+  f.at("Q", 0, -150);
+  f.seg("P", "Q");
+  f.right("APQ");
+  f.tick(["A", "P"], ["P", "B"]);
+  return f.build();
+};
+
 export const LIBRARY: Record<string, () => Board> = {
   crossing,
   fan,
@@ -424,6 +442,7 @@ export const LIBRARY: Record<string, () => Board> = {
   congruentComplements,
   angleClasses,
   obliqueBisector,
+  perpBisector,
   justAPoint,
   aLine,
   linearPairCaseA,
