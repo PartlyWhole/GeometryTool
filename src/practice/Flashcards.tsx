@@ -102,7 +102,11 @@ function LogicDeck() {
         </div>
         {picked !== null && (
           <>
-            <Verdict ok={picked === card.correct}>{card.why}</Verdict>
+            <Verdict ok={picked === card.correct}>
+              {[card.whyPerChoice?.[picked], card.why]
+                .filter(Boolean)
+                .join(" ")}
+            </Verdict>
             <div className="row">
               <button className="primary" onClick={next}>Next card</button>
             </div>

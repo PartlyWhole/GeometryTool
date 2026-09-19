@@ -1136,6 +1136,33 @@ describe("logic statements read as English in every form", () => {
     }
   });
 
+  it("keeps the syllogism chains grammatical too", async () => {
+    const { CHAINS, chainText } = await import("../src/practice/content/logic");
+    for (const c of CHAINS)
+      for (const [a, b] of [["p", "q"], ["q", "r"], ["p", "r"], ["r", "p"], ["q", "p"]] as const) {
+        const t = chainText(c, a, b);
+        expect(t, c.id + " :: " + t).not.toMatch(/^If (it|they) (is|are|has|have|does|do|creates|measures|bisects|form) /);
+        expect(t, c.id + " :: " + t).not.toMatch(/, then an? /);
+      }
+  });
+
+  it("explains the option the student actually chose", async () => {
+    const { logicCards } = await import("../src/practice/content/logicCards");
+    let checked = 0;
+    for (let seed = 1; seed <= 40; seed++)
+      for (const card of logicCards(seed, 16)) {
+        if (card.tag !== "Negation") continue;
+        checked++;
+        // Every wrong option carries its own reason, and the shared line no
+        // longer recites all of them.
+        for (let i = 0; i < card.choices.length; i++)
+          if (i !== card.correct)
+            expect(card.whyPerChoice?.[i], card.id + " option " + i).toBeTruthy();
+        expect(card.why.length, card.id).toBeLessThan(90);
+      }
+    expect(checked).toBeGreaterThan(10);
+  });
+
   it("offers a distinct, complete sentence for every detachment option", async () => {
     const { logicCards } = await import("../src/practice/content/logicCards");
     for (let seed = 1; seed <= 40; seed++)

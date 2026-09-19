@@ -140,8 +140,8 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 
 ### Automated
 
-- `npm run check`: 102 tests, TypeScript, and the production build pass
-  (40 pre-existing whiteboard tests, 62 new).
+- `npm run check`: 107 tests, TypeScript, and the production build pass
+  (40 pre-existing whiteboard tests, 67 new).
 - Every generated multiple-choice card is asserted to carry four distinct
   options with a valid answer index and a real explanation.
 - Every one of the 11 authored proofs is replayed through the strict validator
@@ -331,6 +331,60 @@ and picking which marked angle a three-point name refers to.
   clicks the arc, and a genuinely different pair still fails.
 - The same fix removes a latent unfairness in the proof builder, where a given
   written as ∠1 would have rejected a line the student built as ∠AXC.
+
+### Seventh review pass — full content audit
+
+Every figure rendered and looked at, and all 589 distinct generated items
+read as prose: 135 concept questions, 146 logic cards, 308 naming items, 19
+translation items, 11 authored proofs and the 43-entry concept bank. Found:
+
+Correctness
+- The transitive proof said "prove AB ≅ CD" while its goal was AB ≅ AC, on a
+  three-point figure where that is impossible. Rebuilt on four collinear
+  points with three ticked pieces.
+- A figure of three angles totalling 180° was offered as illustrating
+  "Angles around a point", which is 360°. That concept now has a figure of
+  four rays closing the full turn.
+- "Only the segment has a length, because only the segment has two ends" was
+  offered as the *definition* of segment, ray and line. It is a remark about
+  them; replaced with a definition.
+
+Questions that could be answered without the geometry
+- "Which postulate says this?" offered two options that were not postulates,
+  halving the field by category alone. The kind is named only when three
+  same-kind distractors exist to go with it.
+- Two naming distractors could be one angle spelled two ways (∠CAV and ∠VAC),
+  so both could be struck out on sight. Options are deduplicated by canonical
+  key, and only one vertex-misplacement is offered.
+
+Feedback
+- Sixteen questions opened their explanation with the definition already
+  printed in the stem. Feedback never falls back to the definition now.
+- The Segment Addition Postulate's `because` and `watch` said the same thing,
+  so its feedback repeated itself.
+- Negation cards explained all three wrong options at once. Each option now
+  carries its own reason and only the chosen one is shown.
+- A figure caption restated its theorem instead of describing the figure.
+
+Language
+- Law of Syllogism chains stranded pronouns exactly as the conditionals had —
+  "If it is a rectangle, then it has four right angles" — because `CHAINS`
+  was a separate type the earlier fix did not reach.
+- Terms lacked articles: "an example of acute angle".
+- A coefficient of 1 printed as "1x" in the Given panel while the prompt said
+  "x".
+
+Figures
+- Arcs were drawn round every named angle, so four numbered angles at a
+  crossing read as a circle. An arc now means a congruence class, a right
+  angle, a stated measure or a highlight; a numbered angle gets its numeral.
+- Rays overshot the points naming them; angle figures stop at the point.
+- Right-angle numerals sat 60 units from an 18-unit square.
+- Numerals for two parts and their whole collided at a shared vertex.
+
+Also: an item promised in its explanation an answer it refused; two read items
+were near-duplicates; one drag task answered its own second half; one figure
+named angles ∠A, ∠B, ∠C at vertices V and W.
 
 ### Limitations
 

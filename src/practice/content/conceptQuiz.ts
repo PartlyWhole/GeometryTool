@@ -103,6 +103,7 @@ export const FIGURE_SHOWS: Record<string, string[]> = {
     "obtuse", "angle-addition",
   ],
   numberedCorner: ["adjacent", "angle-addition", "acute"],
+  aroundPoint: ["angles-around-point", "adjacent", "acute", "obtuse", "angle-addition"],
 };
 
 /**
@@ -121,7 +122,7 @@ const FIGURE_PRIMARY: Record<string, string> = {
   bisector: "angle-bisector",
   linearPair: "linear-pair",
   complementary: "complementary",
-  threeOnLine: "angles-around-point",
+  aroundPoint: "angles-around-point",
   markedPair: "congruent-segments",
   straightInDisguise: "straight",
 };
@@ -146,9 +147,13 @@ const usable = (c: Concept) => c.examples.some((e) => e.text || e.figure);
 /** The statement shown as an option; the full wording can be a reading test. */
 const optionText = (c: Concept) => c.brief ?? c.definition;
 
-/** Feedback that repeats the chosen answer teaches nothing. */
-const explain = (c: Concept) =>
-  [c.because ?? c.definition, c.watch].filter(Boolean).join(" ");
+/**
+ * Feedback that repeats the question teaches nothing. The definition is
+ * never used here: in a definition-to-term question it IS the stem, and in
+ * a term-to-definition question it is the answer. Every concept carries a
+ * `because` or a `watch` for this purpose, which a test enforces.
+ */
+const explain = (c: Concept) => [c.because, c.watch].filter(Boolean).join(" ");
 
 /**
  * A crude root, enough to see that two words are the same idea: drop a
@@ -246,6 +251,13 @@ function build(
   const candidates = siblings(r, c, 12);
   const others = candidates.slice(0, 3);
   if (others.length < 3) return;
+  // "Which postulate says this?" hands over half the answer when two of the
+  // four options are not postulates. Offer the kind-specific wording only
+  // when three same-kind distractors exist to go with it.
+  const sameKind = candidates.filter((o) => o.kind === c.kind);
+  // Only worth restricting when the stem will actually name the kind;
+  // otherwise topic similarity is the better guide.
+  const kindMatched = KIND_NOUN[c.kind] !== "term" && sameKind.length >= 3;
   const base = {
     conceptId: c.id,
     kind,
@@ -264,15 +276,17 @@ function build(
     return;
 
   if (kind === "def-to-term") {
+    const pool = kindMatched ? sameKind.slice(0, 3) : others;
     const choices = shuffle(r, [
       { text: c.term },
-      ...others.map((o) => ({ text: o.term })),
+      ...pool.map((o) => ({ text: o.term })),
     ]);
     return {
       ...base,
       prompt:
-        (noun === "term" ? "Which term does this define? " : "Which " + noun + " says this? ") +
-        quoted(c.definition),
+        (noun === "term" || !kindMatched
+          ? "Which of these does this define? "
+          : "Which " + noun + " says this? ") + quoted(c.definition),
       choices,
       correct: choices.findIndex((x) => x.text === c.term),
     };

@@ -67,7 +67,7 @@ export const CONCEPTS: Concept[] = [
     term: "Segment, ray and line",
     kind: "definition",
     definition:
-      "Only the segment has a length, because only the segment has two ends.",
+      "A line runs forever in both directions, a ray has one endpoint, and a segment has two — so only the segment has a length.",
     section: "§5",
     examples: [
       { text: "AB and BA name the same segment." },
@@ -102,7 +102,6 @@ export const CONCEPTS: Concept[] = [
     examples: [
       { text: "Three points, wherever they sit, always lie in one flat surface." },
       { text: "The four corners of a tabletop." },
-      { text: "Any three points are coplanar; four is the first number that can fail." },
     ],
   },
   {
@@ -130,13 +129,13 @@ export const CONCEPTS: Concept[] = [
     kind: "postulate",
     definition: "If B is between A and C, then AB + BC = AC.",
     because:
-      "The parts make the whole. Its usual disguise is a measurement where you know the whole and one part, so the postulate runs backwards as a subtraction.",
+      "The parts make the whole. Its usual disguise is a real-world measurement where you know the whole and one part, so the postulate runs backwards as a subtraction.",
     section: "§6",
     examples: [
       { figure: "collinear", caption: "The parts make the whole: AB + BC = AC." },
       { text: "Read backwards it is a subtraction: if AC = 80.5 and AB = 25.75, then BC = 54.75." },
     ],
-    watch: "Its usual disguise is a real-world measurement where you know the whole and one part.",
+
   },
   {
     id: "congruent-segments",
@@ -348,7 +347,7 @@ export const CONCEPTS: Concept[] = [
     section: "§8",
     examples: [
       { text: "Four angles at one vertex measuring 90°, 100°, 80° and 90° go once around." },
-      { figure: "threeOnLine", caption: "On one side of a straight line they total 180° instead." },
+      { figure: "aroundPoint", caption: "The four angles at V close the full turn." },
     ],
     watch: "Always look for the straight line first — it halves the arithmetic.",
   },
@@ -462,7 +461,7 @@ export const CONCEPTS: Concept[] = [
       "It is the bridge from a picture fact to a number fact. Seeing two angles sit on a line is what licenses writing “= 180”.",
     section: "§9",
     examples: [
-      { figure: "linearPair", caption: "Seeing the two angles sit on a line licenses writing “= 180”." },
+      { figure: "linearPair", caption: "Ray BD stands on line AC, so ∠ABD and ∠DBC sit on that line." },
       { text: "∠ABD and ∠DBC sit on line AC, so their measures total 180°." },
     ],
   },

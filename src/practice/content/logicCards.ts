@@ -10,6 +10,7 @@ import {
   type FormKind,
   NEGATIONS,
   biconditionalText,
+  chainText,
   equivalentForm,
   formText,
   sentenceOf,
@@ -25,6 +26,11 @@ export type LogicCard = {
   choices: string[];
   correct: number;
   why: string;
+  /**
+   * Feedback aimed at the option actually chosen. Explaining all three wrong
+   * answers at once buries the one the student needs.
+   */
+  whyPerChoice?: Record<number, string>;
 };
 
 const FORMS: FormKind[] = ["conditional", "converse", "inverse", "contrapositive"];
@@ -152,6 +158,11 @@ function biconditionalCard(r: () => number): LogicCard | undefined {
 function negationCard(r: () => number): LogicCard | undefined {
   const n = NEGATIONS[Math.floor(r() * NEGATIONS.length)];
   const choices = shuffle(r, [n.correct, ...n.wrong.map((w) => w.text)]);
+  const whyPerChoice: Record<number, string> = {};
+  choices.forEach((text, i) => {
+    const wrong = n.wrong.find((w) => w.text === text);
+    if (wrong) whyPerChoice[i] = wrong.why;
+  });
   return {
     id: "neg:" + n.id,
     tag: "Negation",
@@ -159,9 +170,8 @@ function negationCard(r: () => number): LogicCard | undefined {
     prompt: "What is the negation of the statement above?",
     choices,
     correct: choices.indexOf(n.correct),
-    why:
-      "The negation says only that the statement fails — nothing more. " +
-      n.wrong.map((w) => "“" + w.text + "”: " + w.why).join(" "),
+    why: "The negation says only that the statement fails — nothing more.",
+    whyPerChoice,
   };
 }
 
@@ -217,17 +227,17 @@ function detachmentCard(r: () => number): LogicCard | undefined {
 
 function syllogismCard(r: () => number): LogicCard | undefined {
   const c = CHAINS[Math.floor(r() * CHAINS.length)];
-  const target = `If ${c.p}, then ${c.r}.`;
+  const target = chainText(c, "p", "r");
   const choices = shuffle(r, [
     target,
-    `If ${c.r}, then ${c.p}.`,
-    `If ${c.q}, then ${c.p}.`,
+    chainText(c, "r", "p"),
+    chainText(c, "q", "p"),
     "Nothing follows — the middle terms do not match.",
   ]);
   return {
     id: "syll:" + c.id,
     tag: "Law of Syllogism",
-    context: [`If ${c.p}, then ${c.q}.`, `If ${c.q}, then ${c.r}.`],
+    context: [chainText(c, "p", "q"), chainText(c, "q", "r")],
     prompt: "What follows by the Law of Syllogism?",
     choices,
     correct: choices.indexOf(target),

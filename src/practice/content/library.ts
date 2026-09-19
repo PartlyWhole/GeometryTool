@@ -253,6 +253,22 @@ export const fourInARow = (): Board =>
     .tick(["A", "B"], ["B", "C"], ["C", "D"])
     .build();
 
+/** Four rays closing the full turn at V, with no straight line among them. */
+export const aroundPoint = (): Board => {
+  const f = fig("Angles around a point");
+  f.at("V", 0, 0);
+  for (const [l, d] of [
+    ["A", 20], ["B", 100], ["C", 170], ["D", 260],
+  ] as [string, number][]) {
+    const p = polar(0, 0, d, 150);
+    f.at(l, p.x, p.y);
+  }
+  ["A", "B", "C", "D"].forEach((l) => f.seg("V", l));
+  // Wider lane so the four numerals clear the vertex letter.
+  f.num("1", "AVB", 56).num("2", "BVC", 56).num("3", "CVD", 56).num("4", "DVA", 56);
+  return f.build();
+};
+
 export const LIBRARY: Record<string, () => Board> = {
   crossing,
   fan,
@@ -272,4 +288,5 @@ export const LIBRARY: Record<string, () => Board> = {
   suppAndCongruent,
   twoSupplementPairs,
   fourInARow,
+  aroundPoint,
 };

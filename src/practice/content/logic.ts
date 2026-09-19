@@ -409,6 +409,9 @@ export const COUNTEREXAMPLES: CounterexampleItem[] = [
 
 export type Chain = {
   id: string;
+  /** As for Conditional: when present, p/q/r are predicates about this. */
+  subject?: string;
+  pronoun?: "it" | "they";
   p: string;
   q: string;
   r: string;
@@ -424,9 +427,11 @@ export const CHAINS: Chain[] = [
   },
   {
     id: "vertical",
-    p: "two angles are vertical",
-    q: "they are congruent",
-    r: "their measures are equal",
+    subject: "two angles",
+    pronoun: "they",
+    p: "are vertical angles",
+    q: "are congruent",
+    r: "have equal measure",
   },
   {
     id: "midpoint",
@@ -436,14 +441,23 @@ export const CHAINS: Chain[] = [
   },
   {
     id: "linear",
-    p: "two angles form a linear pair",
-    q: "they are supplementary",
-    r: "their measures total 180°",
+    subject: "two angles",
+    pronoun: "they",
+    p: "form a linear pair",
+    q: "are supplementary",
+    r: "have measures totalling 180°",
   },
   {
     id: "square",
-    p: "a figure is a square",
-    q: "it is a rectangle",
-    r: "it has four right angles",
+    subject: "a figure",
+    p: "is a square",
+    q: "is a rectangle",
+    r: "has four right angles",
   },
 ];
+
+/** "If <chain p>, then <chain q>." with the subject kept where it belongs. */
+export function chainText(c: Chain, first: "p" | "q" | "r", second: "p" | "q" | "r") {
+  if (!c.subject) return `If ${c[first]}, then ${c[second]}.`;
+  return `If ${c.subject} ${c[first]}, then ${c.pronoun ?? "it"} ${c[second]}.`;
+}

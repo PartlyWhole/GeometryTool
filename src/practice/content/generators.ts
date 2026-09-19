@@ -147,7 +147,7 @@ export function nameItems(seed: number, count = 10): NameItem[] {
         answer,
         why:
           target.k === "ang"
-            ? "Reorder the letters and you name a different angle — the vertex must be in the middle."
+            ? "The middle letter names the vertex, so reordering the letters can name a different angle entirely."
             : "Either order names the same segment, but the letters must be its endpoints.",
       });
     }
