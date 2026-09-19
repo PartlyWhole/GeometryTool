@@ -272,7 +272,7 @@ function ConstructMode() {
             {item.require.map((s, n) => (
               <li key={n} className={met(s) ? "met" : ""}>
                 <span className="tick">{met(s) ? "✓" : "○"}</span>
-                {statementText(s)}
+                {n === 0 && item.goalText ? item.goalText : statementText(s)}
               </li>
             ))}
             {(item.forbid ?? []).map((s, n) => (

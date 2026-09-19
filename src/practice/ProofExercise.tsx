@@ -159,7 +159,11 @@ function ProofBoard(props: {
     setCites((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
 
   const reason = reasonById(reasonId);
-  const allowed = REASONS.filter((r) => !problem.forbid?.includes(r.id));
+  // Forbidden reasons stay in the list. Deleting them taught nothing: the
+  // student simply did not find what they were reaching for. Offered and then
+  // refused, the validator gets to say why citing the thing you are proving is
+  // circular, which is the lesson those problems exist for.
+  const allowed = REASONS;
 
   return (
     <div className="exercise proof">

@@ -159,7 +159,7 @@ export const CONDITIONALS: Conditional[] = [
     notQ: "does not divide the angle into two congruent angles",
     converseTrue: true,
     topic:
-      "A definition works in both directions — which is why you may apply it forwards or backwards in a proof. Say only “makes two congruent angles” and the converse fails: a ray outside the angle makes two congruent angles with its sides and bisects nothing.",
+      "“Divides” is the clause doing the work. Say only that the ray makes two congruent angles and the converse fails: a ray outside the angle makes two congruent angles with its sides and bisects nothing.",
   },
 ];
 

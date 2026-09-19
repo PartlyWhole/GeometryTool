@@ -24,6 +24,13 @@ export type StepItem = {
   answer: string;
   options: string[];
   why: string;
+  /**
+   * One explanation per offered reason, keyed by the name on the button: the
+   * rule itself for the answer, and the validator's own refusal for each
+   * wrong one. Showing the reason the student actually picked is the whole
+   * point of asking the validator in the first place.
+   */
+  whyByOption: Record<string, string>;
   tags?: string[];
 };
 
@@ -32,14 +39,14 @@ const CONFUSIONS: Record<string, string[]> = {
   symmetric: ["reflexive", "substitution", "transitive"],
   transitive: ["substitution", "symmetric", "reflexive"],
   substitution: ["transitive", "symmetric", "simplify"],
-  "addition-property": ["subtraction-property", "reflexive", "substitution"],
+  "addition-property": ["subtraction-property", "simplify", "substitution"],
   "subtraction-property": ["addition-property", "substitution", "division-property"],
   "multiplication-property": ["division-property", "addition-property", "distributive"],
   "division-property": ["multiplication-property", "subtraction-property", "simplify"],
   distributive: ["substitution", "simplify", "multiplication-property"],
   simplify: ["distributive", "substitution", "addition-property"],
   given: ["reflexive", "def-between", "substitution"],
-  "def-cong-ang": ["def-cong-seg", "vertical-angles-theorem", "right-angle-congruence"],
+  "def-cong-ang": ["def-cong-seg", "symmetric", "def-supplementary"],
   "def-cong-seg": ["def-cong-ang", "def-midpoint", "segment-addition"],
   "def-midpoint": ["def-seg-bisector", "def-cong-seg", "segment-addition"],
   "def-ang-bisector": ["def-seg-bisector", "def-cong-ang", "angle-addition"],
@@ -64,6 +71,20 @@ const shuffle = <T,>(r: () => number, xs: T[]) => {
   return a;
 };
 
+/**
+ * Steps this family leaves out. `supplementary-solve:9` asks the same
+ * Division-for-Multiplication question as `algebra-justify:4` on different
+ * numbers, and adds only eight lines of context a student can read the
+ * answer's pattern off instead of reading the line.
+ */
+const SKIP = ["supplementary-solve:9"];
+
+/** Could this reason rest on that many earlier lines? */
+const arityFits = (id: string, n: number) => {
+  const [lo, hi] = reasonById(id)!.cites;
+  return n >= lo && n <= hi;
+};
+
 /** Every step of every proof, as its own question. */
 export function stepItems(seed: number, count = 10): StepItem[] {
   const r = rng(seed);
@@ -75,14 +96,15 @@ export function stepItems(seed: number, count = 10): StepItem[] {
     const lines: ProofLine[] = [];
 
     steps.forEach((s, i) => {
+      const id = p.id + ":" + (i + 1);
       const cites = s.cites.map((n) => lines[n - 1]?.id ?? "missing");
       // A "Given" line teaches nothing here; the interesting steps are the
       // ones that draw a conclusion from earlier lines.
-      const worthAsking = s.reasonId !== "given" && out.length < count * 4;
+      const worthAsking =
+        s.reasonId !== "given" && !SKIP.includes(id) && out.length < count * 4;
       if (worthAsking) {
-        const wrong: string[] = [];
+        const wrong: { name: string; why: string; fits: boolean }[] = [];
         for (const candidate of CONFUSIONS[s.reasonId] ?? []) {
-          if (wrong.length >= 3) break;
           if (p.forbid?.includes(candidate)) continue;
           const check = validateLine(p, lines, {
             statement: s.statement,
@@ -90,12 +112,25 @@ export function stepItems(seed: number, count = 10): StepItem[] {
             cites,
           });
           // Only offer a reason the validator genuinely rejects here.
-          if (!check.ok) wrong.push(reasonById(candidate)!.name);
+          if (!check.ok)
+            wrong.push({
+              name: reasonById(candidate)!.name,
+              why: check.why,
+              fits: arityFits(candidate, s.cites.length),
+            });
         }
-        if (wrong.length >= 3) {
+        // The screen says how many earlier lines the step rests on. Unless
+        // one of the wrong reasons could rest on that many too, the count
+        // alone settles the question and the statement never has to be read.
+        const offer = [
+          ...wrong.filter((w) => w.fits),
+          ...wrong.filter((w) => !w.fits),
+        ].slice(0, 3);
+        if (offer.length >= 3 && offer.some((w) => w.fits)) {
           const answer = reasonById(s.reasonId)!.name;
+          const why = reasonById(s.reasonId)!.short;
           out.push({
-            id: p.id + ":" + (i + 1),
+            id,
             title: p.title,
             figure: p.figure,
             givens: p.givens,
@@ -107,8 +142,12 @@ export function stepItems(seed: number, count = 10): StepItem[] {
             cites: s.cites,
             statement: s.statement,
             answer,
-            options: shuffle(r, [answer, ...wrong.slice(0, 3)]),
-            why: reasonById(s.reasonId)!.short,
+            options: shuffle(r, [answer, ...offer.map((w) => w.name)]),
+            why,
+            whyByOption: Object.fromEntries([
+              [answer, why],
+              ...offer.map((w) => [w.name, w.why]),
+            ]),
             tags: p.tags,
           });
         }
@@ -116,5 +155,13 @@ export function stepItems(seed: number, count = 10): StepItem[] {
       lines.push({ id: "S" + (i + 1), statement: s.statement, reasonId: s.reasonId, cites });
     });
   }
-  return shuffle(r, out).slice(0, count);
+
+  // Seven of the steps ask the same question — which definition licenses a
+  // congruence — and Substitution answers five more, so an unfiltered draw
+  // repeats itself. Take one item per reason first, and only then fall back
+  // to a second helping of any reason.
+  const drawn = shuffle(r, out);
+  const used = new Set<string>();
+  const first = drawn.filter((x) => used.size !== used.add(x.answer).size);
+  return [...first, ...drawn.filter((x) => !first.includes(x))].slice(0, count);
 }

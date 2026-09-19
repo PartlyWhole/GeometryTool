@@ -25,12 +25,12 @@ export const CLAIM_ITEMS: ClaimItem[] = [
     figure: markedPair(),
     claims: [
       { statement: { k: "cong", l: seg("A", "D"), r: seg("B", "C") }, holds: true },
-      { statement: { k: "cong", l: seg("A", "E"), r: seg("E", "F") }, holds: false },
+      { statement: { k: "cong", l: seg("A", "E"), r: seg("F", "C") }, holds: false },
       { statement: { k: "cong", l: seg("B", "C"), r: seg("E", "F") }, holds: false },
       { statement: { k: "cong", l: seg("E", "B"), r: seg("D", "F") }, holds: true },
       { statement: { k: "cong", l: seg("E", "B"), r: seg("E", "F") }, holds: false },
     ],
-    why: "The double ticks give AD ≅ BC and the single ticks give EB ≅ DF. EF carries no ticks at all, so nothing on the figure relates it to anything, however the drawing looks.",
+    why: "The double ticks give AD ≅ BC and the single ticks give EB ≅ DF. Nothing else is marked: EF carries no ticks at all, and AE and FC are exactly the same length without carrying any either — which is not the same as the figure saying so.",
     tags: ["Form A, Q12", "Fig. 18"],
   },
   {
@@ -57,7 +57,7 @@ export const CLAIM_ITEMS: ClaimItem[] = [
       { statement: { k: "between", p: "M", a: "A", c: "B" }, holds: true },
       { statement: { k: "cong", l: seg("A", "M"), r: seg("A", "B") }, holds: false },
     ],
-    why: "Matching ticks on the two halves, with M drawn on AB, is exactly what makes M the midpoint. A half is never congruent to the whole.",
+    why: "Matching ticks on the two halves, with M drawn on AB, is exactly what makes M the midpoint. Betweenness carries no mark of its own, but a point drawn on a segment is a given fact, so M between A and B is asserted all the same. A half is never congruent to the whole.",
     tags: ["Fig. 9", "§6"],
   },
   {

@@ -59,7 +59,7 @@ export const READ_ITEMS: ReadItem[] = [
     prompt: "Ray BD stands on line AC. Write the equation this gives you.",
     figure: linearPair(),
     accept: [{ k: "eq", l: add(m("ABD"), m("DBC")), r: num(180) }],
-    why: "A linear pair, or angles filling one side of a line: the expressions sum to 180.",
+    why: "A linear pair, or angles filling one side of a line: the expressions sum to 180. Measuring the two parts and writing 115 + 65 = 180 is arithmetic about this one drawing; the equation has to name the angles, so that it still holds wherever ray BD stands.",
     allowForms: ["eq"],
     tags: ["§10", "Fig. 15"],
   },
@@ -79,7 +79,7 @@ export const READ_ITEMS: ReadItem[] = [
     accept: [
       { k: "eq", l: add(m("PVR"), m("RVS"), m("SVQ")), r: num(180) },
     ],
-    why: "Angles filling one side of a line sum to 180. Looking for the straight line first halves the arithmetic.",
+    why: "Angles filling one side of a line sum to 180. The three wedges look identical, but no arcs mark them congruent, so m∠PVR = m∠RVS = m∠SVQ is not something this figure gives you — the sum is.",
     allowForms: ["eq"],
     tags: ["§10", "Fig. 16"],
   },
@@ -157,14 +157,13 @@ export const READ_ITEMS: ReadItem[] = [
   {
     id: "supplements-of-congruent",
     prompt:
-      "The arcs mark ∠3 ≅ ∠4, and each sits on a straight line. Write what the figure says about ∠1 and ∠3.",
+      "The arcs mark ∠3 ≅ ∠4, and each pair of numbered angles sits on a straight line. Write what follows about ∠1 and ∠2.",
     figure: twoSupplementPairs(),
     accept: [
-      { k: "supp", a: ang("1"), b: ang("3") },
-      { k: "eq", l: add(m("1"), m("3")), r: num(180) },
-      { k: "linearPair", a: ang("1"), b: ang("3") },
+      { k: "cong", l: ang("1"), r: ang("2") },
+      { k: "eq", l: m("1"), r: m("2") },
     ],
-    why: "∠1 and ∠3 are adjacent with their outer sides on one line, so they are a linear pair and therefore supplementary.",
+    why: "∠1 is the supplement of ∠3 and ∠2 the supplement of ∠4, and the arcs make ∠3 ≅ ∠4. Supplements of congruent angles are congruent, so ∠1 ≅ ∠2 — which is why the figure carries two vertices rather than one.",
     tags: ["§9"],
   },
   {
@@ -190,13 +189,12 @@ export const READ_ITEMS: ReadItem[] = [
   {
     id: "cc-step5",
     prompt:
-      "Both sums equal 90, and subtracting the shared ∠2 leaves m∠1 = m∠3. Write the conclusion about ∠1 and ∠3 as a congruence.",
+      "Both sums equal 90, and ∠2 is the part they share. Write the conclusion about ∠1 and ∠3 as a congruence.",
     figure: congruentComplements(),
-    accept: [
-      { k: "cong", l: ang("1"), r: ang("3") },
-      { k: "eq", l: m("1"), r: m("3") },
-    ],
-    why: "Equal measures become a congruence by the definition of congruent angles — the last line of the proof, and the statement of the Congruent Complements Theorem.",
+    // The measure form is deliberately not accepted: writing equal measures as
+    // a congruence between the angles is the whole of what this step teaches.
+    accept: [{ k: "cong", l: ang("1"), r: ang("3") }],
+    why: "Subtracting the shared ∠2 leaves the two measures equal. m∠1 = m∠3 is true, but equal measures become a congruence by the definition of congruent angles: ∠1 ≅ ∠3 is the last line of the proof, and the statement of the Congruent Complements Theorem.",
     tags: ["§9", "step 5"],
   },
   {
@@ -219,6 +217,13 @@ export type ConstructItem = {
   start: Board;
   /** Every one of these must hold when they are done. */
   require: Statement[];
+  /**
+   * What the checklist says the goal is, when the condition is keyed on an
+   * equivalent quantity. Asking for one part while checking the other is the
+   * point of some tasks, and printing the keyed statement would hand over the
+   * conversion the student is supposed to make.
+   */
+  goalText?: string;
   /** None of these may hold — for "supplementary but not a linear pair". */
   forbid?: Statement[];
   /** Which points the task invites the student to move. */
@@ -227,14 +232,25 @@ export type ConstructItem = {
   tags?: string[];
 };
 
+// The right-angle drag comes first: one condition and one number, which makes
+// it the place to learn the interaction rather than a task to be set later.
 export const CONSTRUCT_ITEMS: ConstructItem[] = [
+  {
+    id: "make-right",
+    movable: ["D"],
+    prompt: "A warm-up for the dragging tasks: drag D until ∠ABD is a right angle.",
+    start: linearPair(),
+    require: [{ k: "angleClass", ang: ang("ABD"), cls: "right" }],
+    why: "A right angle measures exactly 90°. This one is about the interaction — drag, watch the checklist, then Check; the tasks after it ask for a relationship rather than a single reading.",
+    tags: ["§8"],
+  },
   {
     id: "make-midpoint",
     movable: ["B"],
-    prompt: "Drag B until it is the midpoint of AC.",
+    prompt: "Work out what AB must read at the midpoint before you move anything, then drag B until it is the midpoint of AC.",
     start: collinear(),
     require: [{ k: "midpoint", p: "B", seg: seg("A", "C") }],
-    why: "A midpoint divides the segment into two congruent halves. Dragging is checked to within a small tolerance; on paper the two halves are exactly equal.",
+    why: "A midpoint divides the segment into two congruent halves, so AB has to come to half of AC — work that out first and the definition does the job rather than the readout. Dragging is checked to within a small tolerance; on paper the two halves are exactly equal.",
     tags: ["§6"],
   },
   {
@@ -250,24 +266,18 @@ export const CONSTRUCT_ITEMS: ConstructItem[] = [
     tags: ["§8"],
   },
   {
-    id: "make-right",
-    movable: ["D"],
-    prompt: "Drag D until ∠ABD is a right angle.",
-    start: linearPair(),
-    require: [{ k: "angleClass", ang: ang("ABD"), cls: "right" }],
-    why: "A right angle measures exactly 90°.",
-    tags: ["§8"],
-  },
-  {
     id: "make-complementary",
     movable: ["D"],
-    prompt: "∠AVC is a right angle. Drag D until m∠AVD measures 30°.",
+    prompt: "∠AVC is a right angle. Drag D until m∠DVC measures 60°.",
     start: complementary(),
+    // Keyed on the other part, which is the one the readout tracks: the
+    // student has to take 60 from 90 before the numbers are any use.
+    goalText: "m∠DVC = 60",
     require: [
       { k: "eq", l: m("AVD"), r: num(30) },
       { k: "interior", p: "D", ang: ang("AVC") },
     ],
-    why: "The two parts of a right angle are complementary, so once ∠AVD is 30° the other must be 60°.",
+    why: "The two parts of a right angle are complementary, so asking for a 60° ∠DVC is asking for ∠AVD at 30°.",
     tags: ["§8"],
   },
   {
@@ -291,7 +301,7 @@ export const CONSTRUCT_ITEMS: ConstructItem[] = [
     require: [{ k: "supp", a: ang("1"), b: ang("2") }],
     forbid: [{ k: "linearPair", a: ang("1"), b: ang("2") }],
     why:
-      "A linear pair is always supplementary, but supplementary angles need not be a linear pair. These two never touch, so no amount of dragging could make them one — which is exactly the point.",
+      "A linear pair is always supplementary, but supplementary angles need not be a linear pair. These two never touch, so no amount of dragging could make them one — the “not a linear pair” row was green before you moved anything, and stays green whatever you do. That is exactly the point.",
     tags: ["§8"],
   },
   {

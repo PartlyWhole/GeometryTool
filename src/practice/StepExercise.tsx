@@ -118,7 +118,11 @@ export function StepExercise() {
 
           {picked !== null && (
             <>
-              <Verdict ok={picked === item.answer}>{item.why}</Verdict>
+              {/* The validator's own refusal of the option actually chosen,
+                  rather than a gloss of the right answer. */}
+              <Verdict ok={picked === item.answer}>
+                {item.whyByOption?.[picked] ?? item.why}
+              </Verdict>
               <div className="row">
                 <button className="primary" onClick={next}>Next step</button>
               </div>
