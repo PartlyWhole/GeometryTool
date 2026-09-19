@@ -1443,3 +1443,20 @@ describe("multi-part questions", () => {
       }
   });
 });
+
+describe("a stem never contradicts what it is asking about", () => {
+  it("does not ask which term an undefined term defines", async () => {
+    const { conceptQuestions } = await import("../src/practice/content/conceptQuiz");
+    const { CONCEPTS } = await import("../src/practice/content/concepts");
+    let checked = 0;
+    for (let seed = 1; seed <= 60; seed++)
+      for (const q of conceptQuestions(seed, 14)) {
+        const c = CONCEPTS.find((x) => x.id === q.conceptId)!;
+        if (c.kind !== "undefined term") continue;
+        checked++;
+        // "Accepted without definition" cannot be what something defines.
+        expect(q.prompt, q.id + " :: " + q.prompt).not.toMatch(/\bdefines?\b/);
+      }
+    expect(checked).toBeGreaterThan(5);
+  });
+});

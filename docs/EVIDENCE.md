@@ -459,6 +459,16 @@ Part B harder than the paper intends. Tests assert that the two parts of a
 generated question never share an answer — Part B would teach nothing — and
 that Part B's trap value is exactly Part A's answer.
 
+### A stem that contradicted itself
+
+"Which of these does this define? *Accepted without definition. Everything
+else in geometry is defined using them.*" — asking which term a statement
+defines, about the three terms that are defined by nothing. The same class of
+error as offering a remark in place of a definition, caught earlier for
+segment/ray/line and missed here. Undefined terms are now asked with
+"describe" rather than "define", and a test asserts the word "define" never
+appears in a question about them.
+
 ### Limitations
 
 - Proof checking validates the step you claim under the rules in the

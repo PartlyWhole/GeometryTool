@@ -52,7 +52,7 @@ export const CONCEPTS: Concept[] = [
     term: "Point, line and plane",
     kind: "undefined term",
     definition:
-      "Accepted without definition. Everything else in geometry is defined using them.",
+      "The three terms accepted without definition; everything else in geometry is defined using them.",
     section: "§5",
     examples: [
       { text: "A point has position and no size." },

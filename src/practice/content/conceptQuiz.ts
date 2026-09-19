@@ -266,6 +266,9 @@ function build(
     watch: c.watch,
   };
   const noun = KIND_NOUN[c.kind];
+  // An undefined term is not defined by anything — asking which term a
+  // statement "defines" contradicts the statement itself.
+  const verb = c.kind === "undefined term" ? "describe" : "define";
 
   // Both definition directions are unusable when the definition restates the
   // term. Such concepts are still reachable through their examples.
@@ -285,7 +288,7 @@ function build(
       ...base,
       prompt:
         (noun === "term" || !kindMatched
-          ? "Which of these does this define? "
+          ? `Which of these does this ${verb}? `
           : "Which " + noun + " says this? ") + quoted(c.definition),
       choices,
       correct: choices.findIndex((x) => x.text === c.term),
@@ -303,7 +306,7 @@ function build(
       // say?" rather than "Which statement defines Law of Syllogism?".
       prompt: isNamedRule(c.term)
         ? "What does the " + c.term + " say?"
-        : "Which statement defines " + termPhrase(c) + "?",
+        : `Which statement ${verb}s ` + termPhrase(c) + "?",
       choices,
       correct: choices.findIndex((x) => x.text === optionText(c)),
     };
