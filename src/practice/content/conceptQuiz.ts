@@ -196,10 +196,11 @@ export function givesItAway(text: string, term: string): boolean {
  * sit anywhere in the name: "Multiplication Property of Equality" ends with
  * "Equality", not with "Property".
  */
+const isNamedRule = (term: string) =>
+  /\b(Theorem|Postulate|Property|Law)\b/.test(term);
+
 const inSentence = (term: string) =>
-  /\b(Theorem|Postulate|Property|Law)\b/.test(term)
-    ? term
-    : term.charAt(0).toLowerCase() + term.slice(1);
+  isNamedRule(term) ? term : term.charAt(0).toLowerCase() + term.slice(1);
 
 const KIND_NOUN: Record<Concept["kind"], string> = {
   "undefined term": "term",
@@ -278,10 +279,11 @@ function build(
     ]);
     return {
       ...base,
-      prompt:
-        c.kind === "theorem" || c.kind === "postulate"
-          ? "What does the " + c.term + " say?"
-          : "Which statement defines " + inSentence(c.term) + "?",
+      // A named rule is stated, not defined: "What does the Law of Syllogism
+      // say?" rather than "Which statement defines Law of Syllogism?".
+      prompt: isNamedRule(c.term)
+        ? "What does the " + c.term + " say?"
+        : "Which statement defines " + inSentence(c.term) + "?",
       choices,
       correct: choices.findIndex((x) => x.text === optionText(c)),
     };
