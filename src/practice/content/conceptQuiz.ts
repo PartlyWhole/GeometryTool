@@ -37,6 +37,68 @@ function siblings(r: () => number, c: Concept, n: number): Concept[] {
   return [...shuffle(r, same), ...shuffle(r, rest)].slice(0, n);
 }
 
+/**
+ * What each figure genuinely shows. A figure illustrates many things at once:
+ * the perpendicular figure also contains a linear pair of two right angles,
+ * which are therefore supplementary. Offering one of those as a distractor
+ * makes the question have two right answers, so they are excluded.
+ */
+export const FIGURE_SHOWS: Record<string, string[]> = {
+  perpendicular: [
+    "perpendicular", "right", "supplementary", "linear-pair", "adjacent",
+    "between", "collinear", "midpoint", "perpendicular-bisector",
+    "segment-bisector", "congruent-segments", "segment-addition",
+    "angle-addition", "linear-pair-theorem", "straight",
+  ],
+  crossing: [
+    "vertical-angles", "linear-pair", "adjacent", "supplementary", "collinear",
+    "straight", "vertical-angles-theorem", "linear-pair-theorem", "acute",
+    "obtuse", "angle-addition",
+  ],
+  fan: ["congruent-angles", "angle-addition", "adjacent", "acute"],
+  collinear: ["collinear", "between", "segment-addition", "straight"],
+  notBetween: ["collinear", "straight", "segment-addition"],
+  midpoint: [
+    "midpoint", "congruent-segments", "collinear", "between",
+    "segment-addition", "segment-bisector", "straight",
+  ],
+  bisector: [
+    "angle-bisector", "congruent-angles", "angle-addition", "adjacent", "acute",
+  ],
+  linearPair: [
+    "linear-pair", "supplementary", "adjacent", "linear-pair-theorem",
+    "collinear", "straight", "angle-addition", "acute", "obtuse",
+  ],
+  complementary: [
+    "complementary", "right", "adjacent", "angle-addition", "acute",
+    "perpendicular", "angle-bisector",
+  ],
+  threeOnLine: [
+    "supplementary", "adjacent", "angles-around-point", "straight",
+    "collinear", "angle-addition", "acute",
+  ],
+  markedPair: [
+    "congruent-segments", "between", "collinear", "segment-addition",
+  ],
+  straightInDisguise: [
+    "straight", "vertical-angles", "linear-pair", "supplementary", "adjacent",
+    "collinear", "vertical-angles-theorem", "linear-pair-theorem", "acute",
+    "obtuse", "angle-addition",
+  ],
+  numberedCorner: ["adjacent", "angle-addition", "acute"],
+};
+
+/** Distractor examples, taken from as far down the candidate list as needed. */
+function otherExamples(pool: Concept[], n: number): Example[] {
+  const out: Example[] = [];
+  for (const o of pool) {
+    const e = o.examples.find((x) => x.text);
+    if (e) out.push(e);
+    if (out.length === n) break;
+  }
+  return out;
+}
+
 const exampleText = (e: Example) => e.text ?? e.caption ?? "";
 
 /** Some examples are already quoted speech; do not quote them twice. */
@@ -61,6 +123,18 @@ const root = (w: string) => {
   return bare.slice(0, 6);
 };
 
+/** Notation says the word out loud: "PQ ⊥ AB" names perpendicularity. */
+const SYMBOL_WORDS: [RegExp, string][] = [
+  [/⊥/g, " perpendicular "],
+  [/∥/g, " parallel "],
+  [/≅/g, " congruent "],
+  [/∠/g, " angle "],
+  [/°/g, " degrees "],
+];
+
+const spellOut = (t: string) =>
+  SYMBOL_WORDS.reduce((acc, [re, word]) => acc.replace(re, word), t);
+
 /** Words too common across the module to carry any signal. */
 const STOP = new Set(
   ["of", "the", "a", "an", "and", "or", "to", "in", "on", "property",
@@ -81,7 +155,7 @@ export function givesItAway(text: string, term: string): boolean {
     .map(root)
     .filter((w) => w.length > 2 && !STOP.has(w));
   if (!wanted.length) return false;
-  const words = new Set(text.split(/[\s,.;:—–()"'“”]+/).map(root));
+  const words = new Set(spellOut(text).split(/[\s,.;:—–()"'“”]+/).map(root));
   return wanted.every((w) => words.has(w));
 }
 
@@ -126,7 +200,8 @@ function build(
   c: Concept,
   kind: ConceptQuestion["kind"],
 ): ConceptQuestion | undefined {
-  const others = siblings(r, c, 3);
+  const candidates = siblings(r, c, 12);
+  const others = candidates.slice(0, 3);
   if (others.length < 3) return;
   const base = {
     conceptId: c.id,
@@ -182,9 +257,16 @@ function build(
     );
     if (!pool.length) return;
     const ex = pool[Math.floor(r() * pool.length)];
+    // A figure shows several things at once, so a distractor that is also
+    // true of it would give the question two right answers.
+    const alsoShown = ex.figure ? (FIGURE_SHOWS[ex.figure] ?? []) : [];
+    const safe = candidates.filter(
+      (o) => o.id !== c.id && !alsoShown.includes(o.id),
+    );
+    if (safe.length < 3) return;
     const choices = shuffle(r, [
       { text: c.term },
-      ...others.map((o) => ({ text: o.term })),
+      ...safe.slice(0, 3).map((o) => ({ text: o.term })),
     ]);
     return {
       ...base,
@@ -204,9 +286,7 @@ function build(
   );
   if (!mine.length) return;
   const ex = mine[Math.floor(r() * mine.length)];
-  const wrong = others
-    .map((o) => o.examples.find((e) => e.text))
-    .filter((e): e is Example => !!e?.text);
+  const wrong = otherExamples(candidates, 3);
   if (wrong.length < 3) return;
   const choices = shuffle(r, [
     { text: ex.text! },

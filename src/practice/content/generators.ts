@@ -24,9 +24,21 @@ import { figureObjects } from "../inventory";
 import { measureOf, threePointName } from "../oracle";
 import { LIBRARY } from "./library";
 
-/** Small deterministic generator, so a seed reproduces a whole session. */
+/**
+ * Small deterministic generator, so a seed reproduces a whole session.
+ *
+ * The seed is avalanched first. Raw xorshift from nearby seeds yields
+ * correlated opening values, which biased the concept shuffle enough that one
+ * concept never reached the front of the list across three hundred
+ * consecutive seeds.
+ */
 export function rng(seed: number) {
   let s = seed >>> 0 || 1;
+  s = Math.imul(s ^ 0x9e3779b9, 0x85ebca6b) >>> 0;
+  s ^= s >>> 13;
+  s = Math.imul(s, 0xc2b2ae35) >>> 0;
+  s ^= s >>> 16;
+  if (s === 0) s = 1;
   return () => {
     s ^= s << 13;
     s ^= s >>> 17;

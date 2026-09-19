@@ -140,8 +140,8 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 
 ### Automated
 
-- `npm run check`: 85 tests, TypeScript, and the production build pass
-  (40 pre-existing whiteboard tests, 45 new).
+- `npm run check`: 87 tests, TypeScript, and the production build pass
+  (40 pre-existing whiteboard tests, 47 new).
 - Every generated multiple-choice card is asserted to carry four distinct
   options with a valid answer index and a real explanation.
 - Every one of the 11 authored proofs is replayed through the strict validator
@@ -248,6 +248,33 @@ New exercise, at the user's request: naming items that move between the two
 ways of naming an angle — clicking the three points that name a marked ∠2,
 and picking which marked angle a three-point name refers to.
 
+### Third review pass
+
+- The concept quiz asked "Which term does this figure illustrate?" over the
+  perpendicular figure and offered "Supplementary angles" as a distractor. The
+  figure contains a linear pair of two right angles, which *are*
+  supplementary, so the question had two correct answers. A figure now
+  declares every concept it genuinely shows, and none of those may be offered
+  against it.
+- The same figure's caption read "PQ ⊥ AB", stating the answer in notation the
+  word-based leak check could not see. Notation is now spelled out before the
+  check, so ⊥, ∥ and ≅ count as their words.
+- Two concepts, then two more, silently produced no questions at all once the
+  leak guard was added — the guard suppressed both definition directions and
+  their only examples leaked too. Distractors are now drawn from a wider
+  candidate list, the affected concepts gained non-leaky examples, and a test
+  asserts every concept in the bank can still be asked about.
+- `undefined-terms` produced nothing for a subtler reason: `rng` is an
+  xorshift seeded directly, and consecutive small seeds gave correlated
+  opening values, which biased the shuffle enough that one concept never
+  reached the front of the list across three hundred seeds. The seed is now
+  avalanched before use. The application passes large random seeds, so this
+  was invisible in normal use and only showed under a systematic sweep.
+- Added a build id, shown at the foot of the Practice and Cards pages and set
+  from the commit SHA in CI. Several defects in this session were reported
+  against a cached bundle that already contained the fix; the stamp makes that
+  answerable instead of guesswork.
+
 ### Limitations
 
 - Proof checking validates the step you claim under the rules in the
@@ -260,3 +287,6 @@ and picking which marked angle a three-point name refers to.
   exercises, compass-and-straightedge constructions, teacher authoring.
 - Touch-drag, screen readers, cross-browser behaviour and independent
   mathematical review remain unverified.
+- Which concepts a figure shows is an authored table, not derived from the
+  geometry. Adding a figure means adding its row, or a question may end up
+  with two right answers.

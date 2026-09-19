@@ -34,7 +34,7 @@ import {
 import { type SolveResult } from "./solver";
 import { Practice } from "./practice/Practice";
 import { Flashcards } from "./practice/Flashcards";
-import { PageNav, type Page } from "./practice/ui";
+import { BuildStamp, PageNav, type Page } from "./practice/ui";
 import "./style.css";
 import "./practice/practice.css";
 const KEY = "geometry-whiteboard-v1";
@@ -642,6 +642,7 @@ function App() {
           <PageNav value={page} onChange={setPage} />
         </div>
         {page === "practice" ? <Practice /> : <Flashcards />}
+        <BuildStamp />
       </div>
     );
   return (

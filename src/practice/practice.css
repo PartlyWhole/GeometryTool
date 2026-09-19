@@ -874,3 +874,11 @@ code.answer.empty { color: var(--muted); font-size: 14px; }
   font-size: 16px;
   font-variant-numeric: tabular-nums;
 }
+
+.buildstamp {
+  margin: 34px 0 0;
+  text-align: center;
+  font-size: 11px;
+  color: #a4aaa8;
+  font-variant-numeric: tabular-nums;
+}

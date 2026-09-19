@@ -100,6 +100,8 @@ export const CONCEPTS: Concept[] = [
       "Any three points are coplanar; four is the first number that can fail.",
     section: "§5",
     examples: [
+      { text: "Three points, wherever they sit, always lie in one flat surface." },
+      { text: "The four corners of a tabletop." },
       { text: "Any three points are coplanar; four is the first number that can fail." },
     ],
   },
@@ -112,6 +114,7 @@ export const CONCEPTS: Concept[] = [
     section: "§5",
     examples: [
       { figure: "collinear", caption: "B lies on AC, with A and C on either side of it." },
+      { text: "AB = 3 and BC = 1, and the whole of AC measures 4." },
     ],
     nonExamples: [
       { figure: "notBetween", caption: "All three are collinear, but C is not between A and B in the way AB + BC = AC needs." },
@@ -143,6 +146,7 @@ export const CONCEPTS: Concept[] = [
     section: "§6",
     examples: [
       { figure: "markedPair", caption: "Matching tick marks say AD ≅ BC." },
+      { text: "AD measures 5 cm and BC measures 5 cm, so both carry one tick." },
     ],
     watch:
       "One tick matches one tick; different numbers of ticks say nothing about each other.",
@@ -233,6 +237,7 @@ export const CONCEPTS: Concept[] = [
     section: "§8",
     examples: [
       { figure: "fan", caption: "Matching arcs say ∠WVX ≅ ∠YVZ." },
+      { text: "m∠A = 40° and m∠B = 40°, so both are drawn with one arc." },
     ],
     watch: "Size of the arc means nothing; the number of arcs is what matches.",
   },
@@ -458,6 +463,7 @@ export const CONCEPTS: Concept[] = [
     section: "§9",
     examples: [
       { figure: "linearPair", caption: "Seeing the two angles sit on a line licenses writing “= 180”." },
+      { text: "∠ABD and ∠DBC sit on line AC, so their measures total 180°." },
     ],
   },
   {
@@ -470,6 +476,7 @@ export const CONCEPTS: Concept[] = [
     section: "§9",
     examples: [
       { figure: "crossing", caption: "∠1 ≅ ∠3 and ∠2 ≅ ∠4, for any two crossing lines." },
+      { text: "Two lines cross; the angle facing ∠1 across the crossing has the same measure." },
     ],
   },
   {
@@ -483,7 +490,7 @@ export const CONCEPTS: Concept[] = [
       "It is the vertical-angle argument stated in general: share a supplement, and what is left after subtracting it must be equal.",
     section: "§9",
     examples: [
-      { text: "∠1 and ∠3 are both supplements of ∠2, so ∠1 ≅ ∠3." },
+      { text: "∠1 and ∠3 are both supplements of ∠2, so the two must have equal measure." },
     ],
   },
   {
@@ -496,7 +503,7 @@ export const CONCEPTS: Concept[] = [
     because: "Identical reasoning to congruent supplements, at 90° instead of 180°.",
     section: "§9",
     examples: [
-      { text: "∠1 and ∠2 are each complementary to ∠3, so ∠1 ≅ ∠2." },
+      { text: "∠1 and ∠2 are each complements of ∠3, so the two must have equal measure." },
     ],
   },
   {

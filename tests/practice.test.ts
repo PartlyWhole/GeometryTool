@@ -698,6 +698,9 @@ describe("flashcard content is well formed", () => {
       ["All right angles are congruent.", "Right Angle Congruence Theorem"],
       ["Points that lie on one line are collinear.", "Collinear"],
       ["Point B is between A and C.", "Betweenness"],
+      // Notation says the word out loud.
+      ["PQ ⊥ AB.", "Perpendicular"],
+      ["AB ∥ CD.", "Parallel"],
     ] as [string, string][])
       expect(givesItAway(text, term), term).toBe(true);
     // Cases that must not be, or good questions would be suppressed.
@@ -754,6 +757,36 @@ describe("flashcard content is well formed", () => {
     for (let seed = 1; seed <= 40; seed++)
       for (const q of conceptQuestions(seed, 14))
         expect(q.prompt, q.id).not.toMatch(/[a-z]\w* (Angles|Pair|Addition) /);
+  });
+
+  it("never offers a distractor that the figure also shows", async () => {
+    const { conceptQuestions, FIGURE_SHOWS } = await import(
+      "../src/practice/content/conceptQuiz"
+    );
+    const { CONCEPTS } = await import("../src/practice/content/concepts");
+    const byTerm = new Map(CONCEPTS.map((c) => [c.term, c.id]));
+    for (let seed = 1; seed <= 80; seed++)
+      for (const q of conceptQuestions(seed, 14)) {
+        if (!q.figure || q.kind !== "example-to-term") continue;
+        const shown = FIGURE_SHOWS[q.figure] ?? [];
+        for (const choice of q.choices) {
+          const id = byTerm.get(choice.text);
+          if (!id || id === q.conceptId) continue;
+          // The perpendicular figure also contains supplementary angles, so
+          // "Supplementary angles" must not be offered against it.
+          expect(shown.includes(id), q.id + " offered " + choice.text).toBe(false);
+        }
+      }
+  });
+
+  it("covers every concept", async () => {
+    const { conceptQuestions } = await import("../src/practice/content/conceptQuiz");
+    const { CONCEPTS } = await import("../src/practice/content/concepts");
+    const seen = new Set<string>();
+    for (let seed = 1; seed <= 200; seed++)
+      for (const q of conceptQuestions(seed, 14)) seen.add(q.conceptId);
+    const missing = CONCEPTS.filter((c) => !seen.has(c.id)).map((c) => c.id);
+    expect(missing).toEqual([]);
   });
 
   it("offers four distinct options on every concept question", async () => {

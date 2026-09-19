@@ -77,6 +77,14 @@ export function Hints(props: { hints?: string[]; shown: number; onMore: () => vo
   );
 }
 
+declare const __BUILD_ID__: string;
+
+/** Shown small at the foot of a page, to identify a cached build. */
+export function BuildStamp() {
+  const id = typeof __BUILD_ID__ === "string" ? __BUILD_ID__ : "dev";
+  return <p className="buildstamp">Build {id}</p>;
+}
+
 export type Page = "board" | "practice" | "cards";
 
 export function PageNav(props: {
