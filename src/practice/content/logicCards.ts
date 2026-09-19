@@ -12,6 +12,7 @@ import {
   biconditionalText,
   equivalentForm,
   formText,
+  sentenceOf,
 } from "./logic";
 import { rng } from "./generators";
 
@@ -195,20 +196,20 @@ function counterexampleCard(r: () => number): LogicCard | undefined {
 
 function detachmentCard(r: () => number): LogicCard | undefined {
   const c = CONDITIONALS[Math.floor(r() * CONDITIONALS.length)];
-  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const conclusion = sentenceOf(c, "q");
   const choices = shuffle(r, [
-    cap(c.q) + ".",
-    cap(c.p) + ".",
-    cap(c.notQ) + ".",
+    conclusion,
+    sentenceOf(c, "p"),
+    sentenceOf(c, "notQ"),
     "Nothing follows.",
   ]);
   return {
     id: "detach:" + c.id,
     tag: "Law of Detachment",
-    context: [formText(c, "conditional"), cap(c.p) + "."],
+    context: [formText(c, "conditional"), sentenceOf(c, "p")],
     prompt: "What follows by the Law of Detachment?",
     choices,
-    correct: choices.indexOf(cap(c.q) + "."),
+    correct: choices.indexOf(conclusion),
     why:
       "A rule, plus a case that fires it, detaches the conclusion. The hypothesis is satisfied, so the conclusion holds.",
   };

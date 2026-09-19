@@ -45,11 +45,17 @@ function termText(t: Term, ctx = 0): string {
     case "div":
       return wrap(termText(t.n, 2) + "/" + termText(t.d, 2), 1);
     case "mul": {
-      const parts = t.ts.map((x) => termText(x, 2));
-      // 2x rather than 2·x when a bare coefficient leads.
-      const juxtapose =
-        t.ts.length === 2 && t.ts[0].k === "num" && t.ts[1].k !== "num";
-      return wrap(juxtapose ? parts.join("") : parts.join(" · "), 1);
+      // A coefficient of 1 is not written, and −1 is written as a bare minus.
+      const lead = t.ts[0];
+      if (t.ts.length === 2 && lead.k === "num" && t.ts[1].k !== "num") {
+        const rest = t.ts[1];
+        if (Math.abs(lead.v - 1) < 1e-12) return termText(rest, ctx);
+        if (Math.abs(lead.v + 1) < 1e-12) return wrap("−" + termText(rest, 2), 1);
+        // "3x", but "2 m∠ABC" — a measure needs the gap to stay readable.
+        const gap = rest.k === "meas" || rest.k === "len" ? " " : "";
+        return wrap(NUM(lead.v) + gap + termText(rest, 2), 1);
+      }
+      return wrap(t.ts.map((x) => termText(x, 2)).join(" · "), 1);
     }
     case "add": {
       let s = "";

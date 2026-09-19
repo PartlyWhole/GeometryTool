@@ -27,6 +27,15 @@ export const FORM_SYMBOLS: Record<FormKind, string> = {
 
 export type Conditional = {
   id: string;
+  /**
+   * When present, `p` and `q` are predicates about this subject rather than
+   * whole clauses. Swapping whole clauses to build a converse strands the
+   * pronoun — "If it is a rectangle, then a figure is a square" — so anything
+   * whose two halves share a subject is written this way instead.
+   */
+  subject?: string;
+  /** "they" for a plural subject. */
+  pronoun?: "it" | "they";
   p: string;
   notP: string;
   q: string;
@@ -39,19 +48,21 @@ export type Conditional = {
 export const CONDITIONALS: Conditional[] = [
   {
     id: "rectangle",
-    p: "a quadrilateral has four right angles",
-    notP: "a quadrilateral does not have four right angles",
-    q: "it is a rectangle",
-    notQ: "it is not a rectangle",
+    subject: "a quadrilateral",
+    p: "has four right angles",
+    notP: "does not have four right angles",
+    q: "is a rectangle",
+    notQ: "is not a rectangle",
     converseTrue: true,
     topic: "The reference's worked example — a true converse does not make a statement the converse.",
   },
   {
     id: "square",
-    p: "a figure is a square",
-    notP: "a figure is not a square",
-    q: "it is a rectangle",
-    notQ: "it is not a rectangle",
+    subject: "a figure",
+    p: "is a square",
+    notP: "is not a square",
+    q: "is a rectangle",
+    notQ: "is not a rectangle",
     converseTrue: false,
   },
   {
@@ -65,27 +76,32 @@ export const CONDITIONALS: Conditional[] = [
   },
   {
     id: "linear-pair",
-    p: "two angles form a linear pair",
-    notP: "two angles do not form a linear pair",
-    q: "they are supplementary",
-    notQ: "they are not supplementary",
+    subject: "two angles",
+    pronoun: "they",
+    p: "form a linear pair",
+    notP: "do not form a linear pair",
+    q: "are supplementary",
+    notQ: "are not supplementary",
     converseTrue: false,
     topic: "Supplementary angles need not touch, so the converse fails.",
   },
   {
     id: "vertical",
-    p: "two angles are vertical angles",
-    notP: "two angles are not vertical angles",
-    q: "they are congruent",
-    notQ: "they are not congruent",
+    subject: "two angles",
+    pronoun: "they",
+    p: "are vertical angles",
+    notP: "are not vertical angles",
+    q: "are congruent",
+    notQ: "are not congruent",
     converseTrue: false,
   },
   {
     id: "right-angle",
-    p: "an angle measures 90°",
-    notP: "an angle does not measure 90°",
-    q: "it is a right angle",
-    notQ: "it is not a right angle",
+    subject: "an angle",
+    p: "measures 90°",
+    notP: "does not measure 90°",
+    q: "is a right angle",
+    notQ: "is not a right angle",
     converseTrue: true,
     topic: "A definition, so it works in both directions — this one really is biconditional.",
   },
@@ -100,48 +116,73 @@ export const CONDITIONALS: Conditional[] = [
   },
   {
     id: "congruent-segments",
-    p: "two segments are congruent",
-    notP: "two segments are not congruent",
-    q: "they have equal length",
-    notQ: "they do not have equal length",
+    subject: "two segments",
+    pronoun: "they",
+    p: "are congruent",
+    notP: "are not congruent",
+    q: "have equal length",
+    notQ: "do not have equal length",
     converseTrue: true,
   },
   {
     id: "obtuse",
-    p: "an angle is obtuse",
-    notP: "an angle is not obtuse",
-    q: "its measure is greater than 90°",
-    notQ: "its measure is not greater than 90°",
+    subject: "an angle",
+    p: "is obtuse",
+    notP: "is not obtuse",
+    q: "measures more than 90°",
+    notQ: "does not measure more than 90°",
     converseTrue: false,
     topic: "A straight angle exceeds 90° without being obtuse.",
   },
   {
     id: "bisector",
-    p: "a ray bisects an angle",
-    notP: "a ray does not bisect an angle",
-    q: "it creates two congruent angles",
-    notQ: "it does not create two congruent angles",
+    subject: "a ray",
+    p: "bisects an angle",
+    notP: "does not bisect an angle",
+    q: "creates two congruent angles",
+    notQ: "does not create two congruent angles",
     converseTrue: true,
   },
 ];
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+/** "a quadrilateral" → "the quadrilateral", for a clause standing alone. */
+export function definite(c: Conditional): string {
+  if (!c.subject) return "";
+  return c.subject.replace(/^(a|an) /, "the ").replace(/^(?!the )/, "the ");
+}
+
+/** A complete clause for one half, with the subject named. */
+export const clauseOf = (c: Conditional, part: "p" | "notP" | "q" | "notQ") =>
+  c.subject ? `${c.subject} ${c[part]}` : c[part];
+
+/** The same half as a standalone sentence, e.g. for the Law of Detachment. */
+export const sentenceOf = (c: Conditional, part: "p" | "notP" | "q" | "notQ") =>
+  cap(c.subject ? `${definite(c)} ${c[part]}` : c[part]) + ".";
+
+function ifThen(c: Conditional, first: "p" | "notP" | "q" | "notQ", second: "p" | "notP" | "q" | "notQ") {
+  if (!c.subject) return `If ${c[first]}, then ${c[second]}.`;
+  return `If ${c.subject} ${c[first]}, then ${c.pronoun ?? "it"} ${c[second]}.`;
+}
+
 export function formText(c: Conditional, kind: FormKind): string {
   switch (kind) {
     case "conditional":
-      return `If ${c.p}, then ${c.q}.`;
+      return ifThen(c, "p", "q");
     case "converse":
-      return `If ${c.q}, then ${c.p}.`;
+      return ifThen(c, "q", "p");
     case "inverse":
-      return `If ${c.notP}, then ${c.notQ}.`;
+      return ifThen(c, "notP", "notQ");
     case "contrapositive":
-      return `If ${c.notQ}, then ${c.notP}.`;
+      return ifThen(c, "notQ", "notP");
   }
 }
 
 export const biconditionalText = (c: Conditional) =>
-  `${cap(c.p)} if and only if ${c.q}.`;
+  c.subject
+    ? `${cap(c.subject)} ${c.p} if and only if ${c.pronoun ?? "it"} ${c.q}.`
+    : `${cap(c.p)} if and only if ${c.q}.`;
 
 /** The contrapositive pairs with the original; the converse with the inverse. */
 export const equivalentForm: Record<FormKind, FormKind> = {

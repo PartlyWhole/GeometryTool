@@ -24,6 +24,7 @@ import {
   meas,
   mul,
   num,
+  objKey,
   ray,
   seg,
   toPoly,
@@ -477,6 +478,12 @@ describe("notation", () => {
     expect(statementText({ k: "midpoint", p: "M", seg: seg("A", "B") }))
       .toBe("M is the midpoint of AB");
     expect(statementText({ k: "eq", l: div(len("A", "B"), num(2)), r: num(11) })).toBe("AB/2 = 11");
+    // A coefficient of 1 is never written, and a measure keeps its gap.
+    expect(statementText({ k: "eq", l: add(mul(num(1), vr("x")), num(9)), r: num(63) }))
+      .toBe("x + 9 = 63");
+    expect(statementText({ k: "eq", l: mul(num(2), mAng("AVD")), r: mAng("AVC") }))
+      .toBe("2 m∠AVD = m∠AVC");
+    expect(statementText({ k: "eq", l: mul(num(-1), vr("x")), r: num(4) })).toBe("−x = 4");
   });
 });
 
@@ -636,6 +643,16 @@ describe("generators never emit an unsolvable problem", () => {
       if (it.mode === "choose") {
         expect(it.choices, it.id).toContain(it.answer);
         expect(new Set(it.choices).size, it.id).toBe(it.choices!.length);
+        // No two options may be two names for one object, or both can be
+        // eliminated on sight without doing any geometry.
+        const keys = it.choices!.map((c) =>
+          c.startsWith("∠")
+            ? objKey({ k: "ang", name: c.slice(1) })
+            : objKey({ k: "seg", a: c[0], b: c[1] }),
+        );
+        expect(new Set(keys).size, it.id + " :: " + it.choices!.join(" | ")).toBe(
+          keys.length,
+        );
       }
     }
   });
@@ -816,6 +833,18 @@ describe("flashcard content is well formed", () => {
       for (const q of conceptQuestions(seed, 14)) seen.add(q.conceptId);
     const missing = CONCEPTS.filter((c) => !seen.has(c.id)).map((c) => c.id);
     expect(missing).toEqual([]);
+  });
+
+  it("gives singular terms an article in a sentence", async () => {
+    const { CONCEPTS, termPhrase } = await import("../src/practice/content/concepts");
+    const byId = Object.fromEntries(CONCEPTS.map((c) => [c.id, c]));
+    expect(termPhrase(byId["acute"])).toBe("an acute angle");
+    expect(termPhrase(byId["straight"])).toBe("a straight angle");
+    expect(termPhrase(byId["midpoint"])).toBe("a midpoint");
+    // Plurals, adjectives and named rules take no indefinite article.
+    expect(termPhrase(byId["complementary"])).toBe("complementary angles");
+    expect(termPhrase(byId["collinear"])).toBe("collinear");
+    expect(termPhrase(byId["reflexive"])).toBe("the Reflexive Property");
   });
 
   it("offers four distinct options on every concept question", async () => {
@@ -1080,5 +1109,41 @@ describe("a student is judged on the geometry, not the naming", () => {
     });
     expect(byLabel.ok).toBe(true);
     expect(byPoints.ok, byPoints.ok ? "" : (byPoints as { why: string }).why).toBe(true);
+  });
+});
+
+describe("logic statements read as English in every form", () => {
+  it("never strands a pronoun when the halves are swapped", async () => {
+    const { CONDITIONALS, formText, biconditionalText, sentenceOf } = await import(
+      "../src/practice/content/logic"
+    );
+    const forms = ["conditional", "converse", "inverse", "contrapositive"] as const;
+    for (const c of CONDITIONALS) {
+      const texts = [
+        ...forms.map((f) => formText(c, f)),
+        biconditionalText(c),
+        sentenceOf(c, "p"),
+        sentenceOf(c, "q"),
+      ];
+      for (const t of texts) {
+        // "If it is a rectangle, then a figure is a square." — a clause whose
+        // subject is a pronoun cannot lead once the halves are swapped.
+        expect(t, c.id + " :: " + t).not.toMatch(/^If (it|they|its) /);
+        // Nor may an indefinite subject appear in the consequent.
+        expect(t, c.id + " :: " + t).not.toMatch(/, then an? /);
+        expect(t, c.id + " :: " + t).toMatch(/[.]$/);
+      }
+    }
+  });
+
+  it("offers a distinct, complete sentence for every detachment option", async () => {
+    const { logicCards } = await import("../src/practice/content/logicCards");
+    for (let seed = 1; seed <= 40; seed++)
+      for (const card of logicCards(seed, 16)) {
+        if (card.tag !== "Law of Detachment") continue;
+        expect(new Set(card.choices).size, card.id).toBe(card.choices.length);
+        for (const ch of card.choices)
+          expect(ch, card.id + " :: " + ch).not.toMatch(/^(It|They) /);
+      }
   });
 });

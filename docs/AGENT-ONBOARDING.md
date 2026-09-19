@@ -133,6 +133,22 @@ reference is strict that only marked facts may be read off a diagram, so the
 about equal". Tolerances are `EXACT` for authored content and proof checking,
 and `HAND` for the drag-a-figure exercise, where nobody can land on 90.000°.
 
+## Auditing content
+
+`gallery.html` renders every figure in the library on one page, at
+`http://127.0.0.1:4190/gallery.html` under `npm run dev`. It is a development
+page only: Vite builds `index.html` alone, so it never reaches `dist/`. Look at
+it after adding or changing a figure — several defects in this project were
+visible at a glance there and invisible in the tests, including four arcs at a
+crossing that together read as a circle, and rays drawn past the point that
+labels them.
+
+To read the generated questions as prose rather than as code, write a throwaway
+test that walks the generators and dumps prompts, options and explanations to a
+file. Wording problems — a stem that restates its answer, a missing article, a
+converse with a stranded pronoun — are far easier to see in a flat list than in
+the source.
+
 ## Adding content
 
 - A figure: add a builder to `content/library.ts`. `Fig` throws on an

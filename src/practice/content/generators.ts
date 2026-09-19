@@ -16,6 +16,7 @@ import {
   meas,
   mul,
   num,
+  objKey,
   seg,
   splitLabels,
   vr,
@@ -227,25 +228,36 @@ function distractors(
   inv: ReturnType<typeof figureObjects>,
   answer: string,
 ): string[] {
-  const set = new Set<string>([answer]);
+  // Deduplicate by canonical key, not by spelling. ∠VAC and ∠CAV are one
+  // angle written two ways; offering both lets a student rule out each
+  // without doing any geometry, because neither could be a unique answer.
+  const seen = new Set<string>();
+  const out: string[] = [];
+  const add = (o: ObjId, text: string) => {
+    const k = objKey(o);
+    if (seen.has(k) || out.length >= 4) return;
+    seen.add(k);
+    out.push(text);
+  };
+  add(target, answer);
+
   if (target.k === "ang") {
     const [a, v, c] = splitLabels(target.name);
-    // Vertex confusion is the misconception worth testing.
-    for (const wrong of [v + a + c, a + c + v, c + a + v])
-      if (wrong !== target.name) set.add("∠" + wrong);
+    // One vertex misplacement: the misconception actually worth testing.
+    const moved = v + a + c;
+    add({ k: "ang", name: moved }, "∠" + moved);
+    // The rest are other angles the figure really contains.
     for (const other of inv.angles)
-      if (set.size < 4 && other.name.length === 3) set.add("∠" + other.name);
+      if (splitLabels(other.name).length === 3) add(other, "∠" + other.name);
   } else {
-    for (const other of inv.segments)
-      if (set.size < 4) set.add(other.a + other.b);
+    for (const other of inv.segments) add(other, other.a + other.b);
   }
-  const arr = [...set].slice(0, 4);
-  // Shuffle.
-  for (let i = arr.length - 1; i > 0; i--) {
+
+  for (let i = out.length - 1; i > 0; i--) {
     const j = Math.floor(r() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    [out[i], out[j]] = [out[j], out[i]];
   }
-  return arr;
+  return out;
 }
 
 // ---------------------------------------------------------------------------

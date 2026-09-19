@@ -225,11 +225,21 @@ export function Figure(props: Props) {
           );
         const role = angleRoles.get(angleKey(ref, b)) ?? roleOf(id);
         const count = marksAng.get(angleKey(ref, b)) ?? 0;
+        const hasMeasure = b.constraints.some(
+          (c) =>
+            c.kind === "angle" && c.value !== 90 &&
+            angleKey(c.angle, b) === angleKey(ref, b),
+        );
+        // An arc is a mark, not decoration. Drawing one round every named
+        // angle at a crossing produced four quarter-arcs that read as a
+        // circle. A merely numbered angle gets its numeral and nothing else,
+        // which is how the reference draws Fig. 14.
+        const drawArc = right || count > 0 || hasMeasure || !!role;
         return (
           <g key={ref.id + id.name} className={role ? "role-" + role : ""}>
             {right ? (
               <RightMark v={v} s={s} e={e} />
-            ) : (
+            ) : !drawArc ? null : (
               // The number of arcs is what matches: an angle in congruence
               // class n carries exactly n arcs, and an unmarked one carries a
               // single plain arc.
@@ -334,9 +344,31 @@ export function Figure(props: Props) {
         const short = id.name.length <= 2 ? id.name : undefined;
         const label = [short, degrees].filter(Boolean).join(" = ");
         if (!label) return null;
-        // Just outside the arc: at a vertex with several narrow angles, text
-        // placed inside them collides.
-        const r = (radii.get(angleKey(ref, b)) ?? 44) + 17;
+        // Outside the arc when there is one, since text inside several narrow
+        // angles collides; snug to the vertex when the angle carries only a
+        // numeral, and snug to the square for a right angle.
+        const arcRadius = radii.get(angleKey(ref, b)) ?? 44;
+        const isRight =
+          Math.abs((angleRadians(b, ref) * 180) / Math.PI - 90) < 1e-6 &&
+          b.constraints.some(
+            (c) =>
+              c.kind === "angle" && c.value === 90 &&
+              angleKey(c.angle, b) === angleKey(ref, b),
+          );
+        const marked0 = (marksAng.get(angleKey(ref, b)) ?? 0) > 0;
+        const hasValue = b.constraints.some(
+          (c) =>
+            c.kind === "angle" && c.value !== 90 &&
+            angleKey(c.angle, b) === angleKey(ref, b),
+        );
+        // A bare numeral sits inside its sector, but still on the staggered
+        // lane its arc would have used — otherwise the numerals for two parts
+        // and their whole all land on top of each other.
+        const r = isRight
+          ? 32
+          : marked0 || hasValue || angleRoles.has(angleKey(ref, b))
+            ? arcRadius + 17
+            : arcRadius * 0.78;
         const mid = s + angleRadians(b, ref) / 2;
         return (
           <text

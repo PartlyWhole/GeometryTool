@@ -1,6 +1,6 @@
 // §10, "Turning a diagram into an equation", in both directions.
 import type { Board } from "../../model";
-import { type Statement, add, ang, len, meas, mul, num, seg } from "../terms";
+import { type Statement, add, ang, div, len, meas, mul, num, seg } from "../terms";
 import type { FormId } from "../StatementBuilder";
 import {
   bisector,
@@ -47,8 +47,10 @@ export const READ_ITEMS: ReadItem[] = [
     accept: [
       { k: "eq", l: len("A", "M"), r: len("M", "B") },
       { k: "cong", l: seg("A", "M"), r: seg("M", "B") },
+      { k: "eq", l: len("A", "M"), r: div(len("A", "B"), num(2)) },
+      { k: "eq", l: len("M", "B"), r: div(len("A", "B"), num(2)) },
     ],
-    why: "A midpoint or bisector: each part equals the other, and each is half the whole.",
+    why: "A midpoint or bisector: each part equals the other, and each is half the whole. Either form counts.",
     tags: ["§10", "Fig. 9"],
   },
   {
@@ -126,13 +128,14 @@ export const READ_ITEMS: ReadItem[] = [
   {
     id: "three-concurrent",
     prompt:
-      "Three lines pass through V. Two of the angles above line PQ are marked. Write the equation the figure gives you.",
+      "Three lines pass through V, so ∠RVS has a twin on the far side. Write what the figure says about ∠RVS and ∠UVT.",
     figure: threeConcurrent(),
     accept: [
-      { k: "eq", l: add(m("PVR"), m("RVS"), m("SVQ")), r: num(180) },
+      { k: "vertical", a: ang("RVS"), b: ang("UVT") },
+      { k: "cong", l: ang("RVS"), r: ang("UVT") },
+      { k: "eq", l: m("RVS"), r: m("UVT") },
     ],
-    why: "The three angles sit consecutively above one straight line, so they share its 180°. Working round the full 360° would also work and take twice as long.",
-    allowForms: ["eq"],
+    why: "Ray VU is opposite ray VR and ray VT is opposite ray VS, so the two angles are vertical and therefore congruent — 87° each.",
     tags: ["§8", "Fig. 16"],
   },
   {
@@ -225,14 +228,13 @@ export const CONSTRUCT_ITEMS: ConstructItem[] = [
   {
     id: "make-complementary",
     movable: ["D"],
-    prompt:
-      "∠AVC is a right angle. Drag D until m∠AVD is 30°, leaving ∠DVC at 60°.",
+    prompt: "∠AVC is a right angle. Drag D until m∠AVD measures 30°.",
     start: complementary(),
     require: [
       { k: "eq", l: m("AVD"), r: num(30) },
       { k: "interior", p: "D", ang: ang("AVC") },
     ],
-    why: "Complementary measures total 90°.",
+    why: "The two parts of a right angle are complementary, so once ∠AVD is 30° the other must be 60°.",
     tags: ["§8"],
   },
   {

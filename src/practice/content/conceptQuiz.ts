@@ -2,7 +2,13 @@
 //
 // Questions are generated from the concept bank rather than authored one by
 // one, so adding a concept adds questions in all four directions at once.
-import { CONCEPTS, type Concept, type Example, topicOf } from "./concepts";
+import {
+  CONCEPTS,
+  type Concept,
+  type Example,
+  termPhrase,
+  topicOf,
+} from "./concepts";
 import { rng } from "./generators";
 
 export type Choice = { text: string; figure?: string; caption?: string };
@@ -283,7 +289,7 @@ function build(
       // say?" rather than "Which statement defines Law of Syllogism?".
       prompt: isNamedRule(c.term)
         ? "What does the " + c.term + " say?"
-        : "Which statement defines " + inSentence(c.term) + "?",
+        : "Which statement defines " + termPhrase(c) + "?",
       choices,
       correct: choices.findIndex((x) => x.text === optionText(c)),
     };
@@ -336,9 +342,7 @@ function build(
     ...base,
     // A named rule takes the definite article: "an example of the Vertical
     // Angles Theorem", not "an example of Vertical Angles Theorem".
-    prompt:
-      "Which of these is an example of " +
-      (isNamedRule(c.term) ? "the " : "") + inSentence(c.term) + "?",
+    prompt: "Which of these is an example of " + termPhrase(c) + "?",
     choices,
     correct: choices.findIndex((x) => x.text === ex.text),
   };

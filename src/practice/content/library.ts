@@ -23,7 +23,7 @@ export const fan = (): Board => {
     const p = polar(0, 60, deg, 150);
     f.at(label, p.x, p.y);
   }
-  ["W", "X", "Y", "Z"].forEach((l) => f.ray("V", l));
+  ["W", "X", "Y", "Z"].forEach((l) => f.seg("V", l));
   f.arc("WVX", "YVZ");
   return f.build();
 };
@@ -61,7 +61,7 @@ export const bisector = (): Board => {
     const p = polar(0, 70, d, 150);
     f.at(l, p.x, p.y);
   }
-  ["A", "D", "C"].forEach((l) => f.ray("V", l));
+  ["A", "D", "C"].forEach((l) => f.seg("V", l));
   f.arc("AVD", "DVC");
   return f.build();
 };
@@ -74,7 +74,7 @@ export const linearPair = (): Board => {
   f.on("B", "A", "C", 0.5);
   const d = polar(0, 0, 65, 150);
   f.at("D", d.x, d.y);
-  f.ray("B", "D");
+  f.seg("B", "D");
   return f.build();
 };
 
@@ -86,7 +86,7 @@ export const complementary = (): Board => {
     const p = polar(0, 80, d, 150);
     f.at(l, p.x, p.y);
   }
-  ["A", "D", "C"].forEach((l) => f.ray("V", l));
+  ["A", "D", "C"].forEach((l) => f.seg("V", l));
   f.right("AVC");
   return f.build();
 };
@@ -101,7 +101,7 @@ export const threeOnLine = (): Board => {
     const p = polar(0, 0, d, 150);
     f.at(l, p.x, p.y);
   }
-  ["R", "S"].forEach((l) => f.ray("V", l));
+  ["R", "S"].forEach((l) => f.seg("V", l));
   return f.build();
 };
 
@@ -151,7 +151,7 @@ export const numberedCorner = (): Board => {
     const p = polar(0, 80, d, 155);
     f.at(l, p.x, p.y);
   }
-  ["A", "B", "C"].forEach((l) => f.ray("V", l));
+  ["A", "B", "C"].forEach((l) => f.seg("V", l));
   f.num("1", "AVB");
   f.num("2", "BVC");
   f.num("3", "AVC");
@@ -211,7 +211,7 @@ export const suppAndCongruent = (): Board => {
   const e = polar(150, 30, 62, 150);
   f.at("Z", e.x, e.y);
   f.seg("W", "Z");
-  f.num("A", "PVR").num("B", "RVQ").num("C", "ZWY");
+  f.num("1", "PVR").num("2", "RVQ").num("3", "ZWY");
   f.arc("PVR", "ZWY");
   return f.build();
 };
@@ -242,6 +242,17 @@ export const twoSupplementPairs = (): Board => {
   return f.build();
 };
 
+/** Four collinear points with three equal, ticked pieces. */
+export const fourInARow = (): Board =>
+  fig("Four points in a row")
+    .at("A", -195, 0)
+    .at("D", 195, 0)
+    .seg("A", "D")
+    .on("B", "A", "D", 1 / 3)
+    .on("C", "A", "D", 2 / 3)
+    .tick(["A", "B"], ["B", "C"], ["C", "D"])
+    .build();
+
 export const LIBRARY: Record<string, () => Board> = {
   crossing,
   fan,
@@ -260,4 +271,5 @@ export const LIBRARY: Record<string, () => Board> = {
   twoRightAngles,
   suppAndCongruent,
   twoSupplementPairs,
+  fourInARow,
 };

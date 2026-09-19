@@ -633,6 +633,32 @@ export const TOPIC: Record<string, Topic> = {
 
 export const topicOf = (c: Concept): Topic => TOPIC[c.id] ?? "space";
 
+/**
+ * The article a term takes mid-sentence. Plurals, adjectives and abstract
+ * nouns take none; named rules take "the"; countable singulars take a/an.
+ * Without this the quiz asked for "an example of acute angle".
+ */
+const INDEFINITE: Record<string, "a" | "an"> = {
+  acute: "an",
+  right: "a",
+  obtuse: "an",
+  straight: "a",
+  midpoint: "a",
+  "segment-bisector": "a",
+  "perpendicular-bisector": "a",
+  "angle-bisector": "an",
+  "linear-pair": "a",
+  proof: "a",
+};
+
+export function termPhrase(c: Concept): string {
+  const named = /\b(Theorem|Postulate|Property|Law)\b/.test(c.term);
+  if (named) return "the " + c.term;
+  const lower = c.term.charAt(0).toLowerCase() + c.term.slice(1);
+  const article = INDEFINITE[c.id];
+  return article ? article + " " + lower : lower;
+}
+
 export const conceptById = (id: string) => CONCEPTS.find((c) => c.id === id);
 export const conceptsOfKind = (k: ConceptKind) =>
   CONCEPTS.filter((c) => c.kind === k);
