@@ -190,6 +190,19 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 - Citation-count messages read "needs at least 2 to be cited". They now name
   the unit, and a line whose two sides are the same quantity is told
   specifically that its reason is the Reflexive Property.
+- The Board/Practice/Cards nav sits inside the board's top-right group, whose
+  `.top-right button { width: 36px }` also reached it. Above 900px, where the
+  nav shows its labels, the text overflowed and overlapped. Found only after
+  testing at desktop width; the earlier pass ran at 536px, where the labels are
+  hidden by design. The nav now sizes to its content.
+- Two practice rules leaked onto the board: `button.primary` outranked the
+  board's `.primary` on specificity, and `.muted` styled a previously unstyled
+  paragraph in the constraints panel. Both are scoped to `.app-page`.
+- The naming exercise could draw a straight angle as its target — on the
+  collinear figure, "name ∠ABC" showed nothing to look at and offered no real
+  choice. Straight angles remain in the inventory, since the statement builder
+  needs them and the module teaches them directly; only the naming drill
+  excludes them.
 
 ### Limitations
 

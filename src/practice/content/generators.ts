@@ -17,9 +17,11 @@ import {
   mul,
   num,
   seg,
+  splitLabels,
   vr,
 } from "../terms";
 import { figureObjects } from "../inventory";
+import { measureOf } from "../oracle";
 import { LIBRARY } from "./library";
 
 /** Small deterministic generator, so a seed reproduces a whole session. */
@@ -65,8 +67,15 @@ export function nameItems(seed: number, count = 10): NameItem[] {
     const figName = pick(r, FIGURE_NAMES);
     const board = LIBRARY[figName]();
     const inv = figureObjects(board);
-    // Only three-point angle names can be found by clicking points.
-    const angles = inv.angles.filter((a) => a.name.length === 3);
+    // Only three-point angle names can be found by clicking points, and a
+    // straight angle is a poor naming target: nothing is drawn to look at, and
+    // picking its three collinear points is not a choice. Straight angles are
+    // still nameable everywhere else — the concept deck teaches them directly.
+    const angles = inv.angles.filter((a) => {
+      if (splitLabels(a.name).length !== 3) return false;
+      const deg = measureOf(board, a);
+      return deg !== undefined && deg > 1 && deg < 179;
+    });
     const wantAngle = angles.length > 0 && r() < 0.6;
     const target: SegId | AngId = wantAngle ? pick(r, angles) : pick(r, inv.segments);
     if (!target) continue;
@@ -123,7 +132,7 @@ function distractors(
 ): string[] {
   const set = new Set<string>([answer]);
   if (target.k === "ang") {
-    const [a, v, c] = target.name.split("");
+    const [a, v, c] = splitLabels(target.name);
     // Vertex confusion is the misconception worth testing.
     for (const wrong of [v + a + c, a + c + v, c + a + v])
       if (wrong !== target.name) set.add("∠" + wrong);

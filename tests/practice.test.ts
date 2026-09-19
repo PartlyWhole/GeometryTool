@@ -522,6 +522,11 @@ describe("the figure library", () => {
     const inv = figureObjects(collinear());
     expect(inv.points.sort()).toEqual(["A", "B", "C"]);
     expect(inv.segments.map((s) => s.a + s.b).sort()).toEqual(["AB", "AC", "BC"]);
+    // The straight angle stays nameable here: the statement builder needs it,
+    // and the module teaches "a straight angle in disguise" directly. It is
+    // only the naming drill that must not draw one as a target.
+    expect(inv.angles.map((a) => a.name)).toContain("ABC");
+    expect(measureOf(collinear(), ang("ABC"))).toBeCloseTo(180, 4);
   });
 });
 
@@ -557,6 +562,21 @@ describe("generators never emit an unsolvable problem", () => {
       }
     }
     expect(failures.slice(0, 5)).toEqual([]);
+  });
+
+  it("never asks a student to name a straight or zero angle", async () => {
+    const { nameItems } = await import("../src/practice/content/generators");
+    const { measureOf } = await import("../src/practice/oracle");
+    for (let seed = 1; seed <= 30; seed++)
+      for (const it of nameItems(seed, 12)) {
+        if (it.target.k !== "ang") continue;
+        const deg = measureOf(it.figure, it.target);
+        expect(deg, it.id).toBeDefined();
+        // A straight angle on a bare line gives nothing to look at and no
+        // choice to make; a zero angle is not a figure at all.
+        expect(deg!, it.id).toBeGreaterThan(1);
+        expect(deg!, it.id).toBeLessThan(179);
+      }
   });
 
   it("generates naming items whose targets exist on their figures", async () => {
