@@ -7,6 +7,7 @@
 // for what the question was actually about.
 import type { Board } from "../../model";
 import type { Statement } from "../terms";
+import type { Trap } from "./numeric";
 import { ang, seg } from "../terms";
 import { crossingAt, linearPairAt, markedPair, midpoint } from "./library";
 import { rng } from "./generators";
@@ -17,7 +18,7 @@ export type PartBody =
       answer: number;
       unit?: string;
       tolerance?: number;
-      trap?: { value: number; note: string };
+      trap?: Trap | Trap[];
     }
   | { kind: "claims"; claims: { statement: Statement; holds: boolean }[] };
 

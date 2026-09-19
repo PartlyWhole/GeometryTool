@@ -44,7 +44,6 @@ const CONFUSIONS: Record<string, string[]> = {
   "division-property": ["multiplication-property", "subtraction-property"],
   distributive: ["substitution", "simplify"],
   simplify: ["distributive", "substitution"],
-  given: ["reflexive", "def-between"],
   "def-cong-ang": ["def-cong-seg", "vertical-angles-theorem"],
   "def-cong-seg": ["def-cong-ang", "def-midpoint"],
   "def-midpoint": ["def-seg-bisector", "def-cong-seg"],
@@ -60,6 +59,15 @@ const CONFUSIONS: Record<string, string[]> = {
 };
 
 /**
+ * Proofs this sub-tab leaves alone. `supplementary-solve` makes a checklist
+ * twelve rows long for two plants that are drilled better and shorter
+ * elsewhere — supplementary-for-complementary by `rc-congruent-supplements`,
+ * Multiplication-for-Division by `rc-algebra-justify` — so the reading it
+ * asks for is not repaid.
+ */
+const SKIP = ["supplementary-solve"];
+
+/**
  * Attach reasons to a finished proof, spoiling some of them. Returns
  * undefined when the proof is too short to make a worthwhile question.
  */
@@ -69,30 +77,35 @@ function fromProof(p: ProofProblem, r: () => number): ReasonCheckItem | undefine
 
   const lines: ProofLine[] = [];
   const rows: ReasonRow[] = [];
-  let spoiled = 0;
-  const wanted = Math.max(2, Math.round(steps.length * 0.4));
+
+  // Pick the rows that will carry an error before walking the proof. A Given
+  // line is never picked: the only swap open to it is Reflexive, which nobody
+  // who has read the line ticks, so spoiling one spends an error on a row
+  // that teaches nothing. And filling a quota top-down as the proof was
+  // walked exhausted it in the opening rows, so the sharpest plants — which
+  // live in the middle of a proof — fired about one run in ten.
+  const live = steps.flatMap((s, i) => (s.reasonId === "given" ? [] : [i]));
+  const wanted = Math.max(2, Math.round(live.length * 0.55));
+  const chosen = new Set(shuffle(r, live).slice(0, wanted));
 
   steps.forEach((s, i) => {
     const cites = s.cites.map((n) => lines[n - 1]?.id ?? "missing");
-    const candidates = CONFUSIONS[s.reasonId] ?? [];
+    const candidates = chosen.has(i) ? CONFUSIONS[s.reasonId] ?? [] : [];
     let offered = s.reasonId;
     let note: string | undefined;
 
-    // Spoil roughly two in five, but only where the swap genuinely fails.
-    if (spoiled < wanted && candidates.length && r() < 0.55) {
-      for (const wrong of candidates) {
-        if (p.forbid?.includes(wrong)) continue;
-        const check = validateLine(p, lines, {
-          statement: s.statement,
-          reasonId: wrong,
-          cites,
-        });
-        if (!check.ok) {
-          offered = wrong;
-          note = check.why;
-          spoiled++;
-          break;
-        }
+    // Spoil only where the swap genuinely fails.
+    for (const wrong of candidates) {
+      if (p.forbid?.includes(wrong)) continue;
+      const check = validateLine(p, lines, {
+        statement: s.statement,
+        reasonId: wrong,
+        cites,
+      });
+      if (!check.ok) {
+        offered = wrong;
+        note = check.why;
+        break;
       }
     }
     rows.push({ statement: s.statement, reasonId: offered, correct: offered === s.reasonId, note });
@@ -123,7 +136,10 @@ export function reasonCheckItems(seed: number, count = 6): ReasonCheckItem[] {
   // Shuffle before taking `count`. Walking the pool in order and stopping at
   // the quota made the last proofs all but unreachable: with ten eligible and
   // eight asked for, the tenth turned up in one session in four hundred.
-  const pool = shuffle(r, PROOFS.filter((p) => (p.solution?.length ?? 0) >= 4));
+  const pool = shuffle(
+    r,
+    PROOFS.filter((p) => !SKIP.includes(p.id) && (p.solution?.length ?? 0) >= 4),
+  );
   for (let i = 0; i < pool.length && out.length < count; i++) {
     const item = fromProof(pool[i], r);
     if (item) out.push(item);

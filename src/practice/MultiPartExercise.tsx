@@ -11,6 +11,10 @@ import {
   type Part,
   generatedMultiPart,
 } from "./content/multipart";
+import type { Trap } from "./content/numeric";
+
+/** One trap or several, read the same way. */
+const traps = (t: Trap | Trap[] | undefined): Trap[] => (t ? (Array.isArray(t) ? t : [t]) : []);
 import { type Tally, loadTally, record, saveTally } from "./progress";
 import { Hints, Scoreboard, Verdict } from "./ui";
 
@@ -62,6 +66,7 @@ function MultiPartBoard(props: {
   const [entry, setEntry] = useState("");
   const [picked, setPicked] = useState<Set<number>>(new Set());
   const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const [trapHit, setTrapHit] = useState<Trap | null>(null);
   const [hintsShown, setHintsShown] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [cleanRun, setCleanRun] = useState(true);
@@ -90,9 +95,9 @@ function MultiPartBoard(props: {
         setOutcome("right");
         return;
       }
-      const trapped =
-        part.body.trap && Math.abs(v - part.body.trap.value) <= 1e-6;
-      setOutcome(trapped ? "trap" : "wrong");
+      const hit = traps(part.body.trap).find((t) => Math.abs(v - t.value) <= 1e-6);
+      setTrapHit(hit ?? null);
+      setOutcome(hit ? "trap" : "wrong");
       setCleanRun(false);
     } else {
       const ok = part.body.claims.every((c, n) => c.holds === picked.has(n));
@@ -196,10 +201,10 @@ function MultiPartBoard(props: {
               {outcome !== null && (
                 <Verdict
                   ok={outcome === "right"}
-                  title={outcome === "trap" ? "That is x" : undefined}
+                  title={outcome === "trap" ? "A wrong answer worth naming" : undefined}
                 >
-                  {outcome === "trap" && part.body.kind === "numeric" && part.body.trap
-                    ? part.body.trap.note + " " + part.why
+                  {outcome === "trap" && trapHit
+                    ? trapHit.note + " " + part.why
                     : part.why}
                 </Verdict>
               )}

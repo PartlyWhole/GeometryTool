@@ -43,6 +43,12 @@ export type Conditional = {
   /** True when the converse also holds, so the pair is really biconditional. */
   converseTrue: boolean;
   topic?: string;
+  /**
+   * Shown in the panel before the question is asked. Only where the item turns
+   * on a case the student may never have been shown, so that answering
+   * carefully from the angles they have met is not punished.
+   */
+  caveat?: string;
 };
 
 export const CONDITIONALS: Conditional[] = [
@@ -54,7 +60,8 @@ export const CONDITIONALS: Conditional[] = [
     q: "is a rectangle",
     notQ: "is not a rectangle",
     converseTrue: true,
-    topic: "The reference's worked example — a true converse does not make a statement the converse.",
+    topic:
+      "A converse that happens to be true is still the converse — and here it is true in both directions, which is what makes this a definition.",
   },
   {
     id: "square",
@@ -64,6 +71,8 @@ export const CONDITIONALS: Conditional[] = [
     q: "is a rectangle",
     notQ: "is not a rectangle",
     converseTrue: false,
+    topic:
+      "The converse and the inverse both fail on the same object — a rectangle that is not a square — which is why those two always stand or fall together.",
   },
   {
     id: "midpoint",
@@ -95,6 +104,8 @@ export const CONDITIONALS: Conditional[] = [
     q: "are congruent",
     notQ: "are not congruent",
     converseTrue: false,
+    topic:
+      "A theorem, not a definition — two 50° angles in unrelated figures are congruent and not vertical — so this one may not be run backwards in a proof.",
   },
   {
     id: "right-angle",
@@ -104,7 +115,8 @@ export const CONDITIONALS: Conditional[] = [
     q: "is a right angle",
     notQ: "is not a right angle",
     converseTrue: true,
-    topic: "A definition, so it works in both directions — this one really is biconditional.",
+    topic:
+      "The original is a definition, so its converse is true too — which leaves all four forms true here, and only their shape to tell them apart.",
   },
   {
     id: "collinear",
@@ -124,6 +136,8 @@ export const CONDITIONALS: Conditional[] = [
     q: "have equal length",
     notQ: "do not have equal length",
     converseTrue: true,
+    topic:
+      "Being a definition, every one of its four forms is true — which is exactly why the form has to be read off the shape and not off whether the sentence sounds right.",
   },
   {
     id: "obtuse",
@@ -134,15 +148,18 @@ export const CONDITIONALS: Conditional[] = [
     notQ: "does not measure more than 90°",
     converseTrue: false,
     topic: "A straight angle exceeds 90° without being obtuse.",
+    caveat: "In this module an angle may measure anything up to 180°, so a straight angle counts as an angle.",
   },
   {
     id: "bisector",
     subject: "a ray",
     p: "bisects an angle",
     notP: "does not bisect an angle",
-    q: "creates two congruent angles",
-    notQ: "does not create two congruent angles",
+    q: "divides the angle into two congruent angles",
+    notQ: "does not divide the angle into two congruent angles",
     converseTrue: true,
+    topic:
+      "A definition works in both directions — which is why you may apply it forwards or backwards in a proof. Say only “makes two congruent angles” and the converse fails: a ray outside the angle makes two congruent angles with its sides and bisects nothing.",
   },
 ];
 
@@ -192,6 +209,28 @@ export const equivalentForm: Record<FormKind, FormKind> = {
   converse: "inverse",
   inverse: "converse",
 };
+
+type Half = "p" | "notP" | "q" | "notQ";
+
+const HALVES: Record<FormKind, [Half, Half]> = {
+  conditional: ["p", "q"],
+  converse: ["q", "p"],
+  inverse: ["notP", "notQ"],
+  contrapositive: ["notQ", "notP"],
+};
+
+const OPPOSITE: Record<Half, Half> = { p: "notP", notP: "p", q: "notQ", notQ: "q" };
+
+/**
+ * The swap made but only one half negated — what a student writes when the
+ * contrapositive is built in two moves and the second is forgotten. It matches
+ * none of the four forms and is equivalent to none of them, which is what lets
+ * a card offer it where the honest answer is "none of these".
+ */
+export function halfContrapositive(c: Conditional, kind: FormKind): string {
+  const [first, second] = HALVES[kind];
+  return ifThen(c, OPPOSITE[second], first);
+}
 
 // ---------------------------------------------------------------------------
 
@@ -248,7 +287,7 @@ export const NEGATIONS: NegationItem[] = [
     statement: "Points X, Y and Z are collinear",
     correct: "Points X, Y and Z are not collinear",
     wrong: [
-      { text: "Point Y is not between X and Z", why: "Betweenness is a different claim: three points can lie on one line without Y being the middle one." },
+      { text: "No two of X, Y and Z lie on the same line", why: "An over-negation, and never true anyway: any two points lie on a line. The original fails as soon as one of the three is off the line through the other two." },
       { text: "Points X, Y and Z are not congruent", why: "Congruence applies to segments and angles, not to points, so this denies nothing." },
       { text: "No line passes through X, Y and Z in that order", why: "Betweenness is a different claim from collinearity." },
     ],
@@ -269,19 +308,13 @@ export type AlwaysItem = {
 export const ALWAYS_SOMETIMES_NEVER: AlwaysItem[] = [
   {
     id: "two-obtuse",
-    statement: "A triangle has two obtuse angles.",
+    statement: "Two angles in a linear pair are both obtuse.",
     verdict: "never",
-    why: "Two angles above 90° already exceed the 180° a triangle has to spend.",
-  },
-  {
-    id: "collinear-xyz",
-    statement: "Points X, Y and Z are collinear.",
-    verdict: "sometimes",
-    why: "Three points may or may not line up. You can produce both an example and a counterexample.",
+    why: "Two angles above 90° already exceed the 180° a linear pair has to spend.",
   },
   {
     id: "line-longer",
-    statement: "Line MN is longer than segment MN.",
+    statement: "Line MN contains points that are not on segment MN.",
     verdict: "always",
     why: "A segment is a bounded part of the line through its endpoints, and the line carries on past both of them.",
   },
@@ -313,7 +346,7 @@ export const ALWAYS_SOMETIMES_NEVER: AlwaysItem[] = [
     id: "midpoint-two",
     statement: "A segment has exactly one midpoint.",
     verdict: "always",
-    why: "Only one point divides it into two congruent halves.",
+    why: "Only one point divides it into two congruent halves — any other point of the segment is nearer one endpoint than the other.",
   },
   {
     id: "bisector-perp",
@@ -337,7 +370,7 @@ export const ALWAYS_SOMETIMES_NEVER: AlwaysItem[] = [
     id: "supplementary-acute",
     statement: "Two supplementary angles are both acute.",
     verdict: "never",
-    why: "Each acute angle is under 90°, so two of them total less than 180° and cannot be supplementary.",
+    why: "Each acute angle is under 90°, so two of them total less than 180° and cannot be supplementary. Read “complementary” for “supplementary” and the statement becomes always true — that swap is the mistake this one is built to catch.",
   },
 ];
 
@@ -358,12 +391,12 @@ export const COUNTEREXAMPLES: CounterexampleItem[] = [
     options: [
       "AB = 3, BC = 1, AC = 4",
       "AB = 2, BC = 2, AC = 4",
-      "AB > AC",
+      "AB = 5, BC = 2, AC = 3",
       "A, B and C are not collinear",
     ],
     correct: 2,
     why:
-      "Honour the hypothesis — the points stay collinear — and break the conclusion. If B really were between, AB would be part of AC and could never exceed it. Option D abandons the hypothesis instead of testing it.",
+      "Honour the hypothesis — the points stay collinear, with C between A and B — and break the conclusion: 5 + 2 is not 3. If B really were the middle point, AB would be part of AC and could never exceed it. “A, B and C are not collinear” abandons the hypothesis instead of testing it, and the other two triples obey the claim rather than attacking it.",
   },
   {
     id: "supplementary-right",
@@ -411,11 +444,11 @@ export const COUNTEREXAMPLES: CounterexampleItem[] = [
       "A line through the midpoint at 90°",
       "A line through the midpoint at 40°",
       "A line that misses the segment",
-      "A line meeting the segment only at an endpoint",
+      "A line crossing the segment at a point other than the midpoint",
     ],
     correct: 1,
     why:
-      "It passes through the midpoint, honouring the hypothesis, but meets at 40° rather than 90°. The other two never reach the midpoint, so they leave the hypothesis untested.",
+      "It passes through the midpoint, honouring the hypothesis, but meets at 40° rather than 90°. The 90° line obeys the claim rather than attacking it. The other two never reach the midpoint, so the claim never spoke about them — a case outside the hypothesis cannot show it false, however unperpendicular it looks.",
   },
 ];
 
@@ -429,6 +462,7 @@ export type Chain = {
   p: string;
   q: string;
   r: string;
+  topic?: string;
 };
 
 /** Three-link chains for the Law of Syllogism. */
@@ -467,6 +501,38 @@ export const CHAINS: Chain[] = [
     p: "is a square",
     q: "is a rectangle",
     r: "has four right angles",
+    topic:
+      "Turn the second rule round and you get “if a figure has four right angles, then it is a rectangle”, which is perfectly true — and still useless here, because syllogism reads the arrows one way only.",
+  },
+];
+
+/**
+ * Pairs the law does *not* apply to. Every authored chain links, which made
+ * "nothing follows" an option the card could never key correct — and it is the
+ * option naming the law's only real failure, so the deck was teaching students
+ * to discount exactly the case the lesson is about.
+ */
+export type NonChain = {
+  id: string;
+  first: string;
+  second: string;
+  /** Conclusions that look like the law's output but follow from nothing. */
+  lures: string[];
+  why: string;
+};
+
+export const NON_CHAINS: NonChain[] = [
+  {
+    id: "linear-vertical",
+    first: "If two angles form a linear pair, then they are supplementary.",
+    second: "If two angles are vertical angles, then they are congruent.",
+    lures: [
+      "If two angles form a linear pair, then they are congruent.",
+      "If two angles are vertical angles, then they are supplementary.",
+      "If two angles are supplementary, then they are congruent.",
+    ],
+    why:
+      "The first rule ends at “supplementary” and the second begins at “vertical angles”, so there is no shared middle term to pass through. Both rules are true, and both are about the same pair of angles, which is what makes this tempting — but syllogism needs the conclusion of one to be exactly the hypothesis of the other, and here it never is.",
   },
 ];
 

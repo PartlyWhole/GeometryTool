@@ -4,7 +4,10 @@
 // are built from a palette: the app never asks a student to type.
 import React, { useMemo, useState } from "react";
 import { Figure } from "./Figure";
-import { NUMERIC_ITEMS, type NumericItem, generatedNumeric } from "./content/numeric";
+import { NUMERIC_ITEMS, type NumericItem, type Trap, generatedNumeric } from "./content/numeric";
+
+/** One trap or several, read the same way. */
+const traps = (t: Trap | Trap[] | undefined): Trap[] => (t ? (Array.isArray(t) ? t : [t]) : []);
 import { type Tally, loadTally, record, saveTally } from "./progress";
 import { Hints, Scoreboard, Verdict } from "./ui";
 import { NumberEntry, numberOf } from "./NumberEntry";
@@ -20,6 +23,7 @@ export function NumericExercise() {
   const [i, setI] = useState(0);
   const [entry, setEntry] = useState("");
   const [result, setResult] = useState<null | "right" | "wrong" | "trap">(null);
+  const [trapHit, setTrapHit] = useState<Trap | null>(null);
   const [hintsShown, setHintsShown] = useState(0);
   const [tally, setTally] = useState<Tally>(() => loadTally("numeric"));
 
@@ -40,8 +44,9 @@ export function NumericExercise() {
     }
     // Entering x when the question asked for a measure is a specific mistake,
     // and the reference says it is the one questions are built to provoke.
-    const trapped = item.trap && close(value, item.trap.value, 1e-6);
-    setResult(trapped ? "trap" : "wrong");
+    const hit = traps(item.trap).find((t) => close(value, t.value, 1e-6));
+    setTrapHit(hit ?? null);
+    setResult(hit ? "trap" : "wrong");
     const t = record(tally, false);
     setTally(t);
     saveTally("numeric", t);
@@ -131,7 +136,7 @@ export function NumericExercise() {
                 // true of all of them and the note says which.
                 title={result === "trap" ? "A wrong answer worth naming" : undefined}
               >
-                {result === "trap" ? item.trap!.note + " " + item.why : item.why}
+                {result === "trap" ? trapHit!.note + " " + item.why : item.why}
               </Verdict>
               <div className="row">
                 <button className="primary" onClick={next}>Next</button>

@@ -15,6 +15,8 @@ import {
 } from "./library";
 import { rng } from "./generators";
 
+export type Trap = { value: number; note: string };
+
 export type NumericItem = {
   id: string;
   prompt: string;
@@ -28,10 +30,12 @@ export type NumericItem = {
   tolerance?: number;
   why: string;
   /**
-   * The value of x, when the question is one where x is not the answer.
-   * Entering it earns a specific correction rather than a bare "no".
+   * Wrong answers worth naming: a number a student predictably produces, with
+   * the correction it earns instead of a bare "no". Several items have more
+   * than one — stopping at x and substituting into the wrong expression are
+   * different slips and deserve different answers.
    */
-  trap?: { value: number; note: string };
+  trap?: Trap | Trap[];
   hints?: string[];
   tags?: string[];
 };
@@ -109,10 +113,16 @@ export const NUMERIC_ITEMS: NumericItem[] = [
       "∠A and ∠B are supplementary and ∠A ≅ ∠C. If m∠A = (16x − 7)° and m∠B = (21x + 2)°, what is m∠C in degrees?",
     answer: 73,
     unit: "°",
-    trap: {
-      value: 5,
-      note: "That is x, not the measure asked for. Substitute it back: m∠A = 16(5) − 7 = 73, and ∠C matches ∠A.",
-    },
+    trap: [
+      {
+        value: 5,
+        note: "That is x, not the measure asked for. Substitute it back: m∠A = 16(5) − 7 = 73, and ∠C matches ∠A.",
+      },
+      {
+        value: 107,
+        note: "That is m∠B. You substituted back, but into the wrong expression — ∠C matches ∠A, not its supplement.",
+      },
+    ],
     why: "(16x − 7) + (21x + 2) = 180 gives 37x − 5 = 180, so x = 5. That is not the answer. Substitute back: m∠A = 16(5) − 7 = 73, and since ∠A ≅ ∠C, m∠C = 73.",
     hints: [
       "Supplementary means the two measures total 180.",
@@ -146,11 +156,16 @@ export const NUMERIC_ITEMS: NumericItem[] = [
     given: ["AB = 27.25 m", "DF = 16.4 m"],
     answer: 10.85,
     unit: "m",
-    trap: {
-      value: 16.4,
-      note: "That is EB, which the ticks hand you. It is the piece to take away from AB, not the piece asked for.",
-    },
-    why: "EB = DF = 16.4 because the single ticks match. E lies on AB, so Segment Addition runs backwards: 27.25 − 16.4 = 10.85. The drawing is not to scale; only the marks count.",
+    trap: [
+      {
+        value: 16.4,
+        note: "That is DF, transferred correctly across the ticks — but the question asks for AE, and there is still a subtraction to do.",
+      },
+      {
+        value: 43.65,
+        note: "That is AB + DF. E lies on AB, so the part is taken out of the whole, not added to it.",
+      },
+    ],    why: "EB = DF = 16.4 because the single ticks match. E lies on AB, so Segment Addition runs backwards: 27.25 − 16.4 = 10.85. The drawing is not to scale; only the marks count.",
     hints: [
       "The matching single ticks tell you EB.",
       "E is between A and B, so AE + EB = AB.",

@@ -1381,9 +1381,9 @@ describe("numeric questions", () => {
         expect(item.answer, item.id).toBeGreaterThan(0);
         expect(item.why.length, item.id).toBeGreaterThan(20);
         // A trap must differ from the answer, or it would reject a correct one.
-        if (item.trap)
+        for (const t of item.trap ? [item.trap].flat() : [])
           expect(
-            Math.abs(item.trap.value - item.answer),
+            Math.abs(t.value - item.answer),
             item.id + " trap equals the answer",
           ).toBeGreaterThan(1e-6);
         // Where the item draws an angle, the drawing must agree with it.
@@ -1400,7 +1400,7 @@ describe("numeric questions", () => {
     const { NUMERIC_ITEMS } = await import("../src/practice/content/numeric");
     const q10 = NUMERIC_ITEMS.find((x) => x.id === "fa10-substitute-back")!;
     expect(q10.answer).toBe(73);
-    expect(q10.trap?.value).toBe(5);
+    expect([q10.trap].flat().map((t) => t!.value)).toContain(5);
   });
 });
 
@@ -1513,9 +1513,9 @@ describe("multi-part questions", () => {
           expect(part.body.claims.some((c) => !c.holds), item.id).toBe(true);
         } else {
           expect(Number.isFinite(part.body.answer), item.id).toBe(true);
-          if (part.body.trap)
+          for (const t of part.body.trap ? [part.body.trap].flat() : [])
             expect(
-              Math.abs(part.body.trap.value - part.body.answer),
+              Math.abs(t.value - part.body.answer),
               item.id + " trap equals the answer",
             ).toBeGreaterThan(1e-6);
         }
@@ -1540,8 +1540,11 @@ describe("multi-part questions", () => {
             Math.abs(a.body.answer - b.body.answer),
             item.id + " both parts answer the same number",
           ).toBeGreaterThan(1e-6);
-          // Part B must warn about carrying x across.
-          expect(b.body.trap?.value, item.id).toBeCloseTo(a.body.answer, 9);
+          // Part B must warn about carrying Part A's answer across.
+          expect(
+            [b.body.trap].flat().map((t) => t?.value),
+            item.id + " Part B does not name Part A's answer as a trap",
+          ).toContainEqual(a.body.answer);
         }
       }
   });
