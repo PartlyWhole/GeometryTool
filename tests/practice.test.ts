@@ -1569,3 +1569,62 @@ describe("one-step reason questions", () => {
         expect(item.answer, item.id).not.toBe("Given");
   });
 });
+
+describe("concept walkthroughs", () => {
+  it("covers every concept exactly once", async () => {
+    const { WALKTHROUGHS } = await import("../src/practice/content/walkthroughs");
+    const { CONCEPTS } = await import("../src/practice/content/concepts");
+    const ids = WALKTHROUGHS.map((w) => w.conceptId);
+    expect(new Set(ids).size).toBe(ids.length);
+    const missing = CONCEPTS.filter((c) => !ids.includes(c.id)).map((c) => c.id);
+    expect(missing).toEqual([]);
+    const unknown = ids.filter((id) => !CONCEPTS.some((c) => c.id === id));
+    expect(unknown).toEqual([]);
+  });
+
+  it("highlights only objects the figure in effect actually contains", async () => {
+    const { WALKTHROUGHS } = await import("../src/practice/content/walkthroughs");
+    const { LIBRARY } = await import("../src/practice/content/library");
+    const { resolveAngle, resolveSeg, byLabel } = await import("../src/practice/oracle");
+    const { objKey } = await import("../src/practice/terms");
+    const failures: string[] = [];
+    for (const w of WALKTHROUGHS) {
+      let figure: string | undefined;
+      w.steps.forEach((step, i) => {
+        // A step without its own figure keeps the previous one.
+        if (step.figure) figure = step.figure;
+        const where = `${w.conceptId} step ${i + 1}`;
+        if (step.figure && !LIBRARY[step.figure])
+          failures.push(`${where}: no figure "${step.figure}"`);
+        for (const mark of step.marks ?? []) {
+          if (!figure) {
+            failures.push(`${where}: marks ${objKey(mark.obj)} with no figure`);
+            continue;
+          }
+          const b = LIBRARY[figure]();
+          const found =
+            mark.obj.k === "ang" ? !!resolveAngle(b, mark.obj)
+            : mark.obj.k === "seg" ? !!resolveSeg(b, mark.obj)
+            : mark.obj.k === "pt" ? !!byLabel(b, mark.obj.p)
+            : true;
+          if (!found) failures.push(`${where}: ${figure} has no ${objKey(mark.obj)}`);
+        }
+      });
+    }
+    expect(failures).toEqual([]);
+  });
+
+  it("gives every step something to say, and most concepts a figure", async () => {
+    const { WALKTHROUGHS } = await import("../src/practice/content/walkthroughs");
+    let withFigure = 0;
+    for (const w of WALKTHROUGHS) {
+      expect(w.steps.length, w.conceptId).toBeGreaterThanOrEqual(3);
+      // A caption beside a highlighted figure is allowed to be terse
+      // ("AB is one part."); this only catches empty or placeholder text.
+      for (const s of w.steps) expect(s.text.length, w.conceptId).toBeGreaterThan(12);
+      if (w.steps.some((s) => s.figure)) withFigure++;
+    }
+    // The algebra and logic concepts are taught as statements, not pictures.
+    expect(withFigure).toBeGreaterThan(24);
+  });
+});

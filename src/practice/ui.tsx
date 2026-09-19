@@ -85,7 +85,7 @@ export function BuildStamp() {
   return <p className="buildstamp">Build {id}</p>;
 }
 
-export type Page = "board" | "practice" | "cards";
+export type Page = "board" | "concepts" | "practice" | "cards";
 
 export function PageNav(props: {
   value: Page;
@@ -94,6 +94,7 @@ export function PageNav(props: {
 }) {
   const items: { id: Page; label: string; icon: string }[] = [
     { id: "board", label: "Board", icon: "◇" },
+    { id: "concepts", label: "Concepts", icon: "◈" },
     { id: "practice", label: "Practice", icon: "◎" },
     { id: "cards", label: "Cards", icon: "▤" },
   ];

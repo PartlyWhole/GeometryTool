@@ -33,6 +33,7 @@ import {
 } from "./actions";
 import { type SolveResult } from "./solver";
 import { Practice } from "./practice/Practice";
+import { Concepts } from "./practice/Concepts";
 import { Flashcards } from "./practice/Flashcards";
 import { BuildStamp, PageNav, type Page } from "./practice/ui";
 import "./style.css";
@@ -641,8 +642,10 @@ function App() {
         <div className="app-page-nav">
           <PageNav value={page} onChange={setPage} />
         </div>
-        {page === "practice" ? <Practice /> : <Flashcards />}
-        <BuildStamp />
+        {page === "concepts" && <Concepts />}
+        {page === "practice" && <Practice />}
+        {page === "cards" && <Flashcards />}
+        {page !== "concepts" && <BuildStamp />}
       </div>
     );
   return (

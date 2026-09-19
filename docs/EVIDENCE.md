@@ -140,8 +140,8 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 
 ### Automated
 
-- `npm run check`: 126 tests, TypeScript, and the production build pass
-  (40 pre-existing whiteboard tests, 86 new).
+- `npm run check`: 129 tests, TypeScript, and the production build pass
+  (40 pre-existing whiteboard tests, 89 new).
 - Every generated multiple-choice card is asserted to carry four distinct
   options with a valid answer index and a real explanation.
 - Every one of the 11 authored proofs is replayed through the strict validator
@@ -527,6 +527,31 @@ conclusion as a congruence. A new "One step" mode generalises this to every
 proof in the app: one line, the lines it rests on shown above it, and four
 reasons to choose between. Every distractor is one the validator genuinely
 rejects for that step, checked over 30 seeds.
+
+### A Concepts page
+
+Practice tests what a student knows and Cards drill it; neither explains
+anything. A fourth page now does, covering all 43 concepts in 179 steps.
+
+A step carries a sentence and may carry a figure, a highlight, a line of
+algebra, or all three. A step without its own figure keeps the one before it,
+so the common case is the figure standing still while the highlight moves —
+which is what makes it a walkthrough rather than a caption. The Vertical
+Angles Theorem, for instance, runs: both linear pairs picked out in turn, the
+two sums shown, then the subtraction, with the algebra line changing
+underneath each time.
+
+Fourteen concepts carry no figure. The properties of equality and the logic
+of conditionals are better shown as a ladder of statements, and the page says
+so rather than inventing a picture.
+
+Two figures were added for it: a segment, a ray and a line side by side, where
+the ray and line running off the frame is the point; and the four angle
+classes with their measures.
+
+A test walks every step of every walkthrough and resolves each highlighted
+object against whichever figure is in effect at that step, so a highlight can
+never name something the figure does not contain.
 
 ### Limitations
 

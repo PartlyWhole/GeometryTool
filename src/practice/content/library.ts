@@ -328,6 +328,38 @@ export const congruentComplements = (): Board => {
   return f.build();
 };
 
+/** A segment, a ray and a line, so the three can be told apart at a glance. */
+export const segmentRayLine = (): Board =>
+  fig("Segment, ray and line")
+    .at("A", -210, -85).at("B", -50, -85)
+    .seg("A", "B")
+    .at("C", -210, 0).at("D", -50, 0)
+    .ray("C", "D")
+    .at("E", -210, 85).at("F", -50, 85)
+    .line("E", "F")
+    .build();
+
+/** The four classes of angle, side by side with their measures. */
+export const angleClasses = (): Board => {
+  const f = fig("Classifying by measure");
+  const spots: [string, string, string, number, number][] = [
+    ["P", "A", "B", -390, 40],
+    ["Q", "C", "D", -130, 90],
+    ["R", "E", "F", 130, 130],
+    ["S", "G", "H", 390, 180],
+  ];
+  for (const [v, a, b, x, deg] of spots) {
+    f.at(v, x, 60);
+    const p1 = polar(x, 60, 0, 115),
+      p2 = polar(x, 60, deg, 115);
+    f.at(a, p1.x, p1.y).at(b, p2.x, p2.y);
+    f.seg(v, a).seg(v, b);
+  }
+  f.right("CQD");
+  f.measure("APB", 40).measure("ERF", 130).measure("GSH", 180);
+  return f.build();
+};
+
 export const LIBRARY: Record<string, () => Board> = {
   crossing,
   fan,
@@ -349,6 +381,8 @@ export const LIBRARY: Record<string, () => Board> = {
   fourInARow,
   aroundPoint,
   congruentComplements,
+  segmentRayLine,
+  angleClasses,
 };
 
 /** Figures built to order, so a drawing always matches the numbers given. */

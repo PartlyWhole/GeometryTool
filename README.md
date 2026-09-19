@@ -3,7 +3,8 @@
 A static React/TypeScript geometry application in three parts:
 
 - **Board** — an SVG whiteboard with drawing, angle/segment selection, snapping, numerical constraints, undo and local persistence.
-- **Practice** — four exercise modes: naming figures, definitions and properties, translating between diagrams and equations, and a strictly checked two-column proof builder.
+- **Concepts** — every idea in the module explained a step at a time, with the figure building up as you go and the highlight moving to whatever the step is about.
+- **Practice** — five exercise modes: naming figures, definitions and properties, translating between diagrams and equations, solving for a measure, and proof.
 - **Cards** — flashcards for conditional-statement logic and for the definitions, postulates, properties and theorems of the module.
 
 Practice and Cards are built on the curriculum in *Geometry Module 2 — Reasoning, Proof and Measure*, and follow its colour notation: blue is given, red is what is being proved, ochre is the shared part.
