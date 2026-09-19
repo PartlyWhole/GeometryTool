@@ -24,7 +24,17 @@ import { resolveAngle, resolveSeg } from "./oracle";
 /** The reference's colour notation: given, prove, shared, construction. */
 export type Role = "given" | "prove" | "shared" | "construction" | "pick";
 
-export type Highlight = { obj: ObjId; role: Role };
+export type Highlight = {
+  obj: ObjId;
+  role: Role;
+  /**
+   * Draws this highlight shifted off the edge, perpendicular to it. Two
+   * highlights that overlap on the page would otherwise paint over each
+   * other and read as meeting end to end; separate lanes let a sum be seen
+   * as the two lengths it is made of.
+   */
+  lane?: number;
+};
 
 type Props = {
   board: Board;
@@ -193,7 +203,7 @@ export function Figure(props: Props) {
         // Following a line out to the frame instead would colour ground the
         // highlight does not refer to: marking AB on a drawn line must stop
         // at A and at B.
-        const [p, q] = ends;
+        const [p, q] = offsetBy(ends[0], ends[1], h.lane ?? 0);
         return (
           <line
             key={"hl" + i}
@@ -469,6 +479,27 @@ function wedgePath(v: { x: number; y: number }, start: number, sweep: number, r:
     y: v.y + r * Math.sin(start + sweep),
   };
   return `M ${v.x} ${v.y} L ${a.x} ${a.y} A ${r} ${r} 0 ${sweep > Math.PI ? 1 : 0} 1 ${b.x} ${b.y} Z`;
+}
+
+/**
+ * Shift a highlight off its edge by whole lanes, at right angles to it, so
+ * two that share ground can both be seen.
+ */
+function offsetBy(
+  a: { x: number; y: number },
+  c: { x: number; y: number },
+  lane: number,
+): [{ x: number; y: number }, { x: number; y: number }] {
+  if (!lane) return [a, c];
+  const dx = c.x - a.x;
+  const dy = c.y - a.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const nx = (-dy / len) * lane * 13;
+  const ny = (dx / len) * lane * 13;
+  return [
+    { x: a.x + nx, y: a.y + ny },
+    { x: c.x + nx, y: c.y + ny },
+  ];
 }
 
 /** Push a label away from the edges meeting at its point. */

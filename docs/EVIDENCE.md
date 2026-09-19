@@ -693,6 +693,27 @@ A highlight now spans exactly the two points it names. The line is still
 drawn as a line, extending past A and B in the ordinary figure colour; only
 the part the step refers to is coloured.
 
+### Showing a sum that does not work
+
+The Segment Addition counterexample used to be one step that coloured point
+B and asserted in words that AB + BC = AC fails. Nothing on the figure said
+why.
+
+It is now four steps that put the two parts up as separate lengths. AB runs
+the whole way from A past C to B; BC starts at C and doubles back over
+ground AB has already covered; AC is plainly the shortest of the three. Laid
+out as three parallel bars the overshoot is visible rather than asserted,
+and the last step makes the point that the postulate is not broken at all —
+with C the one in the middle it gives AC + CB = AB.
+
+Highlights can now be drawn in lanes, offset at right angles to the edge.
+Without that the second highlight painted over the first and the two parts
+read as meeting end to end, which is the opposite of what the step is about.
+
+The arithmetic is checked rather than trusted: the failing equation is
+asserted against the oracle with holds: false, and the one that does hold is
+asserted true, so the counterexample cannot quietly stop being one.
+
 ### Limitations
 
 - Proof checking validates the step you claim under the rules in the

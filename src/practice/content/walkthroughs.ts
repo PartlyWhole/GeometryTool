@@ -15,7 +15,7 @@ export type WalkStep = {
   /** A key into LIBRARY. Carried forward from the previous step if omitted. */
   figure?: string;
   /** What to pick out on that figure. */
-  marks?: { obj: ObjId; role: Role }[];
+  marks?: { obj: ObjId; role: Role; lane?: number }[];
   /** A line of algebra or a claim, shown as this step's focus. */
   show?: Statement;
   /**
@@ -61,9 +61,18 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "AB is one part.", marks: [given(seg("A", "B"))] },
       { text: "BC is the other part.", marks: [given(seg("B", "C"))] },
       { text: "AC is the whole, and the parts make it.", marks: [prove(seg("A", "C"))], show: { k: "eq", l: { k: "add", ts: [{ k: "len", seg: seg("A", "B") }, { k: "len", seg: seg("B", "C") }] }, r: { k: "len", seg: seg("A", "C") } } },
-      { text: "Move B outside the segment and the postulate no longer applies: all three are still collinear, but the order is A, C, B, and AB + BC = AC fails.", figure: "notBetween", marks: [shared(pt("B"))], assert: [
+      { text: "Now move B outside. All three are still collinear, but the order runs A, C, B — so B is no longer between A and C.", figure: "notBetween", marks: [shared(pt("B"))], assert: [
           { statement: { k: "collinear", pts: ["A", "B", "C"] }, holds: true },
           { statement: { k: "between", p: "B", a: "A", c: "C" }, holds: false },
+        ] },
+      { text: "Try to add the same two parts anyway. AB is one of them — and it now runs the whole way from A past C to B.", marks: [given(seg("A", "B"))] },
+      { text: "BC is the other, drawn on its own line below. Instead of carrying on from where AB stopped, it doubles back along ground AB has already covered.", marks: [{ ...given(seg("A", "B")), lane: 2 }, { ...shared(seg("C", "B")), lane: 3 }] },
+      { text: "Laid out that way the sum is plain: AB and BC together run well past AC, which is only the bottom length. The two parts overlap instead of meeting end to end — and meeting end to end is exactly what betweenness guaranteed.", marks: [{ ...given(seg("A", "B")), lane: 2 }, { ...shared(seg("C", "B")), lane: 3 }, { ...prove(seg("A", "C")), lane: 4 }], assert: [
+          { statement: { k: "eq", l: add(len("A", "B"), len("B", "C")), r: len("A", "C") }, holds: false },
+        ] },
+      { text: "The postulate itself is not broken — it is simply not about AB and BC here. C is the one between, so what it gives you is AC + CB = AB.", marks: [given(seg("A", "C")), given(seg("C", "B")), prove(seg("A", "B"))], show: { k: "eq", l: add(len("A", "C"), len("C", "B")), r: len("A", "B") }, assert: [
+          { statement: { k: "between", p: "C", a: "A", c: "B" }, holds: true },
+          { statement: { k: "eq", l: add(len("A", "C"), len("C", "B")), r: len("A", "B") }, holds: true },
         ] },
       { text: "Read backwards it is a subtraction, which is how most questions disguise it: know the whole and one part, and the other part follows." },
     ],
