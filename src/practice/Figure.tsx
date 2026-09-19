@@ -189,16 +189,11 @@ export function Figure(props: Props) {
         const ref = resolveSeg(b, h.obj);
         const ends = ref && endpoints(b, ref);
         if (!ref || !ends) return null;
-        // A whole ray or line is drawn out to the frame, so its highlight has
-        // to follow it there. Highlighting only the part between the named
-        // points leaves the tail dark — precisely wrong when the point being
-        // made is that a ray carries on.
-        const edge = b.edges.find((e) => e.id === ref.edge);
-        const whole = !ref.a && !ref.b;
-        const [p, q] =
-          edge && whole && edge.kind !== "segment"
-            ? extend(ends[0], ends[1], edge.kind, view)
-            : ends;
+        // A highlight spans exactly the two points it names and no further.
+        // Following a line out to the frame instead would colour ground the
+        // highlight does not refer to: marking AB on a drawn line must stop
+        // at A and at B.
+        const [p, q] = ends;
         return (
           <line
             key={"hl" + i}

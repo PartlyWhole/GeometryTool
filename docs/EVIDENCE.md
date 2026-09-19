@@ -681,6 +681,18 @@ saying so. It now renders nothing. The concept list is sticky and scrolls
 inside itself, so choosing the next concept no longer scrolls away from the
 one being read; below 820px it stacks above the content and stops sticking.
 
+### A highlight that overshot what it named
+
+Highlighting a whole ray or line used to follow it out to the frame. That
+was added so the segment/ray/line concept could show a ray carrying on past
+its drawn portion — and when that concept was cut, the behaviour was left
+behind with one user it did not suit. Marking AB on the line through A and B
+coloured the whole line, well past both points.
+
+A highlight now spans exactly the two points it names. The line is still
+drawn as a line, extending past A and B in the ordinary figure colour; only
+the part the step refers to is coloured.
+
 ### Limitations
 
 - Proof checking validates the step you claim under the rules in the
