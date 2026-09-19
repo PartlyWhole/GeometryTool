@@ -58,8 +58,8 @@ export const PROOFS: ProofProblem[] = [
     ],
     tags: ["Fig. 17", "§9"],
     solution: [
-      { statement: { k: "linearPair", a: ang("1"), b: ang("2") }, reasonId: "def-linear-pair", cites: [] },
-      { statement: { k: "linearPair", a: ang("2"), b: ang("3") }, reasonId: "def-linear-pair", cites: [] },
+      { statement: { k: "linearPair", a: ang("1"), b: ang("2") }, reasonId: "given", cites: [] },
+      { statement: { k: "linearPair", a: ang("2"), b: ang("3") }, reasonId: "given", cites: [] },
       { statement: { k: "eq", l: add(m("1"), m("2")), r: num(180) }, reasonId: "linear-pair-theorem", cites: [1] },
       { statement: { k: "eq", l: add(m("2"), m("3")), r: num(180) }, reasonId: "linear-pair-theorem", cites: [2] },
       { statement: { k: "eq", l: add(m("1"), m("2")), r: add(m("2"), m("3")) }, reasonId: "substitution", cites: [3, 4] },
@@ -94,8 +94,9 @@ export const PROOFS: ProofProblem[] = [
       { statement: { k: "eq", l: add(m("2"), m("4")), r: num(180) }, reasonId: "def-supplementary", cites: [2] },
       { statement: { k: "eq", l: m("3"), r: m("4") }, reasonId: "def-cong-ang", cites: [3] },
       { statement: { k: "eq", l: add(m("1"), m("3")), r: add(m("2"), m("4")) }, reasonId: "substitution", cites: [4, 5] },
-      { statement: { k: "eq", l: m("1"), r: m("2") }, reasonId: "substitution", cites: [6, 7] },
-      { statement: { k: "cong", l: ang("1"), r: ang("2") }, reasonId: "def-cong-ang", cites: [8] },
+      { statement: { k: "eq", l: add(m("1"), m("3")), r: add(m("2"), m("3")) }, reasonId: "substitution", cites: [6, 7] },
+      { statement: { k: "eq", l: m("1"), r: m("2") }, reasonId: "subtraction-property", cites: [8] },
+      { statement: { k: "cong", l: ang("1"), r: ang("2") }, reasonId: "def-cong-ang", cites: [9] },
     ],
   },
   {
@@ -126,20 +127,24 @@ export const PROOFS: ProofProblem[] = [
   },
   {
     id: "linear-pair-supp",
-    title: "A linear pair on a line",
+    title: "Using a linear pair",
     prompt:
-      "Ray BD stands on line AC. Prove that m∠ABD + m∠DBC = 180.",
+      "Ray BD stands on line AC, and m∠ABD = 115°. Prove that m∠DBC = 65°.",
     figure: linearPair(),
-    givens: [],
-    goal: { k: "eq", l: add(m("ABD"), m("DBC")), r: num(180) },
+    givens: [{ k: "eq", l: m("ABD"), r: num(115) }],
+    goal: { k: "eq", l: m("DBC"), r: num(65) },
     hints: [
       "First say what the figure shows about ∠ABD and ∠DBC.",
       "The Linear Pair Theorem turns that picture fact into a number fact.",
+      "Then put the measure you were given into that equation.",
     ],
     tags: ["Fig. 15", "§9"],
     solution: [
-      { statement: { k: "linearPair", a: ang("ABD"), b: ang("DBC") }, reasonId: "def-linear-pair", cites: [] },
+      { statement: { k: "linearPair", a: ang("ABD"), b: ang("DBC") }, reasonId: "given", cites: [] },
       { statement: { k: "eq", l: add(m("ABD"), m("DBC")), r: num(180) }, reasonId: "linear-pair-theorem", cites: [1] },
+      { statement: { k: "eq", l: m("ABD"), r: num(115) }, reasonId: "given", cites: [] },
+      { statement: { k: "eq", l: add(num(115), m("DBC")), r: num(180) }, reasonId: "substitution", cites: [2, 3] },
+      { statement: { k: "eq", l: m("DBC"), r: num(65) }, reasonId: "subtraction-property", cites: [4] },
     ],
   },
   {
@@ -161,6 +166,7 @@ export const PROOFS: ProofProblem[] = [
       { statement: { k: "eq", l: m("AVD"), r: m("DVC") }, reasonId: "def-cong-ang", cites: [2] },
       { statement: { k: "eq", l: add(m("AVD"), m("DVC")), r: m("AVC") }, reasonId: "angle-addition", cites: [] },
       { statement: { k: "eq", l: add(m("AVD"), m("AVD")), r: m("AVC") }, reasonId: "substitution", cites: [3, 4] },
+      { statement: { k: "eq", l: mul(num(2), m("AVD")), r: m("AVC") }, reasonId: "simplify", cites: [5] },
     ],
   },
   {

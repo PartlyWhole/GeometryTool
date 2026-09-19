@@ -307,6 +307,27 @@ export const rightSplitAt = (first: number): Board => {
   return f.build();
 };
 
+/**
+ * The Congruent Complements figure: ∠1 and ∠3 are each complementary to the
+ * ∠2 between them, and so congruent. Unlike the supplements case, this does
+ * not collapse into a pair of vertical angles, which is why the theorem gets
+ * a picture of its own.
+ */
+export const congruentComplements = (): Board => {
+  const f = fig("Complements of the same angle");
+  f.at("V", 0, 0);
+  for (const [l, d] of [
+    ["A", 0], ["B", 60], ["C", 90], ["D", 150],
+  ] as [string, number][]) {
+    const p = polar(0, 0, d, 165);
+    f.at(l, p.x, p.y);
+  }
+  ["A", "B", "C", "D"].forEach((l) => f.seg("V", l));
+  f.num("1", "AVB", 62).num("2", "BVC", 62).num("3", "CVD", 62);
+  f.right("AVC").right("BVD");
+  return f.build();
+};
+
 export const LIBRARY: Record<string, () => Board> = {
   crossing,
   fan,
@@ -327,6 +348,7 @@ export const LIBRARY: Record<string, () => Board> = {
   twoSupplementPairs,
   fourInARow,
   aroundPoint,
+  congruentComplements,
 };
 
 /** Figures built to order, so a drawing always matches the numbers given. */

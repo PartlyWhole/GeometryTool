@@ -104,6 +104,10 @@ export const FIGURE_SHOWS: Record<string, string[]> = {
   ],
   numberedCorner: ["adjacent", "angle-addition", "acute"],
   aroundPoint: ["angles-around-point", "adjacent", "acute", "obtuse", "angle-addition"],
+  congruentComplements: [
+    "congruent-complements", "complementary", "adjacent", "right",
+    "congruent-angles", "angle-addition", "acute", "perpendicular",
+  ],
 };
 
 /**
@@ -125,6 +129,7 @@ const FIGURE_PRIMARY: Record<string, string> = {
   aroundPoint: "angles-around-point",
   markedPair: "congruent-segments",
   straightInDisguise: "straight",
+  congruentComplements: "congruent-complements",
 };
 
 /** Distractor examples, taken from as far down the candidate list as needed. */

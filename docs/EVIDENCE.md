@@ -140,8 +140,8 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 
 ### Automated
 
-- `npm run check`: 118 tests, TypeScript, and the production build pass
-  (40 pre-existing whiteboard tests, 78 new).
+- `npm run check`: 126 tests, TypeScript, and the production build pass
+  (40 pre-existing whiteboard tests, 86 new).
 - Every generated multiple-choice card is asserted to carry four distinct
   options with a valid answer index and a real explanation.
 - Every one of the 11 authored proofs is replayed through the strict validator
@@ -469,6 +469,65 @@ segment/ray/line and missed here. Undefined terms are now asked with
 "describe" rather than "define", and a test asserts the word "define" never
 appears in a question about them.
 
+### Content review, and asking a theorem one step at a time
+
+A fresh-context reviewer was given only the two source documents and a dump
+of everything the app teaches and asks — no access to this project's
+reasoning or its tests — and asked adversarially for mathematical errors,
+invalid proof steps, wrong answers and divergences from the reference. It is
+not independent in the strict sense: same model, so shared blind spots are
+likely. It recomputed every numeric answer and every always/sometimes/never
+verdict and found all of them correct. Sixteen defects were reported; three
+were artifacts of the dump's format rather than the app, and are recorded
+here so they are not "fixed" later by mistake.
+
+Real, and fixed:
+- The Congruent Supplements proof cited Substitution for a step that also
+  performed a subtraction. The reference splits this, and this app's own
+  Vertical Angles proof splits it; the two now agree.
+- "A linear pair on a line" proved the Linear Pair Theorem by citing the
+  Linear Pair Theorem, in an app that teaches "the thing you are proving may
+  never appear as a reason". It is now a genuine use of the theorem: given a
+  linear pair and one measure, find the other.
+- Two proofs justified a premise read off the diagram with a definition.
+  A definition says what a phrase means; it cannot establish that two angles
+  form a linear pair. The reference calls that line "Given (from the
+  diagram)", and so does the app now.
+- The concept bank and the reason catalogue gave different definitions of
+  vertical angles, and the bank's was too weak to exclude non-vertical pairs
+  where three lines meet. Both now say "two pairs of opposite rays".
+- The midpoint converse was graded false while the structurally identical
+  bisector converse was graded true. The definition is reversible, as the
+  reference says twice; the converse only failed because it omitted "M lies
+  on AB". That clause is restored, and the subtlety it carried has become a
+  counterexample item of its own.
+- Two negation distractors were as defensible as the keyed answer:
+  "measures 90° or more" is equivalent to "is not acute" over this module's
+  range, and "form a triangle" is equivalent to "are not collinear". Both
+  replaced, and one rationale that asserted a falsehood removed.
+- A select-all explanation said "AP and PB look equal, and they are" in an
+  item whose whole point is that the figure cannot tell you.
+- "Multiplying both sides by the same nonzero number" — multiplication by
+  zero preserves equality; only division needs the caveat.
+- Two smaller wording fixes: an explanation that implied a line has a length,
+  and one that named a single distractor where two shared the flaw.
+
+Reported but not defects: the false "biconditionals" appear only inside the
+question "Can these be combined into…?", where the answer is no; the bisector
+proof does reach its goal, because statements compare by value and
+m∠AVD + m∠AVD is 2 m∠AVD; and the 87° in one explanation is declared by that
+figure.
+
+Asking a theorem one step at a time. The Congruent Complements Theorem had
+only prose examples, so a question about it was near-unanswerable without a
+picture. It now has the figure its proof is drawn on — two right angles
+sharing the ∠2 between them — and the proof is available as separate
+questions: write the equation each right angle gives you, then write the
+conclusion as a congruence. A new "One step" mode generalises this to every
+proof in the app: one line, the lines it rests on shown above it, and four
+reasons to choose between. Every distractor is one the validator genuinely
+rejects for that step, checked over 30 seeds.
+
 ### Limitations
 
 - Proof checking validates the step you claim under the rules in the
@@ -479,8 +538,11 @@ appears in a question about them.
   to be named instead; remove it from the catalogue if that is the house rule.
 - Not implemented: paragraph and flowchart proof formats, coordinate-plane
   exercises, compass-and-straightedge constructions, teacher authoring.
-- Touch-drag, screen readers, cross-browser behaviour and independent
-  mathematical review remain unverified.
+- Touch-drag, screen readers and cross-browser behaviour remain unverified.
+- The content review was run by the same model that wrote the content. It is
+  fresh-context and adversarially prompted, which removes anchoring, but it
+  is not a second opinion in the sense a teacher would be. The wording of the
+  43 definitions against the course's own phrasing still wants a human read.
 - Which concepts a figure shows, which concept it is primarily a picture of,
   and which topic a concept belongs to are all authored tables rather than
   derived. Adding a figure or a concept means adding its rows, or a question

@@ -5,6 +5,7 @@ import type { FormId } from "../StatementBuilder";
 import {
   bisector,
   collinear,
+  congruentComplements,
   complementary,
   crossing,
   fan,
@@ -165,6 +166,38 @@ export const READ_ITEMS: ReadItem[] = [
     ],
     why: "∠1 and ∠3 are adjacent with their outer sides on one line, so they are a linear pair and therefore supplementary.",
     tags: ["§9"],
+  },
+  {
+    id: "cc-step1",
+    prompt:
+      "The square marks ∠AVC as a right angle. Write the equation it gives you for ∠1 and ∠2.",
+    figure: congruentComplements(),
+    accept: [{ k: "eq", l: add(m("1"), m("2")), r: num(90) }],
+    why: "∠1 and ∠2 together make the right angle ∠AVC, so their measures total 90°. This is the first line of the Congruent Complements proof.",
+    allowForms: ["eq"],
+    tags: ["§9", "step 1"],
+  },
+  {
+    id: "cc-step2",
+    prompt:
+      "The other square marks ∠BVD. Write the equation it gives you for ∠2 and ∠3.",
+    figure: congruentComplements(),
+    accept: [{ k: "eq", l: add(m("2"), m("3")), r: num(90) }],
+    why: "∠2 and ∠3 together make the right angle ∠BVD, so their measures total 90°. Now two different sums both equal 90.",
+    allowForms: ["eq"],
+    tags: ["§9", "step 2"],
+  },
+  {
+    id: "cc-step5",
+    prompt:
+      "Both sums equal 90, and subtracting the shared ∠2 leaves m∠1 = m∠3. Write the conclusion about ∠1 and ∠3 as a congruence.",
+    figure: congruentComplements(),
+    accept: [
+      { k: "cong", l: ang("1"), r: ang("3") },
+      { k: "eq", l: m("1"), r: m("3") },
+    ],
+    why: "Equal measures become a congruence by the definition of congruent angles — the last line of the proof, and the statement of the Congruent Complements Theorem.",
+    tags: ["§9", "step 5"],
   },
   {
     id: "double-part",

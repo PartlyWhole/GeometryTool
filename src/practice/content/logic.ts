@@ -69,10 +69,11 @@ export const CONDITIONALS: Conditional[] = [
     id: "midpoint",
     p: "M is the midpoint of AB",
     notP: "M is not the midpoint of AB",
-    q: "AM ≅ MB",
-    notQ: "AM is not congruent to MB",
-    converseTrue: false,
-    topic: "The converse fails: AM ≅ MB does not place M on AB.",
+    q: "M lies on AB and AM ≅ MB",
+    notQ: "M does not lie on AB, or AM is not congruent to MB",
+    converseTrue: true,
+    topic:
+      "A definition works in both directions — which is why you may apply it forwards or backwards in a proof. Drop “M lies on AB” and the converse fails.",
   },
   {
     id: "linear-pair",
@@ -209,7 +210,7 @@ export const NEGATIONS: NegationItem[] = [
     wrong: [
       { text: "∠A is obtuse", why: "That leaves out right and straight angles." },
       { text: "∠A is a right angle", why: "One particular non-acute case, not the negation." },
-      { text: "∠A measures 90° or more", why: "True of every non-acute angle, but it states a measure the original never mentioned." },
+      { text: "∠A is not obtuse", why: "That denies a different property. An angle can be neither acute nor obtuse." },
     ],
   },
   {
@@ -247,7 +248,7 @@ export const NEGATIONS: NegationItem[] = [
     statement: "Points X, Y and Z are collinear",
     correct: "Points X, Y and Z are not collinear",
     wrong: [
-      { text: "Points X, Y and Z form a triangle", why: "True in most failing cases, but not all — two points could coincide." },
+      { text: "Point Y is not between X and Z", why: "Betweenness is a different claim: three points can lie on one line without Y being the middle one." },
       { text: "Points X, Y and Z are coplanar", why: "Any three points are coplanar, so this denies nothing." },
       { text: "No line passes through X, Y and Z in that order", why: "Betweenness is a different claim from collinearity." },
     ],
@@ -282,7 +283,7 @@ export const ALWAYS_SOMETIMES_NEVER: AlwaysItem[] = [
     id: "line-longer",
     statement: "Line MN is longer than segment MN.",
     verdict: "always",
-    why: "A line runs forever; a segment stops.",
+    why: "A segment is a bounded part of the line through its endpoints, and the line carries on past both of them.",
   },
   {
     id: "supp-90",
@@ -375,7 +376,7 @@ export const COUNTEREXAMPLES: CounterexampleItem[] = [
     ],
     correct: 1,
     why:
-      "A counterexample must satisfy the hypothesis and fail the conclusion. 100° and 80° are supplementary, and neither is 90°. The last pair is not supplementary at all, so it tests nothing.",
+      "A counterexample must satisfy the hypothesis and fail the conclusion. 100° and 80° are supplementary, and neither is 90°. Two of the other pairs do not total 180° at all, so they never satisfy the hypothesis and test nothing.",
   },
   {
     id: "congruent-vertical",
@@ -389,6 +390,19 @@ export const COUNTEREXAMPLES: CounterexampleItem[] = [
     correct: 0,
     why:
       "Congruent but unrelated angles satisfy the hypothesis and fail the conclusion. Option B confirms the claim rather than attacking it.",
+  },
+  {
+    id: "midpoint-converse",
+    claim: "If AM ≅ MB, then M is the midpoint of AB.",
+    options: [
+      "M is the point of AB with AM = MB",
+      "M sits off the segment, the same distance from A as from B",
+      "M is one of the endpoints A or B",
+      "AM and MB have different lengths",
+    ],
+    correct: 1,
+    why:
+      "Congruent halves alone do not place M on the segment. Every point of the perpendicular bisector of AB is equally far from A and from B, and only one of them is the midpoint. This is why the definition of a midpoint says the point lies on the segment — with that clause it works in both directions, and without it the converse fails.",
   },
   {
     id: "bisector-midpoint",

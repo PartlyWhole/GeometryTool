@@ -25,6 +25,7 @@ import { statementObjects } from "./terms";
 import { type Tally, loadTally, record, saveTally } from "./progress";
 import { Hints, Scoreboard, Tabs, Verdict } from "./ui";
 import { ReasonCheckMode } from "./SelectAllExercise";
+import { StepExercise } from "./StepExercise";
 
 const KIND_ORDER: ReasonKind[] = [
   "given",
@@ -36,7 +37,7 @@ const KIND_ORDER: ReasonKind[] = [
 ];
 
 export function ProofExercise() {
-  const [tab, setTab] = useState<"build" | "reasons">("build");
+  const [tab, setTab] = useState<"step" | "reasons" | "build">("step");
   return (
     <>
       <div className="proof-tabs">
@@ -45,12 +46,15 @@ export function ProofExercise() {
           value={tab}
           onChange={setTab}
           options={[
-            { id: "build", label: "Build a proof", hint: "Write every line and justify it" },
+            { id: "step", label: "One step", hint: "A single line: what justifies it?" },
             { id: "reasons", label: "Check the reasons", hint: "A finished proof, with some reasons wrong" },
+            { id: "build", label: "Build a proof", hint: "Write every line and justify it" },
           ]}
         />
       </div>
-      {tab === "build" ? <ProofBuilder /> : <ReasonCheckMode />}
+      {tab === "step" && <StepExercise />}
+      {tab === "reasons" && <ReasonCheckMode />}
+      {tab === "build" && <ProofBuilder />}
     </>
   );
 }

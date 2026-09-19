@@ -71,7 +71,7 @@ export const CLAIM_ITEMS: ClaimItem[] = [
       { statement: { k: "cong", l: seg("A", "P"), r: seg("P", "B") }, holds: false },
       { statement: { k: "between", p: "P", a: "A", c: "B" }, holds: true },
     ],
-    why: "AP and PB look equal, and they are — but nothing on the figure says so, and a drawing is not evidence. The square is a given fact worth 90°; P drawn on AB is a given fact too.",
+    why: "AP and PB may look equal, but nothing on the figure says so, and a drawing is not evidence. The square is a given fact worth 90°; P drawn on AB is a given fact too.",
     tags: ["§3", "§6"],
   },
 ];

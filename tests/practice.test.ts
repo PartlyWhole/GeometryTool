@@ -1460,3 +1460,112 @@ describe("a stem never contradicts what it is asking about", () => {
     expect(checked).toBeGreaterThan(5);
   });
 });
+
+describe("the congruent complements figure", () => {
+  it("shows two angles each complementary to the one between them", async () => {
+    const { congruentComplements } = await import("../src/practice/content/library");
+    const { measureOf, marked } = await import("../src/practice/oracle");
+    const b = congruentComplements();
+    const one = measureOf(b, ang("1"))!, two = measureOf(b, ang("2"))!, three = measureOf(b, ang("3"))!;
+    expect(one + two).toBeCloseTo(90, 4);
+    expect(two + three).toBeCloseTo(90, 4);
+    expect(one).toBeCloseTo(three, 4);
+    // Both right angles are marked, which is what makes the two sums readable.
+    expect(marked(b, { k: "angleClass", ang: ang("AVC"), cls: "right" })).toBe(true);
+    expect(marked(b, { k: "angleClass", ang: ang("BVD"), cls: "right" })).toBe(true);
+    // ∠1 and ∠3 must NOT be vertical — that is the whole point of this figure.
+    expect(marked(b, { k: "vertical", a: ang("1"), b: ang("3") })).toBe(false);
+  });
+});
+
+describe("findings from the content review stay fixed", () => {
+  it("does not let substitution do a subtraction in one line", async () => {
+    const { PROOFS } = await import("../src/practice/content/proofs");
+    const p = PROOFS.find((x) => x.id === "congruent-supplements")!;
+    const kinds = p.solution!.map((s) => s.reasonId);
+    // The reference splits this, and so does this app's Vertical Angles proof.
+    expect(kinds).toContain("subtraction-property");
+  });
+
+  it("never proves a theorem by citing that theorem", async () => {
+    const { PROOFS } = await import("../src/practice/content/proofs");
+    const { statementText } = await import("../src/practice/notation");
+    const { reasonById } = await import("../src/practice/reasons");
+    for (const p of PROOFS) {
+      const goal = statementText(p.goal);
+      for (const step of p.solution ?? []) {
+        if (statementText(step.statement) !== goal) continue;
+        const r = reasonById(step.reasonId)!;
+        // The step that states the goal may not be justified by a theorem
+        // whose own conclusion is that goal.
+        expect(r.kind === "theorem" && !p.forbid?.includes(r.id), p.id).toBe(false);
+      }
+    }
+  });
+
+  it("treats a definition as reversible", async () => {
+    const { CONDITIONALS } = await import("../src/practice/content/logic");
+    const midpoint = CONDITIONALS.find((c) => c.id === "midpoint")!;
+    const bisector = CONDITIONALS.find((c) => c.id === "bisector")!;
+    // Both are definitions; they must not be graded opposite ways.
+    expect(midpoint.converseTrue).toBe(bisector.converseTrue);
+    // And the tightened wording is what makes it reversible.
+    expect(midpoint.q).toContain("lies on AB");
+  });
+
+  it("gives vertical angles one definition, the precise one", async () => {
+    const { CONCEPTS } = await import("../src/practice/content/concepts");
+    const { reasonById } = await import("../src/practice/reasons");
+    const concept = CONCEPTS.find((c) => c.id === "vertical-angles")!;
+    expect(concept.definition).toContain("opposite rays");
+    expect(reasonById("def-vertical")!.short).toContain("opposite rays");
+  });
+});
+
+describe("one-step reason questions", () => {
+  it("offers only wrong reasons the validator genuinely rejects", async () => {
+    const { stepItems } = await import("../src/practice/content/stepReason");
+    const { PROOFS } = await import("../src/practice/content/proofs");
+    const { validateLine } = await import("../src/practice/proof");
+    const { REASONS } = await import("../src/practice/reasons");
+    const byName = new Map(REASONS.map((r) => [r.name, r.id]));
+    let checked = 0;
+    for (let seed = 1; seed <= 30; seed++)
+      for (const item of stepItems(seed, 12)) {
+        const [proofId, nth] = item.id.split(":");
+        const p = PROOFS.find((x) => x.id === proofId)!;
+        const idx = Number(nth) - 1;
+        const lines: { id: string; statement: unknown; reasonId: string; cites: string[] }[] = [];
+        p.solution!.slice(0, idx).forEach((s, n) => {
+          lines.push({
+            id: "S" + (n + 1),
+            statement: s.statement,
+            reasonId: s.reasonId,
+            cites: s.cites.map((c) => "S" + c),
+          });
+        });
+        const cites = item.cites.map((c) => "S" + c);
+        expect(item.options).toContain(item.answer);
+        expect(new Set(item.options).size).toBe(item.options.length);
+        for (const option of item.options) {
+          const id = byName.get(option)!;
+          const check = validateLine(p, lines as never, {
+            statement: item.statement,
+            reasonId: id,
+            cites,
+          });
+          // The keyed answer must validate; every distractor must not.
+          expect(check.ok, item.id + " :: " + option).toBe(option === item.answer);
+          checked++;
+        }
+      }
+    expect(checked).toBeGreaterThan(200);
+  });
+
+  it("never asks about a line whose reason is just Given", async () => {
+    const { stepItems } = await import("../src/practice/content/stepReason");
+    for (let seed = 1; seed <= 20; seed++)
+      for (const item of stepItems(seed, 12))
+        expect(item.answer, item.id).not.toBe("Given");
+  });
+});

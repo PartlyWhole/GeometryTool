@@ -982,3 +982,8 @@ code.answer.empty { color: var(--muted); font-size: 14px; }
 .part.done .part-label { color: var(--ok); }
 .part-answer { font-size: 15px; font-variant-numeric: tabular-nums; }
 .part-prompt { margin: 0; font-size: 15.5px; line-height: 1.45; }
+
+.two-column.compact { font-size: 13.5px; }
+.two-column.compact td { padding: 7px 11px; }
+.two-column tr.asking td { background: var(--shared-soft); }
+.two-column tr.asking .reason em { color: var(--shared); font-style: normal; }

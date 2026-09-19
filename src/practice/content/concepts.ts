@@ -294,13 +294,13 @@ export const CONCEPTS: Concept[] = [
     id: "vertical-angles",
     term: "Vertical angles",
     kind: "definition",
-    definition:
-      "Two angles that sit opposite each other at a crossing, sharing only the vertex.",
+    definition: "Two angles whose sides form two pairs of opposite rays.",
     section: "§8",
     examples: [
       { figure: "crossing", caption: "∠1 and ∠3 face each other across X." },
     ],
-    watch: "Vertical angles share only the vertex — they never touch along a side.",
+    watch:
+      "On a figure they sit opposite each other and share only the vertex, never a side. Adjacent is about touching; vertical is about facing.",
   },
   {
     id: "supplementary",
@@ -416,7 +416,7 @@ export const CONCEPTS: Concept[] = [
     kind: "property",
     definition: "If a = b then ac = bc.",
     because:
-      "Multiplying both sides by the same nonzero number keeps them equal; use it to clear a fraction.",
+      "Multiplying both sides by the same number keeps them equal; use it to clear a fraction.",
     section: "§4",
     examples: [{ text: "From x/2 = 5 conclude x = 10." }],
   },
@@ -503,6 +503,7 @@ export const CONCEPTS: Concept[] = [
     because: "Identical reasoning to congruent supplements, at 90° instead of 180°.",
     section: "§9",
     examples: [
+      { figure: "congruentComplements", caption: "∠1 and ∠3 are each complementary to the ∠2 between them." },
       { text: "∠1 and ∠2 are each complements of ∠3, so the two must have equal measure." },
     ],
   },
