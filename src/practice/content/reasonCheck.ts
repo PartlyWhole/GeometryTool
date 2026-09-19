@@ -120,12 +120,24 @@ function fromProof(p: ProofProblem, r: () => number): ReasonCheckItem | undefine
 export function reasonCheckItems(seed: number, count = 6): ReasonCheckItem[] {
   const r = rng(seed);
   const out: ReasonCheckItem[] = [];
-  const pool = PROOFS.filter((p) => (p.solution?.length ?? 0) >= 4);
+  // Shuffle before taking `count`. Walking the pool in order and stopping at
+  // the quota made the last proofs all but unreachable: with ten eligible and
+  // eight asked for, the tenth turned up in one session in four hundred.
+  const pool = shuffle(r, PROOFS.filter((p) => (p.solution?.length ?? 0) >= 4));
   for (let i = 0; i < pool.length && out.length < count; i++) {
     const item = fromProof(pool[i], r);
     if (item) out.push(item);
   }
   return out;
 }
+
+const shuffle = <T,>(r: () => number, xs: T[]) => {
+  const a = xs.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(r() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
 
 export const reasonName = (id: string) => reasonById(id)?.name ?? id;

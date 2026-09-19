@@ -1171,6 +1171,52 @@ describe("logic statements read as English in every form", () => {
   });
 });
 
+describe("every authored item can actually be reached", () => {
+  // Taking the first N from a fixed-order pool made the last entries all but
+  // unreachable — the best reason-check item turned up once in 400 sessions.
+  it("serves every reason-check item at a comparable rate", async () => {
+    const { reasonCheckItems } = await import("../src/practice/content/reasonCheck");
+    const seen: Record<string, number> = {};
+    const runs = 200;
+    for (let s = 1; s <= runs; s++)
+      for (const q of reasonCheckItems(s, 8)) seen[q.id] = (seen[q.id] ?? 0) + 1;
+    for (const [id, n] of Object.entries(seen))
+      expect(n / runs, `${id} appears in ${n}/${runs} sessions`).toBeGreaterThan(0.3);
+  });
+});
+
+describe("a figure never marks something its own drawing denies", () => {
+  // The module's central rule is that only what a figure marks may be used.
+  // A figure whose arcs assert a congruence the drawing contradicts teaches
+  // the opposite. One such figure marked a 118° angle congruent to a 62° one.
+  it("draws every ticked pair equal and every arced pair equal", async () => {
+    const { LIBRARY } = await import("../src/practice/content/library");
+    const { measureOf, lengthOf, threePointName } = await import("../src/practice/oracle");
+    const bad: string[] = [];
+    for (const [name, make] of Object.entries(LIBRARY)) {
+      const b = make();
+      for (const c of b.constraints as any[]) {
+        if (c.kind === "equalAngle") {
+          const degs = c.angles.map((a: any) => {
+            const n = threePointName(b, a);
+            return n ? measureOf(b, { k: "ang", name: n } as any) : undefined;
+          });
+          if (degs.some((d: number | undefined) => d == null)) continue;
+          if (Math.max(...degs) - Math.min(...degs) > 0.5)
+            bad.push(`${name}: arcs mark angles congruent that are drawn ${degs.map((d: number) => Math.round(d)).join("° vs ")}°`);
+        }
+        if (c.kind === "equalLength") {
+          const lens = c.segments.map((sg: any) => lengthOf(b, sg));
+          if (lens.some((l: number | undefined) => l == null)) continue;
+          if (Math.max(...lens) - Math.min(...lens) > 0.5)
+            bad.push(`${name}: ticks mark segments congruent that are drawn ${lens.map((l: number) => Math.round(l)).join(" vs ")}`);
+        }
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+});
+
 describe("the equation checker accepts a correct answer however it is built", () => {
   // A review of these items concluded that only the keyed form is accepted,
   // reading the accept lists rather than the comparator. The comparator

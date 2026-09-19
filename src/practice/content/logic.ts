@@ -287,7 +287,7 @@ export const ALWAYS_SOMETIMES_NEVER: AlwaysItem[] = [
   },
   {
     id: "supp-90",
-    statement: "If ∠F and ∠G are supplementary, then m∠F = 90°.",
+    statement: "Two supplementary angles each measure 90°.",
     verdict: "sometimes",
     why: "It holds when both are right angles and fails for 100° and 80°.",
   },
@@ -411,11 +411,11 @@ export const COUNTEREXAMPLES: CounterexampleItem[] = [
       "A line through the midpoint at 90°",
       "A line through the midpoint at 40°",
       "A line that misses the segment",
-      "A line through an endpoint",
+      "A line meeting the segment only at an endpoint",
     ],
     correct: 1,
     why:
-      "It passes through the midpoint, honouring the hypothesis, but meets at 40° rather than 90°.",
+      "It passes through the midpoint, honouring the hypothesis, but meets at 40° rather than 90°. The other two never reach the midpoint, so they leave the hypothesis untested.",
   },
 ];
 

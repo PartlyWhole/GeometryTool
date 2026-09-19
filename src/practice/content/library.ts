@@ -202,13 +202,13 @@ export const suppAndCongruent = (): Board => {
   f.at("P", -230, 30).at("Q", 60, 30);
   f.seg("P", "Q");
   f.on("V", "P", "Q", 0.5);
-  const d = polar(-85, 30, 62, 150);
+  const d = polar(-85, 30, 107, 150);
   f.at("R", d.x, d.y);
   f.seg("V", "R");
   // A separate angle, marked congruent to the first.
   f.at("W", 150, 30).at("Y", 300, 30);
   f.seg("W", "Y");
-  const e = polar(150, 30, 62, 150);
+  const e = polar(150, 30, 73, 150);
   f.at("Z", e.x, e.y);
   f.seg("W", "Z");
   f.num("1", "PVR").num("2", "RVQ").num("3", "ZWY");
