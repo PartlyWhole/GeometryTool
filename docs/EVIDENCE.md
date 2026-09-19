@@ -140,8 +140,8 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 
 ### Automated
 
-- `npm run check`: 108 tests, TypeScript, and the production build pass
-  (40 pre-existing whiteboard tests, 68 new).
+- `npm run check`: 116 tests, TypeScript, and the production build pass
+  (40 pre-existing whiteboard tests, 76 new).
 - Every generated multiple-choice card is asserted to carry four distinct
   options with a valid answer index and a real explanation.
 - Every one of the 11 authored proofs is replayed through the strict validator
@@ -414,6 +414,37 @@ original conditional" is never the right answer on a classify card, but the
 student can see Statement 2 differs from Statement 1, so it does not narrow
 the real choice; the `Proof` concept does have an example, and its absence
 from the audit dump was truncation.
+
+### Ninth pass — the answer formats the paper uses
+
+An audit against the Form A paper found the app covered the concepts but
+missed three whole answer formats and one problem type. All four are built.
+
+- **Numeric answers.** Nothing in the app had ever asked for a number, while
+  seven of the paper's thirteen questions do. A new Solve mode takes an answer
+  on a keypad — no typing, for the same reason statements are built from a
+  palette. All seven Form A numeric questions are present, plus generators for
+  linear pairs, complements, crossings, whole-minus-part and solve-then-
+  substitute. An item may declare the value of x separately: a student who
+  enters x is told exactly that, which is the trap the reference says these
+  questions are built to provoke.
+- **Fractions and decimals.** Generated algebra used integer coefficients only,
+  while §10 has a subsection on clearing fractions and Q4 is exactly that.
+  A generator now emits them, and a test recovers the fraction and the decimal
+  from the wording a student reads and checks that working it out lands on the
+  stated answer. That test immediately caught two bugs: the decimal had been
+  rounded, so computing from it missed the answer, and the glyph table was
+  indexed off by one, so ½ printed as ⅓.
+- **Select all that apply.** Every multiple choice had been single-answer. Two
+  formats now exist: which statements a marked figure actually supports
+  (Q12 Part A, reproduced exactly — the answer is AD ≅ BC and EB ≅ DF), and
+  which lines of a finished proof carry the right reason (Q6).
+- **Checking reasons** reuses the worked solutions the proofs already carry, so
+  no proof is authored twice. A reason is only offered as wrong when the
+  validator confirms it genuinely fails — transitive and substitution overlap,
+  and the reference says either is usually accepted, so a label that would have
+  been allowed must never be marked wrong. The explanation shown for a spoiled
+  row is the validator's own message.
 
 ### Limitations
 

@@ -1249,3 +1249,144 @@ describe("every drag task is actually reachable", () => {
     expect(failures).toEqual([]);
   });
 });
+
+describe("numeric questions", () => {
+  it("states an answer that its own figure supports", async () => {
+    const { NUMERIC_ITEMS } = await import("../src/practice/content/numeric");
+    const { measureOf } = await import("../src/practice/oracle");
+    // Angle questions drawn to scale must measure what they claim.
+    const checks: [string, string, number][] = [
+      ["fa7-linear-pair", "DBC", 93],
+      ["fa13a-straight", "EXD", 67.5],
+      ["fa13b-vertical", "DXF", 112.5],
+      ["fa11-three-lines", "PVR", 60],
+    ];
+    for (const [id, name, want] of checks) {
+      const item = NUMERIC_ITEMS.find((x) => x.id === id)!;
+      expect(item.figure, id).toBeDefined();
+      expect(measureOf(item.figure!, ang(name)), id + " ∠" + name).toBeCloseTo(want, 3);
+      expect(item.answer, id).toBeCloseTo(want, 6);
+    }
+  });
+
+  it("gives every generated numeric question a correct, reachable answer", async () => {
+    const { generatedNumeric } = await import("../src/practice/content/numeric");
+    const { measureOf } = await import("../src/practice/oracle");
+    for (let seed = 1; seed <= 60; seed++)
+      for (const item of generatedNumeric(seed, 8)) {
+        expect(Number.isFinite(item.answer), item.id).toBe(true);
+        expect(item.answer, item.id).toBeGreaterThan(0);
+        expect(item.why.length, item.id).toBeGreaterThan(20);
+        // A trap must differ from the answer, or it would reject a correct one.
+        if (item.trap)
+          expect(
+            Math.abs(item.trap.value - item.answer),
+            item.id + " trap equals the answer",
+          ).toBeGreaterThan(1e-6);
+        // Where the item draws an angle, the drawing must agree with it.
+        const m = item.id.startsWith("num-lp-")
+          ? measureOf(item.figure!, ang("DBC"))
+          : item.id.startsWith("num-comp-")
+            ? measureOf(item.figure!, ang("CVB"))
+            : undefined;
+        if (m !== undefined) expect(m, item.id).toBeCloseTo(item.answer, 3);
+      }
+  });
+
+  it("asks for the measure, not for x, where the reference warns it will", async () => {
+    const { NUMERIC_ITEMS } = await import("../src/practice/content/numeric");
+    const q10 = NUMERIC_ITEMS.find((x) => x.id === "fa10-substitute-back")!;
+    expect(q10.answer).toBe(73);
+    expect(q10.trap?.value).toBe(5);
+  });
+});
+
+describe("select-all claims are judged by what the figure marks", () => {
+  it("matches every authored claim against the oracle", async () => {
+    const { CLAIM_ITEMS } = await import("../src/practice/content/claims");
+    const { marked } = await import("../src/practice/oracle");
+    const { statementText } = await import("../src/practice/notation");
+    for (const item of CLAIM_ITEMS) {
+      for (const c of item.claims)
+        expect(
+          marked(item.figure, c.statement),
+          item.id + " :: " + statementText(c.statement),
+        ).toBe(c.holds);
+      // A select-all needs something to select and something to leave.
+      expect(item.claims.some((c) => c.holds), item.id).toBe(true);
+      expect(item.claims.some((c) => !c.holds), item.id).toBe(true);
+    }
+  });
+
+  it("keeps the Fig. 18 answer the paper's answer", async () => {
+    const { CLAIM_ITEMS } = await import("../src/practice/content/claims");
+    const { statementText } = await import("../src/practice/notation");
+    const item = CLAIM_ITEMS.find((i) => i.id === "fa12-marks")!;
+    const trueOnes = item.claims.filter((c) => c.holds).map((c) => statementText(c.statement));
+    expect(trueOnes.sort()).toEqual(["AD ≅ BC", "EB ≅ DF"]);
+  });
+});
+
+describe("reason-checking items", () => {
+  it("only marks a reason wrong when the validator really rejects it", async () => {
+    const { reasonCheckItems } = await import("../src/practice/content/reasonCheck");
+    const { validateLine } = await import("../src/practice/proof");
+    const { PROOFS } = await import("../src/practice/content/proofs");
+    let checkedWrong = 0, checkedRight = 0;
+    for (let seed = 1; seed <= 25; seed++)
+      for (const item of reasonCheckItems(seed, 8)) {
+        const p = PROOFS.find((x) => "rc-" + x.id === item.id)!;
+        const lines: { id: string; statement: unknown; reasonId: string; cites: string[] }[] = [];
+        p.solution!.forEach((s, i) => {
+          const cites = s.cites.map((n) => lines[n - 1]?.id ?? "missing");
+          const row = item.rows[i];
+          const check = validateLine(p, lines as never, {
+            statement: row.statement,
+            reasonId: row.reasonId,
+            cites,
+          });
+          // A row marked correct must validate; one marked wrong must not.
+          expect(check.ok, item.id + " row " + (i + 1) + " " + row.reasonId).toBe(row.correct);
+          if (row.correct) checkedRight++; else checkedWrong++;
+          lines.push({ id: "S" + (i + 1), statement: s.statement, reasonId: s.reasonId, cites });
+        });
+        // Every question must have something to accept and something to reject.
+        expect(item.rows.some((x) => x.correct), item.id).toBe(true);
+        expect(item.rows.some((x) => !x.correct), item.id).toBe(true);
+      }
+    expect(checkedWrong).toBeGreaterThan(20);
+    expect(checkedRight).toBeGreaterThan(20);
+  });
+
+  it("gives every spoiled row the validator's own explanation", async () => {
+    const { reasonCheckItems } = await import("../src/practice/content/reasonCheck");
+    for (let seed = 1; seed <= 15; seed++)
+      for (const item of reasonCheckItems(seed, 8))
+        for (const row of item.rows)
+          if (!row.correct)
+            expect(row.note?.length ?? 0, item.id).toBeGreaterThan(10);
+  });
+});
+
+describe("fraction-clearing questions are exact", () => {
+  it("states a decimal that really does give the answer back", async () => {
+    const { generatedNumeric } = await import("../src/practice/content/numeric");
+    let seen = 0;
+    for (let seed = 1; seed <= 200; seed++)
+      for (const item of generatedNumeric(seed, 8)) {
+        if (!item.id.startsWith("num-frac-")) continue;
+        seen++;
+        // Recover the fraction and the decimal from the wording a student reads.
+        const m = /QR = (?:(\d+)\/(\d+)|([½⅓¼⅕⅙⅛]))x inches and ST = ([\d.]+) inches/.exec(item.prompt);
+        expect(m, item.prompt).toBeTruthy();
+        const glyph: Record<string, [number, number]> = {
+          "½": [1, 2], "⅓": [1, 3], "¼": [1, 4], "⅕": [1, 5], "⅙": [1, 6], "⅛": [1, 8],
+        };
+        const [num, den] = m![3] ? glyph[m![3]] : [Number(m![1]), Number(m![2])];
+        const stated = Number(m![4]);
+        // Working it out the way the question asks must land on the answer.
+        expect(stated * (den / num), item.prompt).toBeCloseTo(item.answer, 9);
+      }
+    expect(seen).toBeGreaterThan(20);
+  });
+});

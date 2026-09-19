@@ -896,3 +896,63 @@ code.answer.empty { color: var(--muted); font-size: 14px; }
   border-radius: 9px;
 }
 .pick-chips { display: inline-flex; gap: 5px; }
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(52px, 72px));
+  gap: 7px;
+  justify-content: start;
+}
+.keypad .chip {
+  min-height: 44px;
+  font-size: 17px;
+  justify-content: center;
+}
+.given-list {
+  margin: 9px 0 0;
+  padding-left: 19px;
+  display: grid;
+  gap: 3px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.selectall { display: grid; gap: 8px; }
+.claim {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 11px 13px;
+  min-height: 44px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  line-height: 1.45;
+  white-space: normal;
+}
+.claim:hover:not(:disabled) { border-color: #c9cac2; background: #fbfbf8; }
+.claim-box {
+  flex: none;
+  width: 21px; height: 21px;
+  border: 1.5px solid #c3c4bc;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  margin-top: 1px;
+  background: #fff;
+}
+.claim.picked { border-color: var(--accent); }
+.claim.picked .claim-box { background: var(--accent); border-color: var(--accent); color: #fff; }
+.claim.settled { border-color: #bfe0cf; background: var(--ok-soft); }
+.claim.settled .claim-box { background: var(--ok); border-color: var(--ok); color: #fff; }
+.claim.missed { border-color: var(--bad); background: var(--bad-soft); }
+.claim.missed .claim-box { background: var(--bad); border-color: var(--bad); color: #fff; }
+.claim:disabled { opacity: 1; cursor: default; }
+.claim-body { display: flex; flex-direction: column; gap: 4px; }
+.claim-n { color: var(--muted); font-size: 12.5px; margin-right: 6px; }
+.claim-note { font-size: 13px; color: #8f2f28; line-height: 1.45; }
+
+.proof-tabs { display: flex; justify-content: flex-start; margin-bottom: 14px; }

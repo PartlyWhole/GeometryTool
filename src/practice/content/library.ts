@@ -269,6 +269,44 @@ export const aroundPoint = (): Board => {
   return f.build();
 };
 
+/** A linear pair drawn to the measure it states. */
+export const linearPairAt = (first: number): Board => {
+  const f = fig("Linear pair");
+  f.at("A", -180, 0).at("C", 180, 0);
+  f.seg("A", "C");
+  f.on("B", "A", "C", 0.5);
+  const d = polar(0, 0, 180 - first, 155);
+  f.at("D", d.x, d.y);
+  f.seg("B", "D");
+  return f.build();
+};
+
+/** Two lines crossing at X, with ∠CXE drawn at the measure it states. */
+export const crossingAt = (cxe: number): Board => {
+  const f = fig("Two lines crossing");
+  f.at("E", -185, 0).at("F", 185, 0);
+  f.seg("E", "F");
+  f.on("X", "E", "F", 0.5);
+  const c = polar(0, 0, 180 - cxe, 165);
+  const d = polar(0, 0, 360 - cxe, 165);
+  f.at("C", c.x, c.y).at("D", d.x, d.y);
+  f.seg("C", "D");
+  return f.build();
+};
+
+/** Two parts of a right angle, drawn to the measure the first one states. */
+export const rightSplitAt = (first: number): Board => {
+  const f = fig("Two parts of a right angle");
+  f.at("V", 0, 0);
+  const a = polar(0, 0, 90, 175),
+    b = polar(0, 0, 0, 175),
+    c = polar(0, 0, 90 - first, 175);
+  f.at("A", a.x, a.y).at("B", b.x, b.y).at("C", c.x, c.y);
+  f.seg("V", "A").seg("V", "B").seg("V", "C");
+  f.right("AVB");
+  return f.build();
+};
+
 export const LIBRARY: Record<string, () => Board> = {
   crossing,
   fan,
@@ -290,3 +328,6 @@ export const LIBRARY: Record<string, () => Board> = {
   fourInARow,
   aroundPoint,
 };
+
+/** Figures built to order, so a drawing always matches the numbers given. */
+export const TO_SCALE = { linearPairAt, crossingAt, rightSplitAt };

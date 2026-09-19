@@ -43,11 +43,12 @@ Switch sections with the Board / Practice / Cards control at the top right.
 
 - **Naming** — click the points that name a segment or angle, or pick its name from options whose distractors move the vertex letter.
 - **Definitions** — definitions to terms, terms to definitions, and worked or diagrammatic examples in both directions, generated from a bank of 43 concepts.
-- **Diagram ↔ equation** — read a marked figure and build the equation it gives you, or drag a figure until it matches a description. Equivalent rearrangements are accepted, so `AC − AB = BC` passes where `AB + BC = AC` is expected.
-- **Proof** — build a two-column proof. Every line is checked against the reason cited for it and the earlier lines it rests on; a true statement with the wrong reason is rejected, and the theorem being proved may not be cited in its own proof. Any correct route is accepted.
+- **Diagram ↔ equation** — read a marked figure and build the equation it gives you, drag a figure until it matches a description, or select every statement the figure actually supports. Equivalent rearrangements are accepted, so `AC − AB = BC` passes where `AB + BC = AC` is expected.
+- **Solve** — work out the measure or length a question asks for, on a keypad. Questions that pair a small x with a different answer say so when you enter x instead.
+- **Proof** — build a two-column proof, or check a finished one whose reasons are partly wrong. Every line is checked against the reason cited for it and the earlier lines it rests on; a true statement with the wrong reason is rejected, and the theorem being proved may not be cited in its own proof. Any correct route is accepted.
 
 Statements are never typed. They are assembled by clicking: pick the form of the statement, then fill its slots from the figure itself — two points name a segment, three name an angle, an arc names the angle it marks — or from a palette of the figure's objects, operators and digits. Answers are judged modulo naming, so ∠1 and ∠AXC are the same angle.
 
 ## Verification
 
-`npm run check` runs **108 tests**, TypeScript and the production build. The suite replays every authored proof and 120 generated ones through the same strict validator a student faces, so an unsolvable problem fails the build. See [docs/EVIDENCE.md](docs/EVIDENCE.md) for browser checks and limitations.
+`npm run check` runs **116 tests**, TypeScript and the production build. The suite replays every authored proof and 120 generated ones through the same strict validator a student faces, so an unsolvable problem fails the build. See [docs/EVIDENCE.md](docs/EVIDENCE.md) for browser checks and limitations.

@@ -23,7 +23,8 @@ import { PROOFS } from "./content/proofs";
 import { generatedProofs } from "./content/generators";
 import { statementObjects } from "./terms";
 import { type Tally, loadTally, record, saveTally } from "./progress";
-import { Hints, Scoreboard, Verdict } from "./ui";
+import { Hints, Scoreboard, Tabs, Verdict } from "./ui";
+import { ReasonCheckMode } from "./SelectAllExercise";
 
 const KIND_ORDER: ReasonKind[] = [
   "given",
@@ -35,6 +36,26 @@ const KIND_ORDER: ReasonKind[] = [
 ];
 
 export function ProofExercise() {
+  const [tab, setTab] = useState<"build" | "reasons">("build");
+  return (
+    <>
+      <div className="proof-tabs">
+        <Tabs
+          label="Proof task"
+          value={tab}
+          onChange={setTab}
+          options={[
+            { id: "build", label: "Build a proof", hint: "Write every line and justify it" },
+            { id: "reasons", label: "Check the reasons", hint: "A finished proof, with some reasons wrong" },
+          ]}
+        />
+      </div>
+      {tab === "build" ? <ProofBuilder /> : <ReasonCheckMode />}
+    </>
+  );
+}
+
+function ProofBuilder() {
   const [genSeed, setGenSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const problems = useMemo(
     () => [...PROOFS, ...generatedProofs(genSeed, 4)],

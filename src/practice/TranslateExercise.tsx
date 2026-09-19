@@ -11,6 +11,7 @@ import {
   wants,
 } from "./StatementBuilder";
 import { PickableFigure } from "./PickableFigure";
+import { ClaimMode } from "./SelectAllExercise";
 import { CONSTRUCT_ITEMS, READ_ITEMS, type ConstructItem, type ReadItem } from "./content/translate";
 import { statementText } from "./notation";
 import { HAND, angleNamer, holds, measureOf, lengthOf } from "./oracle";
@@ -18,7 +19,7 @@ import { type ObjId, matchesAccepted, objKey, statementObjects } from "./terms";
 import { type Tally, loadTally, record, saveTally } from "./progress";
 import { Scoreboard, Tabs, Verdict } from "./ui";
 
-type Dir = "read" | "construct";
+type Dir = "read" | "construct" | "claims";
 
 export function TranslateExercise() {
   const [dir, setDir] = useState<Dir>("read");
@@ -30,7 +31,9 @@ export function TranslateExercise() {
           <p className="prompt">
             {dir === "read"
               ? "Read what the figure asserts, and write it as a statement."
-              : "Adjust the figure until it matches the description."}
+              : dir === "construct"
+                ? "Adjust the figure until it matches the description."
+                : "Only the marks count. Decide which statements the figure really supports."}
           </p>
         </div>
         <Tabs
@@ -40,10 +43,13 @@ export function TranslateExercise() {
           options={[
             { id: "read", label: "Figure → equation" },
             { id: "construct", label: "Description → figure" },
+            { id: "claims", label: "What is true?" },
           ]}
         />
       </header>
-      {dir === "read" ? <ReadMode /> : <ConstructMode />}
+      {dir === "read" && <ReadMode />}
+      {dir === "construct" && <ConstructMode />}
+      {dir === "claims" && <ClaimMode />}
     </div>
   );
 }

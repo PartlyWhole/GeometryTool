@@ -4,14 +4,16 @@ import { NameExercise } from "./NameExercise";
 import { ConceptExercise } from "./ConceptExercise";
 import { TranslateExercise } from "./TranslateExercise";
 import { ProofExercise } from "./ProofExercise";
+import { NumericExercise } from "./NumericExercise";
 import { Tabs } from "./ui";
 
-export type Mode = "name" | "concepts" | "translate" | "proof";
+export type Mode = "name" | "concepts" | "translate" | "solve" | "proof";
 
 const MODES: { id: Mode; label: string; hint: string }[] = [
   { id: "name", label: "Naming", hint: "Identify the segment or angle a set of letters names" },
   { id: "concepts", label: "Definitions", hint: "Match definitions, properties and postulates to examples" },
   { id: "translate", label: "Diagram ↔ equation", hint: "Turn a figure into an equation, and back" },
+  { id: "solve", label: "Solve", hint: "Work out the measure or length the question asks for" },
   { id: "proof", label: "Proof", hint: "Build a two-column proof, every line checked" },
 ];
 
@@ -31,6 +33,7 @@ export function Practice(props: { mode?: Mode; onMode?: (m: Mode) => void }) {
       {mode === "name" && <NameExercise />}
       {mode === "concepts" && <ConceptExercise />}
       {mode === "translate" && <TranslateExercise />}
+      {mode === "solve" && <NumericExercise />}
       {mode === "proof" && <ProofExercise />}
     </div>
   );
