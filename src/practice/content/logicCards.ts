@@ -178,16 +178,27 @@ function negationCard(r: () => number): LogicCard | undefined {
 function verdictCard(r: () => number): LogicCard | undefined {
   const a = ALWAYS_SOMETIMES_NEVER[Math.floor(r() * ALWAYS_SOMETIMES_NEVER.length)];
   const choices = ["Always true", "Sometimes true", "Never true"];
+  const correct = a.verdict === "always" ? 0 : a.verdict === "sometimes" ? 1 : 2;
+  // Each verdict needs different evidence, so say what the chosen one would
+  // have required rather than reciting all three rules on every card.
+  const needs = [
+    "For *always* you would have to argue it in every case.",
+    "For *sometimes* you would have to produce both an example and a counterexample.",
+    "For *never* you would have to show it contradicts a definition or theorem.",
+  ];
+  const whyPerChoice: Record<number, string> = {};
+  choices.forEach((_, i) => {
+    if (i !== correct) whyPerChoice[i] = needs[i];
+  });
   return {
     id: "verdict:" + a.id,
     tag: "Always, sometimes, never",
     context: [a.statement],
     prompt: "Is this always, sometimes, or never true?",
     choices,
-    correct: a.verdict === "always" ? 0 : a.verdict === "sometimes" ? 1 : 2,
-    why:
-      a.why +
-      " Always needs a general argument; never needs a contradiction; sometimes needs both an example and a counterexample.",
+    correct,
+    why: a.why,
+    whyPerChoice,
   };
 }
 

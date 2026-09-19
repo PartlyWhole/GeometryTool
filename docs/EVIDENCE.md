@@ -140,8 +140,8 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 
 ### Automated
 
-- `npm run check`: 107 tests, TypeScript, and the production build pass
-  (40 pre-existing whiteboard tests, 67 new).
+- `npm run check`: 108 tests, TypeScript, and the production build pass
+  (40 pre-existing whiteboard tests, 68 new).
 - Every generated multiple-choice card is asserted to carry four distinct
   options with a valid answer index and a real explanation.
 - Every one of the 11 authored proofs is replayed through the strict validator
@@ -385,6 +385,35 @@ Figures
 Also: an item promised in its explanation an answer it refused; two read items
 were near-duplicates; one drag task answered its own second half; one figure
 named angles ∠A, ∠B, ∠C at vertices V and W.
+
+### Eighth pass — clearing what the audit set aside
+
+The audit listed several things as minor and moved on. They are now done.
+
+- Two drag tasks existed for angles and none for segments, and the `forbid`
+  mechanism was used once. Added "make ∠1 and ∠2 supplementary without their
+  being a linear pair", which is the distinction the reference stresses and
+  which the figure makes visible — the two never touch, so the forbidden
+  condition can never be met. Added "drag B until AB is twice BC".
+- A test now searches for a position of each movable point that satisfies its
+  task, so an unreachable drag task fails the build. This is the construct-mode
+  counterpart of replaying every proof. It found nothing wrong with the
+  content, but the first version of the search failed two items by centring
+  on the wrong point, which is worth knowing when reading it.
+- Every always/sometimes/never card ended with the same three-clause reminder.
+  Each wrong verdict now gets its own line saying what that verdict would have
+  required, and the shared tail is gone.
+- The midpoint concept had only a figure, so it could never be asked "which of
+  these is an example of a midpoint?".
+- Tick counts on the Fig. 18 figure were the reverse of the reference: AD ≅ BC
+  now carries two ticks and EB ≅ DF one.
+
+Checked and left alone, with reasons: the `straightInDisguise` figure is tight
+in the gallery's three-column grid but renders well at exercise size; "the
+original conditional" is never the right answer on a classify card, but the
+student can see Statement 2 differs from Statement 1, so it does not narrow
+the real choice; the `Proof` concept does have an example, and its absence
+from the audit dump was truncation.
 
 ### Limitations
 

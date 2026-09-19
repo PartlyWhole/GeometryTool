@@ -50,4 +50,4 @@ Statements are never typed. They are assembled by clicking: pick the form of the
 
 ## Verification
 
-`npm run check` runs **107 tests**, TypeScript and the production build. The suite replays every authored proof and 120 generated ones through the same strict validator a student faces, so an unsolvable problem fails the build. See [docs/EVIDENCE.md](docs/EVIDENCE.md) for browser checks and limitations.
+`npm run check` runs **108 tests**, TypeScript and the production build. The suite replays every authored proof and 120 generated ones through the same strict validator a student faces, so an unsolvable problem fails the build. See [docs/EVIDENCE.md](docs/EVIDENCE.md) for browser checks and limitations.

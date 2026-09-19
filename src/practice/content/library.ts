@@ -114,8 +114,8 @@ export const markedPair = (): Board =>
     .on("E", "A", "B", 0.55)
     .on("F", "D", "C", 0.45)
     .seg("E", "F")
-    .tick(["A", "D"], ["B", "C"])
     .tick(["E", "B"], ["D", "F"])
+    .tick(["A", "D"], ["B", "C"])
     .build();
 
 /** Fig. 13: a straight angle in disguise — line EF through X, rays to C and D. */

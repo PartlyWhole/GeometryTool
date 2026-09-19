@@ -250,6 +250,31 @@ export const CONSTRUCT_ITEMS: ConstructItem[] = [
     tags: ["§10"],
   },
   {
+    id: "supp-not-linear",
+    movable: ["G"],
+    prompt:
+      "∠1 sits on line AB and ∠2 on line DE. Drag G until ∠1 and ∠2 are supplementary — while staying a pair that is not a linear pair.",
+    start: twoSupplementPairs(),
+    require: [{ k: "supp", a: ang("1"), b: ang("2") }],
+    forbid: [{ k: "linearPair", a: ang("1"), b: ang("2") }],
+    why:
+      "A linear pair is always supplementary, but supplementary angles need not be a linear pair. These two never touch, so no amount of dragging could make them one — which is exactly the point.",
+    tags: ["§8"],
+  },
+  {
+    id: "double-part-segment",
+    movable: ["B"],
+    prompt: "Drag B until AB is twice BC.",
+    start: collinear(),
+    require: [
+      { k: "eq", l: len("A", "B"), r: mul(num(2), len("B", "C")) },
+      { k: "between", p: "B", a: "A", c: "C" },
+    ],
+    why:
+      "The parts still make the whole: with AB twice BC, B sits two thirds of the way along AC.",
+    tags: ["§6", "§10"],
+  },
+  {
     id: "not-between",
     movable: ["C"],
     prompt:

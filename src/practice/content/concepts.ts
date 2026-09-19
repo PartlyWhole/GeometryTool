@@ -158,6 +158,7 @@ export const CONCEPTS: Concept[] = [
     section: "§6",
     examples: [
       { figure: "midpoint", caption: "M divides AB into two equal halves." },
+      { text: "AB = 22, and the point on AB that makes both halves 11." },
     ],
     watch: "A midpoint is a point; a bisector is a line, ray or segment.",
   },

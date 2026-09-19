@@ -1174,3 +1174,78 @@ describe("logic statements read as English in every form", () => {
       }
   });
 });
+
+describe("every drag task is actually reachable", () => {
+  it("finds a position of the movable point that satisfies it", async () => {
+    const { CONSTRUCT_ITEMS } = await import("../src/practice/content/translate");
+    const { HAND, holds } = await import("../src/practice/oracle");
+    const { clone } = await import("../src/model");
+    type Board = import("../src/model").Board;
+    const { statementText } = await import("../src/practice/notation");
+
+    /** Move a point the way the exercise does: along its support when it was
+     *  declared to lie on one, freely otherwise. */
+    const place = (board: Board, label: string, x: number, y: number) => {
+      const p = board.points.find((q) => q.label === label)!;
+      if (p.on) {
+        const e = board.edges.find((x2) => x2.id === p.on!.edge)!;
+        const a = board.points.find((q) => q.id === e.a)!;
+        const c = board.points.find((q) => q.id === e.b)!;
+        const dx = c.x - a.x, dy = c.y - a.y;
+        const t = ((x - a.x) * dx + (y - a.y) * dy) / (dx * dx + dy * dy);
+        p.on.t = t;
+        p.x = a.x + dx * t;
+        p.y = a.y + dy * t;
+      } else {
+        p.x = x;
+        p.y = y;
+      }
+    };
+
+    const failures: string[] = [];
+    for (const item of CONSTRUCT_ITEMS) {
+      if (item.movable.length !== 1) continue;
+      const label = item.movable[0];
+      const origin = item.start.points.find((p) => p.label === label)!;
+      const ok = (b: Board) =>
+        item.require.every((s) => holds(b, s, HAND)) &&
+        !(item.forbid ?? []).some((s) => holds(b, s, HAND));
+
+      let found = false;
+      if (origin.on) {
+        for (let i = 0; !found && i <= 2000; i++) {
+          const b = clone(item.start);
+          const p = b.points.find((q) => q.label === label)!;
+          const e = b.edges.find((x2) => x2.id === p.on!.edge)!;
+          const a = b.points.find((q) => q.id === e.a)!;
+          const c = b.points.find((q) => q.id === e.b)!;
+          const t = 0.01 + (i / 2000) * 0.98;
+          place(b, label, a.x + (c.x - a.x) * t, a.y + (c.y - a.y) * t);
+          if (ok(b)) found = true;
+        }
+      } else {
+        // The point swings about some vertex of the figure; try each in turn.
+        const centres = item.start.points.filter((p) => p.label !== label);
+        for (const centre of centres) {
+          for (let deg = 0; !found && deg < 360; deg += 0.5)
+            for (const rad of [80, 140, 200]) {
+              const b = clone(item.start);
+              place(
+                b, label,
+                centre.x + rad * Math.cos((-deg * Math.PI) / 180),
+                centre.y + rad * Math.sin((-deg * Math.PI) / 180),
+              );
+              if (ok(b)) { found = true; break; }
+            }
+          if (found) break;
+        }
+      }
+      if (!found)
+        failures.push(
+          item.id + " — no position of " + label + " satisfies " +
+            item.require.map(statementText).join(" and "),
+        );
+    }
+    expect(failures).toEqual([]);
+  });
+});
