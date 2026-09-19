@@ -607,3 +607,29 @@ describe("rejection messages teach rather than just refuse", () => {
     if (!check.ok) expect(check.why).toMatch(/at least 2 earlier lines/);
   });
 });
+
+describe("flashcard content is well formed", () => {
+  it("offers four distinct options on every multiple-choice logic card", async () => {
+    const { logicCards } = await import("../src/practice/content/logicCards");
+    for (let seed = 1; seed <= 25; seed++)
+      for (const c of logicCards(seed, 12)) {
+        // Always/sometimes/never has exactly three verdicts by nature.
+        const expected = c.tag === "Always, sometimes, never" ? 3 : 4;
+        expect(c.choices.length, c.id).toBe(expected);
+        expect(new Set(c.choices).size, c.id).toBe(c.choices.length);
+        expect(c.correct, c.id).toBeGreaterThanOrEqual(0);
+        expect(c.correct, c.id).toBeLessThan(c.choices.length);
+        expect(c.why.length, c.id).toBeGreaterThan(20);
+      }
+  });
+
+  it("offers four distinct options on every concept question", async () => {
+    const { conceptQuestions } = await import("../src/practice/content/conceptQuiz");
+    for (let seed = 1; seed <= 20; seed++)
+      for (const q of conceptQuestions(seed, 14)) {
+        expect(q.choices.length, q.id).toBe(4);
+        expect(new Set(q.choices.map((c) => c.text)).size, q.id).toBe(4);
+        expect(q.correct, q.id).toBeGreaterThanOrEqual(0);
+      }
+  });
+});

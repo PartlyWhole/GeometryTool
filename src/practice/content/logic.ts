@@ -168,6 +168,7 @@ export const NEGATIONS: NegationItem[] = [
     wrong: [
       { text: "∠A is obtuse", why: "That leaves out right and straight angles." },
       { text: "∠A is a right angle", why: "One particular non-acute case, not the negation." },
+      { text: "∠A measures 90° or more", why: "True of every non-acute angle, but it states a measure the original never mentioned." },
     ],
   },
   {
@@ -177,6 +178,7 @@ export const NEGATIONS: NegationItem[] = [
     wrong: [
       { text: "∠A is not acute and not small", why: "Negating “and” gives “or”, not “and”." },
       { text: "∠A is obtuse or large", why: "Opposites are not negations." },
+      { text: "∠A is acute or small", why: "That weakens the original rather than denying it." },
     ],
   },
   {
@@ -185,6 +187,8 @@ export const NEGATIONS: NegationItem[] = [
     correct: "The angle is not acute and not right",
     wrong: [
       { text: "The angle is not acute or not right", why: "Negating “or” gives “and”." },
+      { text: "The angle is obtuse", why: "One way to fail both, but a straight angle fails them too." },
+      { text: "The angle is acute and right", why: "No angle is both; this denies nothing." },
     ],
   },
   {
@@ -193,6 +197,8 @@ export const NEGATIONS: NegationItem[] = [
     correct: "AB is not congruent to CD",
     wrong: [
       { text: "AB < CD", why: "One of several ways to fail congruence, not the negation." },
+      { text: "AB > CD", why: "The other one-sided case, equally incomplete." },
+      { text: "AB and CD are not parallel", why: "Congruence is about length, not direction." },
     ],
   },
   {
@@ -201,6 +207,8 @@ export const NEGATIONS: NegationItem[] = [
     correct: "Points X, Y and Z are not collinear",
     wrong: [
       { text: "Points X, Y and Z form a triangle", why: "True in most failing cases, but not all — two points could coincide." },
+      { text: "Points X, Y and Z are coplanar", why: "Any three points are coplanar, so this denies nothing." },
+      { text: "No line passes through X, Y and Z in that order", why: "Betweenness is a different claim from collinearity." },
     ],
   },
 ];

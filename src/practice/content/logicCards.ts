@@ -103,10 +103,12 @@ function equivalenceCard(r: () => number): LogicCard | undefined {
   const c = CONDITIONALS[Math.floor(r() * CONDITIONALS.length)];
   const from = FORMS[Math.floor(r() * 4)];
   const want = equivalentForm[from];
-  const choices = shuffle(
-    r,
-    FORMS.filter((f) => f !== from).map((f) => formText(c, f)),
-  );
+  // The statement itself cannot be offered, so a fourth option keeps the card
+  // the same shape as the others.
+  const choices = shuffle(r, [
+    ...FORMS.filter((f) => f !== from).map((f) => formText(c, f)),
+    "None of these is logically equivalent to it.",
+  ]);
   return {
     id: "equiv:" + c.id + ":" + from,
     tag: "Logical equivalence",

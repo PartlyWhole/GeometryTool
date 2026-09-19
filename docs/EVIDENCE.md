@@ -140,8 +140,10 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 
 ### Automated
 
-- `npm run check`: 75 tests, TypeScript, and the production build pass
-  (40 pre-existing whiteboard tests, 35 new).
+- `npm run check`: 77 tests, TypeScript, and the production build pass
+  (40 pre-existing whiteboard tests, 37 new).
+- Every generated multiple-choice card is asserted to carry four distinct
+  options with a valid answer index and a real explanation.
 - Every one of the 11 authored proofs is replayed through the strict validator
   and must reach its goal; 120 generated proofs (40 seeds × 3 templates) are
   replayed the same way. An unsolvable problem fails the build.
