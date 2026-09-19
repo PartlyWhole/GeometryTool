@@ -83,10 +83,15 @@
   box-shadow: 0 2px 8px #25383208;
 }
 .pagenav button {
+  /* The board styles its own top-right group with `.top-right button
+     { width: 36px }`, which also reaches this nav. Size to content instead. */
+  width: auto;
+  flex: none;
   min-height: 34px;
   padding: 6px 14px;
   color: var(--muted);
   font-size: 13.5px;
+  line-height: 1.2;
 }
 .pagenav button.active {
   background: var(--accent-soft) !important;
@@ -559,22 +564,26 @@ code.answer.empty { color: var(--muted); font-size: 14px; }
 
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .row.centered { justify-content: center; }
-button.primary {
+/* Scoped to .app-page: the board has its own `.primary` and uses `.muted`,
+   and these rules would otherwise outrank them and restyle it. Everything
+   this stylesheet renders lives inside .app-page except .pagenav, which the
+   board embeds in its top-right group. */
+.app-page button.primary {
   background: var(--accent);
   color: #fff;
   padding: 9px 18px;
 }
-button.primary:hover:not(:disabled) { background: #4d3bab; }
-button.primary:disabled { background: #c9c3e8; }
-button.link {
+.app-page button.primary:hover:not(:disabled) { background: #4d3bab; }
+.app-page button.primary:disabled { background: #c9c3e8; }
+.app-page button.link {
   color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 3px;
   padding: 6px 4px;
   min-height: 30px;
 }
-.muted { color: var(--muted); }
-.small { font-size: 13px; }
+.app-page .muted { color: var(--muted); }
+.app-page .small { font-size: 13px; }
 .tag {
   font-size: 11px;
   color: var(--muted);
