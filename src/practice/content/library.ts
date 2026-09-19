@@ -360,6 +360,24 @@ export const angleClasses = (): Board => {
   return f.build();
 };
 
+/**
+ * A bisector that is NOT perpendicular. The reference's Fig. 9 turns on this:
+ * every perpendicular bisector is a bisector, but not the reverse — and a
+ * figure showing only the perpendicular case teaches the opposite.
+ */
+export const obliqueBisector = (): Board => {
+  const f = fig("A bisector that is not perpendicular");
+  f.at("A", -180, 0).at("B", 180, 0);
+  f.seg("A", "B");
+  f.on("M", "A", "B", 0.5);
+  const q = polar(0, 0, 52, 165),
+    r = polar(0, 0, 232, 165);
+  f.at("Q", q.x, q.y).at("R", r.x, r.y);
+  f.seg("M", "Q").seg("M", "R");
+  f.tick(["A", "M"], ["M", "B"]);
+  return f.build();
+};
+
 export const LIBRARY: Record<string, () => Board> = {
   crossing,
   fan,
@@ -383,6 +401,7 @@ export const LIBRARY: Record<string, () => Board> = {
   congruentComplements,
   segmentRayLine,
   angleClasses,
+  obliqueBisector,
 };
 
 /** Figures built to order, so a drawing always matches the numbers given. */

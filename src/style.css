@@ -1,5 +1,35 @@
+/*
+ * Inter has no glyph for ∠ or ≅, and the system fallback draws them at about
+ * half the cap height — "∠ABD" reads as "₂ABD" at body size. These faces map
+ * just those code points to a font that draws them full size. Each local()
+ * that is missing is skipped, and if none resolve the normal stack applies.
+ */
+@font-face {
+  font-family: "GeometryGlyphs";
+  src:
+    local("Menlo-Regular"),
+    local("Menlo"),
+    local("Segoe UI Symbol"),
+    local("DejaVu Sans"),
+    local("Arial Unicode MS");
+  unicode-range: U+2220, U+2245, U+2248;
+}
+@font-face {
+  font-family: "GeometryGlyphs";
+  font-weight: bold;
+  src:
+    local("Menlo-Bold"),
+    local("Menlo-Regular"),
+    local("Menlo"),
+    local("Segoe UI Symbol"),
+    local("DejaVu Sans Bold"),
+    local("DejaVu Sans");
+  unicode-range: U+2220, U+2245, U+2248;
+}
+
 :root {
   font-family:
+    "GeometryGlyphs",
     Inter,
     ui-sans-serif,
     -apple-system,

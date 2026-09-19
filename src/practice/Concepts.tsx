@@ -152,9 +152,6 @@ export function Concepts() {
             </>
           )}
 
-          {concept.watch && (
-            <p className="card-watch">Watch out: {concept.watch}</p>
-          )}
         </article>
       </div>
       <BuildStamp />

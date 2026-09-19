@@ -57,7 +57,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "collinear",
     steps: [
-      { text: "Points are collinear when one line passes through all of them.", figure: "collinear" },
+      { text: "One line, and the points that happen to sit on it.", figure: "collinear" },
       { text: "A and C lie on this line. Any two points are collinear — a line can always be drawn through them.", marks: [given(pt("A")), given(pt("C"))] },
       { text: "B lies on it too, so all three are collinear. Three is the first interesting case.", marks: [given(pt("A")), given(pt("B")), given(pt("C"))], assert: [{ statement: { k: "collinear", pts: ["A", "B", "C"] }, holds: true }] },
       { text: "That is why “X, Y and Z are collinear” is only sometimes true: three points may or may not line up." },
@@ -75,11 +75,11 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "between",
     steps: [
-      { text: "B is between A and C only if all three are collinear and B lies on AC.", figure: "collinear" },
+      { text: "Two conditions have to hold at once here, and most counterexample questions are built on forgetting the second.", figure: "collinear" },
       { text: "Here B sits on the segment from A to C, with A and C on either side of it.", marks: [shared(pt("B")), given(pt("A")), given(pt("C"))], assert: [
           { statement: { k: "between", p: "B", a: "A", c: "C" }, holds: true },
         ] },
-      { text: "Collinearity alone is not enough. Move the points so the order runs A, C, B: all three are still collinear, but B now lies outside AC, so B is no longer between A and C.", figure: "notBetween", marks: [given(pt("A")), given(pt("C")), shared(pt("B"))], assert: [
+      { text: "Now a different arrangement: the order runs A, C, B. All three are still collinear, but B lies outside AC, so B is no longer between A and C.", figure: "notBetween", marks: [given(pt("A")), given(pt("C")), shared(pt("B"))], assert: [
           { statement: { k: "collinear", pts: ["A", "B", "C"] }, holds: true },
           { statement: { k: "between", p: "B", a: "A", c: "C" }, holds: false },
         ] },
@@ -111,7 +111,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "midpoint",
     steps: [
-      { text: "A midpoint is a point that divides a segment into two congruent halves.", figure: "midpoint" },
+      { text: "One point on a segment is special. Here is what makes it so.", figure: "midpoint" },
       { text: "M lies on AB — that part matters. A point equally far from A and B but off the segment is not a midpoint.", marks: [shared(pt("M"))], assert: [{ statement: { k: "between", p: "M", a: "A", c: "B" }, holds: true }] },
       { text: "The matching ticks say the two halves are congruent.", marks: [given(seg("A", "M")), given(seg("M", "B"))], assert: [{ statement: { k: "midpoint", p: "M", seg: seg("A", "B") }, holds: true }] },
       { text: "So each half is exactly half the whole, which is usually what a question actually wants.", marks: [prove(seg("A", "B"))] },
@@ -121,10 +121,11 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "segment-bisector",
     steps: [
-      { text: "A segment bisector is any line, ray or segment passing through the midpoint of a segment.", figure: "perpendicular" },
-      { text: "P is the midpoint of AB.", marks: [shared(pt("P"))], assert: [{ statement: { k: "midpoint", p: "P", seg: seg("A", "B") }, holds: true }] },
-      { text: "PQ passes through it, so PQ bisects AB. It need not be perpendicular to do that.", marks: [given(seg("P", "Q"))] },
-      { text: "Every bisector gives you the same algebraic fact: the two halves are equal.", marks: [prove(seg("A", "P")), prove(seg("P", "B"))] },
+      { text: "A midpoint is a point. A bisector is a thing that goes through one — and it can cross at any angle it likes.", figure: "obliqueBisector" },
+      { text: "M is the midpoint of AB: the ticks mark the two halves equal.", marks: [shared(pt("M"))], assert: [{ statement: { k: "midpoint", p: "M", seg: seg("A", "B") }, holds: true }] },
+      { text: "Line QR passes through M, so it bisects AB — and it crosses at no particular angle. A bisector does not have to be perpendicular.", marks: [given(seg("M", "Q")), given(seg("M", "R"))], assert: [{ statement: { k: "angleClass", ang: ang("AMQ"), cls: "right" }, holds: false }] },
+      { text: "Whatever the angle, every bisector gives the same algebraic fact: the two halves are equal.", marks: [prove(seg("A", "M")), prove(seg("M", "B"))] },
+      { text: "Tilt it to 90° and you have a perpendicular bisector — a special case. Every perpendicular bisector is a bisector, but not the reverse.", figure: "perpendicular", marks: [given(ang("APQ"))] },
     ],
   },
   {
@@ -139,7 +140,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "perpendicular",
     steps: [
-      { text: "Two lines, rays or segments are perpendicular when they meet at right angles.", figure: "perpendicular" },
+      { text: "What the small square on a figure actually tells you.", figure: "perpendicular" },
       { text: "PQ meets AB at P, and the small square marks the angle there as 90°.", marks: [given(ang("APQ"))] },
       { text: "That square is not decoration. It is a given fact worth 90°, usable without proof." },
       { text: "The other angle at P is 90° too — but the figure only marks one, and only what is marked may be used.", marks: [prove(ang("QPB"))], assert: [{ statement: { k: "angleClass", ang: ang("QPB"), cls: "right" }, holds: true }] },
@@ -150,7 +151,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "acute",
     steps: [
-      { text: "Angles are classified by measure. Four names cover every case.", figure: "angleClasses" },
+      { text: "Angles are classified by measure. These four names cover every angle this module uses.", figure: "angleClasses" },
       { text: "An acute angle measures more than 0° and less than 90°.", marks: [given(ang("APB"))] },
       { text: "Strictly less than 90°. An angle of exactly 90° is right, not acute." },
     ],
@@ -158,7 +159,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "right",
     steps: [
-      { text: "A right angle measures exactly 90°.", figure: "angleClasses", marks: [given(ang("CQD"))] },
+      { text: "Of the four classes, this is the one a figure marks rather than measures.", figure: "angleClasses", marks: [given(ang("CQD"))] },
       { text: "It is drawn with a small square rather than an arc, and that square is a given fact worth 90°." },
       { text: "Two lines that meet at a right angle are perpendicular, and all right angles are congruent to each other." },
     ],
@@ -166,7 +167,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "obtuse",
     steps: [
-      { text: "An obtuse angle measures more than 90° and less than 180°.", figure: "angleClasses", marks: [given(ang("ERF"))] },
+      { text: "Wider than a right angle — but there is a ceiling, and it is where most of the mistakes happen.", figure: "angleClasses", marks: [given(ang("ERF"))] },
       { text: "Strictly less than 180°. A straight angle exceeds 90° without being obtuse, which is the usual trap." },
       { text: "A triangle can hold at most one of them: two angles above 90° already exceed the 180° a triangle has to spend." },
     ],
@@ -174,7 +175,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "straight",
     steps: [
-      { text: "A straight angle measures exactly 180°.", figure: "angleClasses", marks: [given(ang("GSH"))] },
+      { text: "The one that does not look like an angle at all.", figure: "angleClasses", marks: [given(ang("GSH"))] },
       { text: "Its two sides are opposite rays, so it looks like a line — but it is a genuine angle, not a non-angle." },
       { text: "That is the whole trick behind questions like “m∠CXE is ⅝ of m∠FXE”, where the angle named on the right quietly turns out to be straight." },
     ],
@@ -201,7 +202,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "angle-bisector",
     steps: [
-      { text: "An angle bisector is a ray that splits an angle into two congruent angles.", figure: "bisector" },
+      { text: "An interior ray cuts an angle in two. This is the case where the two pieces come out equal.", figure: "bisector" },
       { text: "Ray VD lies inside ∠AVC.", marks: [shared(pt("D"))], assert: [{ statement: { k: "interior", p: "D", ang: ang("AVC") }, holds: true }] },
       { text: "The matching arcs say the two parts are congruent.", marks: [given(ang("AVD")), given(ang("DVC"))] },
       { text: "It is the special case of an interior ray where the parts come out equal — so each half is exactly half the whole, and you can write that as an equation straight away.", marks: [prove(ang("AVC"))] },
@@ -210,7 +211,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "adjacent",
     steps: [
-      { text: "Adjacent angles share a vertex and a side, and do not overlap.", figure: "crossing" },
+      { text: "Two angles at one crossing can be related in more than one way. This is the one about touching.", figure: "crossing" },
       { text: "∠1 and ∠2 both have vertex X and share the ray between them.", marks: [given(ang("1")), given(ang("2"))] },
       { text: "Their interiors are separate: neither contains any part of the other." },
       { text: "∠1 and ∠3 are not adjacent. They share the vertex but no side — they face each other instead.", marks: [prove(ang("1")), prove(ang("3"))], assert: [{ statement: { k: "adjacent", a: ang("1"), b: ang("3") }, holds: false }, { statement: { k: "vertical", a: ang("1"), b: ang("3") }, holds: true }] },
@@ -222,7 +223,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     steps: [
       { text: "Ray BD stands on line AC.", figure: "linearPair", marks: [shared(pt("D"))] },
       { text: "∠ABD and ∠DBC are adjacent: same vertex, shared side BD.", marks: [given(ang("ABD")), given(ang("DBC"))], assert: [{ statement: { k: "linearPair", a: ang("ABD"), b: ang("DBC") }, holds: true }] },
-      { text: "Their outer sides, BA and BC, together form a straight line. That is what makes them a linear pair rather than merely adjacent.", marks: [shared(pt("A")), shared(pt("C"))] },
+      { text: "Their outer sides, BA and BC, together form a straight line. That is what makes them a linear pair rather than merely adjacent.", marks: [shared(seg("A", "B")), shared(seg("B", "C"))] },
       { text: "So the two must total 180°. Seeing two angles sit on a line is what licenses writing “= 180”.", show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("ABD") }, { k: "meas", ang: ang("DBC") }] }, r: { k: "num", v: 180 } } },
     ],
   },
@@ -239,7 +240,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "supplementary",
     steps: [
-      { text: "Two angles are supplementary when their measures total 180°.", figure: "linearPair" },
+      { text: "A relationship between two measures — and, as it turns out, nothing at all about where the angles sit.", figure: "linearPair" },
       { text: "A linear pair is always supplementary, because the outer sides form a line.", marks: [given(ang("ABD")), given(ang("DBC"))] },
       { text: "But supplementary angles need not touch at all. Two angles in different diagrams, on different pages, are supplementary if their measures add to 180°.", figure: "twoSupplementPairs", marks: [given(ang("1")), prove(ang("4"))], assert: [{ statement: { k: "supp", a: ang("1"), b: ang("4") }, holds: true }, { statement: { k: "linearPair", a: ang("1"), b: ang("4") }, holds: false }] },
       { text: "That is why “if ∠F and ∠G are supplementary then m∠F = 90°” is only sometimes true: it holds when both are right angles and fails for 100° and 80°." },
@@ -248,16 +249,16 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "complementary",
     steps: [
-      { text: "Two angles are complementary when their measures total 90°.", figure: "complementary" },
+      { text: "The same idea as supplementary, at 90° instead of 180°.", figure: "complementary" },
       { text: "The square marks ∠AVC as a right angle — 90° in total.", marks: [shared(ang("AVC"))] },
       { text: "Ray VD splits it, so the two parts are complementary.", marks: [given(ang("AVD")), given(ang("DVC"))], assert: [{ statement: { k: "comp", a: ang("AVD"), b: ang("DVC") }, holds: true }] },
-      { text: "As with supplements, neither angle has to be drawn near the other. Only the two measures matter.", show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("AVD") }, { k: "meas", ang: ang("DVC") }] }, r: { k: "num", v: 90 } } },
+      { text: "Here the two sit side by side, but as with supplements neither angle has to be drawn near the other. Only the two measures matter.", show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("AVD") }, { k: "meas", ang: ang("DVC") }] }, r: { k: "num", v: 90 } } },
     ],
   },
   {
     conceptId: "angles-around-point",
     steps: [
-      { text: "All the angles at a shared vertex, taken once around, total 360°.", figure: "aroundPoint" },
+      { text: "Go once round a vertex and you end up facing the way you started. That is what closes the turn.", figure: "aroundPoint" },
       { text: "∠1, ∠2, ∠3 and ∠4 close the full turn between them.", marks: [given(ang("1")), given(ang("2")), given(ang("3")), given(ang("4"))] },
       { text: "The angles on one side of a straight line total 180° instead — half the turn.", figure: "threeConcurrent", marks: [given(ang("X")), given(ang("Z")), given(ang("Y"))] },
       { text: "Always look for the straight line first. Working round the full 360° gets the same answer and takes twice as long." },
@@ -270,7 +271,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     steps: [
       { text: "The reflexive property says a quantity equals itself.", show: { k: "eq", l: vr("a"), r: vr("a") } },
       { text: "It looks like it says nothing, and it is doing real work: it is almost always how a shared part enters a proof.", figure: "fan", marks: [shared(ang("XVY"))] },
-      { text: "∠XVY belongs to both of the larger angles. Writing m∠XVY = m∠XVY is what lets you add it to both sides of something else.", show: { k: "eq", l: meas("XVY"), r: meas("XVY") } },
+      { text: "∠XVY belongs to both of the larger angles — to ∠WVY on one side and to ∠XVZ on the other. Writing m∠XVY = m∠XVY is what lets you add it to both sides of something else.", marks: [given(ang("WVY")), prove(ang("XVZ")), shared(ang("XVY"))], show: { k: "eq", l: meas("XVY"), r: meas("XVY") } },
       { text: "That step is reflexive, never transitive — a confusion test writers plant on purpose." },
     ],
   },
@@ -345,7 +346,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "linear-pair-theorem",
     steps: [
-      { text: "The theorem: if two angles form a linear pair, they are supplementary.", figure: "linearPair" },
+      { text: "This is the bridge from something you can see to something you can write down.", figure: "linearPair" },
       { text: "Start from the picture fact. ∠ABD and ∠DBC are adjacent with their outer sides on line AC.", marks: [given(ang("ABD")), given(ang("DBC"))] },
       { text: "The theorem turns that into a number fact.", show: { k: "eq", l: add(meas("ABD"), meas("DBC")), r: num(180) } },
       { text: "It is the bridge you cross whenever a proof moves from “these two sit on a line” to “= 180”." },
@@ -354,7 +355,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "vertical-angles-theorem",
     steps: [
-      { text: "The theorem: vertical angles are congruent. The proof is three real lines, and it is the shape of every argument in this module.", figure: "crossing" },
+      { text: "Why must the opposite angles at a crossing be equal? The proof is short, and its shape is the shape of every argument in this module.", figure: "crossing" },
       { text: "∠1 and ∠2 form a linear pair, so they total 180°.", marks: [given(ang("1")), shared(ang("2"))], show: { k: "eq", l: add(meas("1"), meas("2")), r: num(180) }, assert: [{ statement: { k: "linearPair", a: ang("1"), b: ang("2") }, holds: true }] },
       { text: "∠2 and ∠3 form a linear pair too, so they also total 180°.", marks: [shared(ang("2")), given(ang("3"))], show: { k: "eq", l: add(meas("2"), meas("3")), r: num(180) } },
       { text: "Two quantities equal to the same thing are equal to each other.", show: { k: "eq", l: add(meas("1"), meas("2")), r: add(meas("2"), meas("3")) } },
@@ -365,9 +366,9 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "congruent-supplements",
     steps: [
-      { text: "The theorem: angles supplementary to the same angle — or to congruent angles — are congruent.", figure: "twoSupplementPairs" },
-      { text: "∠1 and ∠3 sit on a line, so they total 180°.", marks: [given(ang("1")), shared(ang("3"))] },
-      { text: "∠2 and ∠4 sit on a line too, so they also total 180°.", marks: [given(ang("2")), shared(ang("4"))] },
+      { text: "Two angles in different places, with nothing in common except what each one is supplementary to.", figure: "twoSupplementPairs" },
+      { text: "∠1 and ∠3 sit on a line, so they total 180°.", marks: [given(ang("1")), shared(ang("3"))], show: { k: "eq", l: add(meas("1"), meas("3")), r: num(180) } },
+      { text: "∠2 and ∠4 sit on a line too, so they also total 180°.", marks: [given(ang("2")), shared(ang("4"))], show: { k: "eq", l: add(meas("2"), meas("4")), r: num(180) } },
       { text: "The arcs mark ∠3 ≅ ∠4, so the parts being subtracted are equal.", marks: [shared(ang("3")), shared(ang("4"))], assert: [{ statement: { k: "cong", l: ang("3"), r: ang("4") }, holds: true }, { statement: { k: "supp", a: ang("1"), b: ang("3") }, holds: true }] },
       { text: "What is left must be equal: ∠1 ≅ ∠2. Note that these two never touch — being supplements of congruent angles is enough.", marks: [prove(ang("1")), prove(ang("2"))], assert: [{ statement: { k: "cong", l: ang("1"), r: ang("2") }, holds: true }, { statement: { k: "adjacent", a: ang("1"), b: ang("2") }, holds: false }] },
       { text: "It is the vertical-angle argument stated in general. Once you have the theorem you can skip straight to the conclusion." },
@@ -376,7 +377,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "congruent-complements",
     steps: [
-      { text: "The theorem: angles complementary to the same angle — or to congruent angles — are congruent.", figure: "congruentComplements" },
+      { text: "The same argument as congruent supplements, run at 90°. Here the two angles sit either side of the one they share.", figure: "congruentComplements" },
       { text: "One square marks ∠AVC as a right angle, so ∠1 and ∠2 total 90°.", marks: [given(ang("1")), shared(ang("2"))], show: { k: "eq", l: add(meas("1"), meas("2")), r: num(90) }, assert: [{ statement: { k: "comp", a: ang("1"), b: ang("2") }, holds: true }] },
       { text: "The other square marks ∠BVD, so ∠2 and ∠3 total 90° as well.", marks: [shared(ang("2")), given(ang("3"))], show: { k: "eq", l: add(meas("2"), meas("3")), r: num(90) } },
       { text: "Both sums equal 90, so they equal each other.", show: { k: "eq", l: add(meas("1"), meas("2")), r: add(meas("2"), meas("3")) } },
@@ -387,7 +388,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "right-angle-congruence",
     steps: [
-      { text: "The theorem: all right angles are congruent.", figure: "twoRightAngles" },
+      { text: "Two right angles in different places, with nothing else in common. Must they be equal?", figure: "twoRightAngles" },
       { text: "The square marks ∠1 as 90°.", marks: [given(ang("1"))] },
       { text: "The other square marks ∠2 as 90°, in a different place entirely.", marks: [given(ang("2"))] },
       { text: "Two quantities each equal to 90 are equal to each other, so ∠1 ≅ ∠2.", marks: [prove(ang("1")), prove(ang("2"))], assert: [{ statement: { k: "angleClass", ang: ang("1"), cls: "right" }, holds: true }, { statement: { k: "angleClass", ang: ang("2"), cls: "right" }, holds: true }, { statement: { k: "cong", l: ang("1"), r: ang("2") }, holds: true }] },
@@ -399,7 +400,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "inductive",
     steps: [
-      { text: "Inductive reasoning notices a pattern in examples and predicts what comes next." },
+      { text: "How geometry gets its ideas — and why it can never finish with them." },
       { text: "2, 4, 6, 8 suggests 10 — and it usually is 10." },
       { text: "But nothing in the first four terms forces it. What you get is a conjecture: plausible, not guaranteed." },
       { text: "It is how geometry gets its ideas, and never how geometry finishes an argument. A single counterexample ends a conjecture." },
@@ -408,7 +409,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "deductive",
     steps: [
-      { text: "Deductive reasoning derives a conclusion from accepted facts by logic alone." },
+      { text: "The other kind of reasoning: no guessing, and no room left for doubt." },
       { text: "If the facts you start from are true and the logic is valid, the conclusion is certain — not likely, certain." },
       { text: "This is what a proof is made of. Every line of a two-column proof is a deductive step." },
       { text: "Two named patterns get tested directly: the Law of Detachment and the Law of Syllogism." },
@@ -437,7 +438,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "proof",
     steps: [
-      { text: "A proof is a chain of statements, each justified by a definition, postulate, theorem or property, leading from the given to the conclusion." },
+      { text: "What a proof is made of, and the two rules that govern every way of writing one down." },
       { text: "Two rules govern every format. First: every statement carries a reason." },
       { text: "Second: the thing you are proving may never appear as a reason. That is circular, and it is the error most “find the mistake” questions plant." },
       { text: "The given is what you may assume. A diagram contributes too, but only what is marked — tick marks, right-angle squares and points drawn on a line. “It looks about equal” is not evidence." },

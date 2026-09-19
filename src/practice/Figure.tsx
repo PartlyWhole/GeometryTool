@@ -188,13 +188,23 @@ export function Figure(props: Props) {
         if (h.obj.k !== "seg") return null;
         const ref = resolveSeg(b, h.obj);
         const ends = ref && endpoints(b, ref);
-        if (!ends) return null;
+        if (!ref || !ends) return null;
+        // A whole ray or line is drawn out to the frame, so its highlight has
+        // to follow it there. Highlighting only the part between the named
+        // points leaves the tail dark — precisely wrong when the point being
+        // made is that a ray carries on.
+        const edge = b.edges.find((e) => e.id === ref.edge);
+        const whole = !ref.a && !ref.b;
+        const [p, q] =
+          edge && whole && edge.kind !== "segment"
+            ? extend(ends[0], ends[1], edge.kind, view)
+            : ends;
         return (
           <line
             key={"hl" + i}
             className={"fig-highlight role-" + h.role}
-            x1={ends[0].x} y1={ends[0].y}
-            x2={ends[1].x} y2={ends[1].y}
+            x1={p.x} y1={p.y}
+            x2={q.x} y2={q.y}
           />
         );
       })}
