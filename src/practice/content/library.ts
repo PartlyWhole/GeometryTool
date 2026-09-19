@@ -328,17 +328,6 @@ export const congruentComplements = (): Board => {
   return f.build();
 };
 
-/** A segment, a ray and a line, so the three can be told apart at a glance. */
-export const segmentRayLine = (): Board =>
-  fig("Segment, ray and line")
-    .at("A", -210, -85).at("B", -50, -85)
-    .seg("A", "B")
-    .at("C", -210, 0).at("D", -50, 0)
-    .ray("C", "D")
-    .at("E", -210, 85).at("F", -50, 85)
-    .line("E", "F")
-    .build();
-
 /** The four classes of angle, side by side with their measures. */
 export const angleClasses = (): Board => {
   const f = fig("Classifying by measure");
@@ -399,7 +388,6 @@ export const LIBRARY: Record<string, () => Board> = {
   fourInARow,
   aroundPoint,
   congruentComplements,
-  segmentRayLine,
   angleClasses,
   obliqueBisector,
 };

@@ -1162,17 +1162,6 @@ describe("logic statements read as English in every form", () => {
       }
     expect(checked).toBeGreaterThan(10);
   });
-
-  it("offers a distinct, complete sentence for every detachment option", async () => {
-    const { logicCards } = await import("../src/practice/content/logicCards");
-    for (let seed = 1; seed <= 40; seed++)
-      for (const card of logicCards(seed, 16)) {
-        if (card.tag !== "Law of Detachment") continue;
-        expect(new Set(card.choices).size, card.id).toBe(card.choices.length);
-        for (const ch of card.choices)
-          expect(ch, card.id + " :: " + ch).not.toMatch(/^(It|They) /);
-      }
-  });
 });
 
 describe("every drag task is actually reachable", () => {

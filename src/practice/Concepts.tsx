@@ -13,7 +13,7 @@ import { WALKTHROUGHS } from "./content/walkthroughs";
 import { BuildStamp } from "./ui";
 
 const SECTIONS: { label: string; match: (c: Concept) => boolean }[] = [
-  { label: "Points, lines and planes", match: (c) => c.section === "§5" },
+  { label: "Points and lines", match: (c) => c.section === "§5" },
   { label: "Segments", match: (c) => c.section === "§6" },
   { label: "Angles", match: (c) => c.section === "§8" },
   { label: "Properties of equality", match: (c) => c.section === "§4" },

@@ -63,7 +63,7 @@ function siblings(r: () => number, c: Concept, n: number): Concept[] {
 export const FIGURE_SHOWS: Record<string, string[]> = {
   perpendicular: [
     "perpendicular", "right", "supplementary", "linear-pair", "adjacent",
-    "between", "collinear", "midpoint", "perpendicular-bisector",
+    "collinear", "midpoint", "perpendicular-bisector",
     "segment-bisector", "congruent-segments", "segment-addition",
     "angle-addition", "linear-pair-theorem", "straight",
   ],
@@ -73,10 +73,10 @@ export const FIGURE_SHOWS: Record<string, string[]> = {
     "obtuse", "angle-addition",
   ],
   fan: ["congruent-angles", "angle-addition", "adjacent", "acute"],
-  collinear: ["collinear", "between", "segment-addition", "straight"],
+  collinear: ["collinear", "segment-addition", "straight"],
   notBetween: ["collinear", "straight", "segment-addition"],
   midpoint: [
-    "midpoint", "congruent-segments", "collinear", "between",
+    "midpoint", "congruent-segments", "collinear",
     "segment-addition", "segment-bisector", "straight",
   ],
   bisector: [
@@ -95,7 +95,7 @@ export const FIGURE_SHOWS: Record<string, string[]> = {
     "collinear", "angle-addition", "acute",
   ],
   markedPair: [
-    "congruent-segments", "between", "collinear", "segment-addition",
+    "congruent-segments", "collinear", "segment-addition",
   ],
   straightInDisguise: [
     "straight", "vertical-angles", "linear-pair", "supplementary", "adjacent",

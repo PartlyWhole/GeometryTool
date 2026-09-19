@@ -37,21 +37,11 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "undefined-terms",
     steps: [
-      { text: "Geometry has to start somewhere. Three words are taken as understood and never defined: point, line and plane." },
+      { text: "Geometry has to start somewhere. Some words are taken as understood and never defined." },
       { text: "A point has position and no size. It marks a place and nothing else." },
-      { text: "A line has length and no width, and runs forever in both directions." },
-      { text: "A plane is a flat surface extending forever in every direction." },
+      { text: "A line is straight and has no width." },
       { text: "They are left undefined on purpose. Any definition would have to use words that themselves need defining, so the chain has to stop." },
-    ],
-  },
-  {
-    conceptId: "segment-vs-ray",
-    steps: [
-      { text: "Three objects, three notations. Look at where each one stops.", figure: "segmentRayLine" },
-      { text: "AB is a segment. It has two endpoints, so it has a length.", marks: [given(seg("A", "B"))] },
-      { text: "Ray CD starts at C and passes through D, carrying on forever that way. Only one end is fixed.", marks: [given(seg("C", "D"))] },
-      { text: "Line EF runs forever in both directions. Neither end stops.", marks: [given(seg("E", "F"))] },
-      { text: "Only the segment has a length. And a ray may not be renamed backwards: ray CD and ray DC point opposite ways." },
+      { text: "Everything after this — segments, angles, all of it — is built out of those two." },
     ],
   },
   {
@@ -63,29 +53,6 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "That is why “X, Y and Z are collinear” is only sometimes true: three points may or may not line up." },
     ],
   },
-  {
-    conceptId: "coplanar",
-    steps: [
-      { text: "Points are coplanar when one flat surface contains all of them." },
-      { text: "Any three points are coplanar. However they are placed, some plane passes through all three." },
-      { text: "Four is the first number that can fail — the fourth point may sit off the plane the first three fix." },
-      { text: "Two distinct planes that meet at all meet in a line, never in a single point. That one feels wrong at first and is worth remembering." },
-    ],
-  },
-  {
-    conceptId: "between",
-    steps: [
-      { text: "Two conditions have to hold at once here, and most counterexample questions are built on forgetting the second.", figure: "collinear" },
-      { text: "Here B sits on the segment from A to C, with A and C on either side of it.", marks: [shared(pt("B")), given(pt("A")), given(pt("C"))], assert: [
-          { statement: { k: "between", p: "B", a: "A", c: "C" }, holds: true },
-        ] },
-      { text: "Now a different arrangement: the order runs A, C, B. All three are still collinear, but B lies outside AC, so B is no longer between A and C.", figure: "notBetween", marks: [given(pt("A")), given(pt("C")), shared(pt("B"))], assert: [
-          { statement: { k: "collinear", pts: ["A", "B", "C"] }, holds: true },
-          { statement: { k: "between", p: "B", a: "A", c: "C" }, holds: false },
-        ] },
-      { text: "Betweenness is the hidden condition on the Segment Addition Postulate. Forgetting it is the source of most counterexample questions." },
-    ],
-  },
 
   // ---------------------------------------------------------------- §6
   {
@@ -95,6 +62,10 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "AB is one part.", marks: [given(seg("A", "B"))] },
       { text: "BC is the other part.", marks: [given(seg("B", "C"))] },
       { text: "AC is the whole, and the parts make it.", marks: [prove(seg("A", "C"))], show: { k: "eq", l: { k: "add", ts: [{ k: "len", seg: seg("A", "B") }, { k: "len", seg: seg("B", "C") }] }, r: { k: "len", seg: seg("A", "C") } } },
+      { text: "Move B outside the segment and the postulate no longer applies: all three are still collinear, but the order is A, C, B, and AB + BC = AC fails.", figure: "notBetween", marks: [shared(pt("B"))], assert: [
+          { statement: { k: "collinear", pts: ["A", "B", "C"] }, holds: true },
+          { statement: { k: "between", p: "B", a: "A", c: "C" }, holds: false },
+        ] },
       { text: "Read backwards it is a subtraction, which is how most questions disguise it: know the whole and one part, and the other part follows." },
     ],
   },
@@ -412,17 +383,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "The other kind of reasoning: no guessing, and no room left for doubt." },
       { text: "If the facts you start from are true and the logic is valid, the conclusion is certain — not likely, certain." },
       { text: "This is what a proof is made of. Every line of a two-column proof is a deductive step." },
-      { text: "Two named patterns get tested directly: the Law of Detachment and the Law of Syllogism." },
-    ],
-  },
-  {
-    conceptId: "detachment",
-    steps: [
-      { text: "The Law of Detachment fires a single rule." },
-      { text: "You have a conditional: if two angles form a linear pair, then they are supplementary." },
-      { text: "And you have a case that satisfies its hypothesis: ∠ABD and ∠DBC form a linear pair.", figure: "linearPair", marks: [given(ang("ABD")), given(ang("DBC"))] },
-      { text: "The conclusion detaches: they are supplementary." },
-      { text: "It fails if the case does not actually satisfy the hypothesis — which is why checking the hypothesis is the whole job." },
+      { text: "One named pattern gets tested directly: the Law of Syllogism, which chains two conditionals into a third." },
     ],
   },
   {

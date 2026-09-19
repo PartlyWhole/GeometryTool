@@ -49,35 +49,17 @@ export const CONCEPTS: Concept[] = [
   // --- Undefined terms and basic objects ------------------------------------
   {
     id: "undefined-terms",
-    term: "Point, line and plane",
+    term: "Point and line",
     kind: "undefined term",
     definition:
-      "The three terms accepted without definition; everything else in geometry is defined using them.",
+      "Terms accepted without definition; everything else in geometry is defined using them.",
     section: "§5",
     examples: [
       { text: "A point has position and no size." },
-      { text: "A line has length and no width, and runs forever in both directions." },
-      { text: "A plane is a flat surface extending forever in all directions." },
+      { text: "A line is straight and has no width." },
     ],
     watch:
       "They are undefined on purpose — any definition would use words that themselves need defining.",
-  },
-  {
-    id: "segment-vs-ray",
-    term: "Segment, ray and line",
-    kind: "definition",
-    definition:
-      "A line runs forever in both directions, a ray has one endpoint, and a segment has two — so only the segment has a length.",
-    section: "§5",
-    examples: [
-      { text: "AB and BA name the same segment." },
-      { text: "Ray AB starts at A and passes through B." },
-    ],
-    nonExamples: [
-      { text: "Ray AB and ray BA are the same ray." },
-    ],
-    watch:
-      "A line or segment may be named in either order; a ray may not — its first letter is the endpoint.",
   },
   {
     id: "collinear",
@@ -90,36 +72,6 @@ export const CONCEPTS: Concept[] = [
       { text: "Any two points always lie on one line; three is the first interesting case." },
     ],
     watch: "Three points is the first interesting case, which is why “X, Y, Z are collinear” is only sometimes true.",
-  },
-  {
-    id: "coplanar",
-    term: "Coplanar",
-    kind: "definition",
-    definition: "Points that lie in one plane are coplanar.",
-    because:
-      "Any three points are coplanar; four is the first number that can fail.",
-    section: "§5",
-    examples: [
-      { text: "Three points, wherever they sit, always lie in one flat surface." },
-      { text: "The four corners of a tabletop." },
-    ],
-  },
-  {
-    id: "between",
-    term: "Betweenness",
-    kind: "definition",
-    definition:
-      "Point B is between A and C only if all three are collinear and B lies on AC.",
-    section: "§5",
-    examples: [
-      { figure: "collinear", caption: "B lies on AC, with A and C on either side of it." },
-      { text: "AB = 3 and BC = 1, and the whole of AC measures 4." },
-    ],
-    nonExamples: [
-      { figure: "notBetween", caption: "All three are collinear, but the order is A, C, B — so B is not between A and C, and AB + BC = AC fails." },
-    ],
-    watch:
-      "Collinearity alone is not enough. Betweenness is the hidden condition on the Segment Addition Postulate.",
   },
 
   // --- Segments -------------------------------------------------------------
@@ -135,7 +87,11 @@ export const CONCEPTS: Concept[] = [
       { figure: "collinear", caption: "The parts make the whole: AB + BC = AC." },
       { text: "Read backwards it is a subtraction: if AC = 80.5 and AB = 25.75, then BC = 54.75." },
     ],
-
+    nonExamples: [
+      { figure: "notBetween", caption: "All three are collinear, but the order is A, C, B — so B is not between A and C, and AB + BC = AC fails." },
+    ],
+    watch:
+      "Collinearity alone is not enough: B has to lie on AC. That hypothesis is where most counterexample questions are built.",
   },
   {
     id: "congruent-segments",
@@ -542,18 +498,6 @@ export const CONCEPTS: Concept[] = [
     examples: [{ text: "Every step of a two-column proof." }],
   },
   {
-    id: "detachment",
-    term: "Law of Detachment",
-    kind: "reasoning",
-    definition: "If “p → q” is true and p is true, then q is true.",
-    because:
-      "A rule, plus a case that fires it, detaches the conclusion. It fails if the case does not actually satisfy the hypothesis.",
-    section: "§2",
-    examples: [
-      { text: "“If it rains, the match is cancelled.” It rained. So the match was cancelled." },
-    ],
-  },
-  {
     id: "syllogism",
     term: "Law of Syllogism",
     kind: "reasoning",
@@ -588,10 +532,7 @@ export type Topic = "space" | "segment" | "angle" | "algebra" | "logic";
 
 export const TOPIC: Record<string, Topic> = {
   "undefined-terms": "space",
-  "segment-vs-ray": "space",
   collinear: "space",
-  coplanar: "space",
-  between: "segment",
   "segment-addition": "segment",
   "congruent-segments": "segment",
   midpoint: "segment",
@@ -627,7 +568,6 @@ export const TOPIC: Record<string, Topic> = {
   "right-angle-congruence": "angle",
   inductive: "logic",
   deductive: "logic",
-  detachment: "logic",
   syllogism: "logic",
   proof: "logic",
 };

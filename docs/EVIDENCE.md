@@ -606,6 +606,39 @@ size — so "∠ABD" reads as "₂ABD". 419 occurrences of ∠ and 53 of ≅ wer
 affected. A unicode-range face maps those code points to a font that draws
 them full size; the measurement is now 9.91px.
 
+### Narrowing the scope
+
+Four topics were cut on request, taking the concept count from 43 to 39. In
+each case the concept, its walkthrough, its flashcards and its share of the
+generated questions go together, because all of them are derived from the
+one concept record.
+
+**Betweenness** is covered by collinearity plus the Segment Addition
+Postulate, so it is no longer a concept of its own. What it taught was not
+dropped: the postulate now carries the hypothesis as a warning, and the
+counterexample figure — three collinear points in the order A, C, B, where
+AB + BC = AC fails — became a step in the postulate's own walkthrough, which
+is what it was always really about.
+
+**Planes** are out of scope; the module works with points, lines and angles.
+The coplanar concept is gone, as are the two always/sometimes/never items
+about planes and a negation distractor that turned on any three points being
+coplanar. Replacements were written in the remaining domain so the verdict
+spread stays even. The undefined terms are now given as point and line.
+
+**Segment versus ray versus line** is gone as an explicit concept, along
+with its figure. Rays and lines still appear as machinery — an angle
+bisector is a ray, a linear pair stands on a line — but the module does not
+drill the three notations against each other.
+
+**The Law of Detachment** is gone as a concept, with its walkthrough and its
+generated flashcard. The Law of Syllogism remains.
+
+A sweep checks what these removals could have broken: every walkthrough
+names a live concept, every concept has a topic row and a walkthrough, and
+every entry in the figure tables names a concept and a figure that still
+exist. It reports consistent.
+
 ### Limitations
 
 - Proof checking validates the step you claim under the rules in the

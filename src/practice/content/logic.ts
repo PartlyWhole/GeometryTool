@@ -249,7 +249,7 @@ export const NEGATIONS: NegationItem[] = [
     correct: "Points X, Y and Z are not collinear",
     wrong: [
       { text: "Point Y is not between X and Z", why: "Betweenness is a different claim: three points can lie on one line without Y being the middle one." },
-      { text: "Points X, Y and Z are coplanar", why: "Any three points are coplanar, so this denies nothing." },
+      { text: "Points X, Y and Z are not congruent", why: "Congruence applies to segments and angles, not to points, so this denies nothing." },
       { text: "No line passes through X, Y and Z in that order", why: "Betweenness is a different claim from collinearity." },
     ],
   },
@@ -328,16 +328,16 @@ export const ALWAYS_SOMETIMES_NEVER: AlwaysItem[] = [
     why: "A line can always be drawn through any two points.",
   },
   {
-    id: "four-coplanar",
-    statement: "Four points are coplanar.",
+    id: "three-points-collinear",
+    statement: "Three points are collinear.",
     verdict: "sometimes",
-    why: "Any three points are coplanar; four is the first number that can fail.",
+    why: "Two points always line up; three is the first number that can fail.",
   },
   {
-    id: "planes-point",
-    statement: "Two distinct planes intersect in a single point.",
+    id: "adjacent-vertical",
+    statement: "Two adjacent angles are vertical angles.",
     verdict: "never",
-    why: "Two distinct planes that meet at all meet in a line.",
+    why: "Adjacent angles share a side; vertical angles face each other across a vertex and share none.",
   },
 ];
 

@@ -54,7 +54,6 @@ export function logicCards(seed: number, count = 14): LogicCard[] {
     negationCard,
     verdictCard,
     counterexampleCard,
-    detachmentCard,
     syllogismCard,
   ];
   const out: LogicCard[] = [];
@@ -212,27 +211,6 @@ function counterexampleCard(r: () => number): LogicCard | undefined {
     choices: c.options,
     correct: c.correct,
     why: c.why,
-  };
-}
-
-function detachmentCard(r: () => number): LogicCard | undefined {
-  const c = CONDITIONALS[Math.floor(r() * CONDITIONALS.length)];
-  const conclusion = sentenceOf(c, "q");
-  const choices = shuffle(r, [
-    conclusion,
-    sentenceOf(c, "p"),
-    sentenceOf(c, "notQ"),
-    "Nothing follows.",
-  ]);
-  return {
-    id: "detach:" + c.id,
-    tag: "Law of Detachment",
-    context: [formText(c, "conditional"), sentenceOf(c, "p")],
-    prompt: "What follows by the Law of Detachment?",
-    choices,
-    correct: choices.indexOf(conclusion),
-    why:
-      "A rule, plus a case that fires it, detaches the conclusion. The hypothesis is satisfied, so the conclusion holds.",
   };
 }
 
