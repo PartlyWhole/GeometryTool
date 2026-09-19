@@ -126,7 +126,10 @@ export function NumericExercise() {
             <>
               <Verdict
                 ok={result === "right"}
-                title={result === "trap" ? "That is x" : undefined}
+                // Traps used to be only "you stopped at x"; they now name
+                // several different slips, so the title states the one thing
+                // true of all of them and the note says which.
+                title={result === "trap" ? "A wrong answer worth naming" : undefined}
               >
                 {result === "trap" ? item.trap!.note + " " + item.why : item.why}
               </Verdict>

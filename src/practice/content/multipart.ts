@@ -88,20 +88,31 @@ export const MULTIPART_ITEMS: MultiPartItem[] = [
     parts: [
       {
         label: "Part A",
-        prompt: "What is m∠EXD in degrees?",
-        why: "E and F are opposite ends of one line through X, so ∠FXE is a straight angle — 180°. That makes m∠CXE = ⅝(180) = 112.5°. ∠EXD forms a linear pair with ∠CXE along line CD, so 180 − 112.5 = 67.5.",
+        prompt: "What is m∠CXE in degrees?",
+        why: "E and F are opposite ends of one line through X, so ∠FXE is a straight angle — 180°. That makes m∠CXE = ⅝(180) = 112.5°.",
         hints: [
           "E and F are ends of one line. What kind of angle is ∠FXE?",
-          "Once you have m∠CXE, ∠EXD is its linear pair.",
+          "A straight angle measures 180°, and m∠CXE is ⅝ of that.",
         ],
-        body: { kind: "numeric", answer: 67.5, unit: "°" },
+        body: { kind: "numeric", answer: 112.5, unit: "°" },
       },
       {
         label: "Part B",
-        prompt: "What is m∠DXF in degrees?",
-        why: "You already have m∠CXE = 112.5°. ∠DXF sits opposite it across the crossing, so it is vertical to ∠CXE and copies it exactly.",
-        hints: ["∠DXF sits opposite ∠CXE across X."],
-        body: { kind: "numeric", answer: 112.5, unit: "°" },
+        prompt: "What is m∠EXD in degrees?",
+        why: "∠CXE and ∠EXD share the ray XE, and their other sides are the two halves of line CD, so they are a linear pair: 180 − 112.5 = 67.5.",
+        hints: [
+          "∠CXE and ∠EXD share a side. Where do their other two sides go?",
+          "They make a linear pair along CD, so they total 180°.",
+        ],
+        body: {
+          kind: "numeric",
+          answer: 67.5,
+          unit: "°",
+          trap: {
+            value: 112.5,
+            note: "That is Part A's measure carried straight across. ∠EXD is next to ∠CXE along CD, not opposite it.",
+          },
+        },
       },
     ],
     tags: ["Form A, Q13", "Fig. 12", "Fig. 14"],
@@ -116,8 +127,18 @@ export const MULTIPART_ITEMS: MultiPartItem[] = [
         label: "Part A",
         prompt: "What is the value of x?",
         why: "A midpoint makes both halves equal, so each is 42 ÷ 2 = 21. Then 4x + 3 = 21, giving 4x = 18 and x = 4.5.",
-        hints: ["Each half of AB is half of 42."],
-        body: { kind: "numeric", answer: 4.5 },
+        hints: [
+          "M is the midpoint of AB — what does that make AM, compared with the whole?",
+          "Each half of AB is half of 42. Set (4x + 3) equal to that.",
+        ],
+        body: {
+          kind: "numeric",
+          answer: 4.5,
+          trap: {
+            value: 21,
+            note: "That is AM, the length of the half. The expression 4x + 3 equals it; x does not.",
+          },
+        },
       },
       {
         label: "Part B",

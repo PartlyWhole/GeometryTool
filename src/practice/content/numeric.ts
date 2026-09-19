@@ -61,9 +61,13 @@ export const NUMERIC_ITEMS: NumericItem[] = [
     prompt:
       "G lies on DE, with DE = 22 m and GE = 6x − 4 m. For what value of x is DG ≅ GE?",
     answer: 2.5,
+    trap: {
+      value: 11,
+      note: "That is GE, the length of each half — the number the expression is set equal to, not the x the question asks for.",
+    },
     why: "DG ≅ GE with G on DE makes G the midpoint, so each half is 22 ÷ 2 = 11. Then 6x − 4 = 11, so 6x = 15 and x = 2.5.",
     hints: [
-      "If the two halves are congruent, G is the midpoint.",
+      "G is on DE and the two pieces are congruent — where on DE does that put G?",
       "Each half is half of 22. Set the expression equal to that.",
     ],
     tags: ["Form A, Q5", "§6"],
@@ -74,6 +78,10 @@ export const NUMERIC_ITEMS: NumericItem[] = [
     figure: linearPairAt(87),
     answer: 93,
     unit: "°",
+    trap: {
+      value: 3,
+      note: "That is 90 − 87. A linear pair is supplementary, not complementary — the two angles make a straight line, not a right angle.",
+    },
     why: "A linear pair is supplementary, so the two measures total 180°. 180 − 87 = 93.",
     hints: ["A linear pair is supplementary."],
     tags: ["Form A, Q7", "§9"],
@@ -84,6 +92,10 @@ export const NUMERIC_ITEMS: NumericItem[] = [
       "The top of a three-storey building is 80.5 feet from the ground. The bottom of the building's second storey is 25.75 feet from the ground. What is the distance, in feet, from the bottom of the second storey to the top of the building?",
     answer: 54.75,
     unit: "ft",
+    trap: {
+      value: 106.25,
+      note: "That is the two heights added. Both are measured from the same ground, so the gap between them is a difference, not a total.",
+    },
     why: "Both heights are measured from the ground, so the gap between them is a subtraction: 80.5 − 25.75 = 54.75. The Segment Addition Postulate run backwards. The number of storeys is decoration.",
     hints: [
       "Both measurements start from the same place, the ground.",
@@ -115,18 +127,29 @@ export const NUMERIC_ITEMS: NumericItem[] = [
     figure: threeConcurrent(),
     answer: 60,
     unit: "°",
+    trap: {
+      value: 240,
+      note: "That is 360 − 87 − 33, from taking the three labelled angles as a full turn about V. They all sit on one side of the line through P and Q, so they share a straight angle instead.",
+    },
     why: "The three marked angles sit consecutively above one straight line, so they share its 180°: 180 − 33 − 87 = 60. Working round the full 360° would also work and take twice as long.",
-    hints: ["Always look for the straight line first."],
+    hints: [
+      "Which of the labelled points lie on one straight line through V?",
+      "Always look for the straight line first.",
+    ],
     tags: ["Form A, Q11", "§8"],
   },
   {
     id: "fa12-marked",
     prompt:
-      "E lies on AB and the single ticks mark EB ≅ DF. If AB = 27.25 m and DF = 16.4 m, what is AE in metres?",
+      "E lies on AB. If AB = 27.25 m and DF = 16.4 m, what is AE in metres?",
     figure: markedPair(),
     given: ["AB = 27.25 m", "DF = 16.4 m"],
     answer: 10.85,
     unit: "m",
+    trap: {
+      value: 16.4,
+      note: "That is EB, which the ticks hand you. It is the piece to take away from AB, not the piece asked for.",
+    },
     why: "EB = DF = 16.4 because the single ticks match. E lies on AB, so Segment Addition runs backwards: 27.25 − 16.4 = 10.85. The drawing is not to scale; only the marks count.",
     hints: [
       "The matching single ticks tell you EB.",
@@ -141,6 +164,10 @@ export const NUMERIC_ITEMS: NumericItem[] = [
     figure: crossingAt(112.5),
     answer: 67.5,
     unit: "°",
+    trap: {
+      value: 112.5,
+      note: "That is m∠CXE, the step before the one asked for. ∠EXD is the rest of the straight line CD, not the angle you have just found.",
+    },
     why: "E and F are opposite ends of one line through X, so ∠FXE is a straight angle — 180°. That makes m∠CXE = ⅝(180) = 112.5°. ∠EXD forms a linear pair with ∠CXE along line CD, so 180 − 112.5 = 67.5.",
     hints: [
       "What kind of angle is ∠FXE, given that E and F are ends of one line?",
@@ -155,8 +182,15 @@ export const NUMERIC_ITEMS: NumericItem[] = [
     figure: crossingAt(112.5),
     answer: 112.5,
     unit: "°",
+    trap: {
+      value: 67.5,
+      note: "That is ∠CXE's linear pair, so a subtraction has crept in. Vertical angles copy a measure rather than completing 180° with it.",
+    },
     why: "∠FXE is a straight angle, so m∠CXE = ⅝(180) = 112.5°. ∠DXF is vertical to ∠CXE, so it copies it exactly.",
-    hints: ["∠DXF sits opposite ∠CXE across the crossing."],
+    hints: [
+      "What kind of angle is ∠FXE, given that E and F are ends of one line?",
+      "∠DXF sits opposite ∠CXE across the crossing.",
+    ],
     tags: ["Form A, Q13", "Fig. 14"],
   },
 ];

@@ -52,6 +52,7 @@ export const PROOFS: ProofProblem[] = [
     goal: { k: "cong", l: ang("1"), r: ang("3") },
     forbid: ["vertical-angles-theorem"],
     hints: [
+      "A fact the figure marks can be written as a line with reason Given.",
       "Both ∠1 and ∠3 sit on a line with ∠2.",
       "A linear pair is supplementary, so each pair totals 180°.",
       "Two quantities equal to the same thing are equal — then subtract the shared angle.",
@@ -81,8 +82,8 @@ export const PROOFS: ProofProblem[] = [
     goal: { k: "cong", l: ang("1"), r: ang("2") },
     forbid: ["congruent-supplements"],
     hints: [
-      "Write each supplementary statement as a sum equal to 180.",
-      "Both sums equal 180, so they equal each other.",
+      "Two of the givens say the same thing about different pairs. Start there.",
+      "Each of them becomes a sum equal to 180, and two sums equal to 180 are equal to each other.",
       "Now bring in ∠3 ≅ ∠4 to cancel those two terms.",
     ],
     tags: ["§9"],
@@ -236,7 +237,7 @@ export const PROOFS: ProofProblem[] = [
     hints: [
       "Supplementary means the two measures total 180.",
       "Substitute both expressions, solve for x — but x is not the answer.",
-      "Put x back to get m∠A, then carry it across the congruence to ∠C.",
+      "Put x back to get m∠1, then carry it across the congruence to ∠3.",
     ],
     tags: ["Form A, Q10", "§10"],
     solution: [
@@ -265,7 +266,7 @@ export const PROOFS: ProofProblem[] = [
       { k: "cong", l: seg("B", "C"), r: seg("C", "D") },
     ],
     goal: { k: "cong", l: seg("A", "B"), r: seg("C", "D") },
-    hints: ["Two congruences share a middle term. That is the hinge."],
+    hints: ["Look at what your two givens have in common."],
     tags: ["Form A, Q3", "§4"],
     solution: [
       { statement: { k: "cong", l: seg("A", "B"), r: seg("B", "C") }, reasonId: "given", cites: [] },
@@ -282,7 +283,8 @@ export const PROOFS: ProofProblem[] = [
     givens: [{ k: "midpoint", p: "M", seg: seg("A", "B") }],
     goal: { k: "eq", l: len("A", "M"), r: div(len("A", "B"), num(2)) },
     hints: [
-      "Start from the congruent halves and the Segment Addition Postulate.",
+      "What does being a midpoint tell you about the two halves?",
+      "The Segment Addition Postulate says the two halves make the whole.",
       "Substituting gives AM + AM = AB; then divide.",
     ],
     tags: ["§6"],
