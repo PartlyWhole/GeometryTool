@@ -1,0 +1,157 @@
+// Figures from the Module 2 reference, built once and shared by the exercises.
+import type { Board } from "../../model";
+import { fig, polar } from "./figures";
+
+/** Fig. 14: two lines crossing at X, the four angles numbered. */
+export const crossing = (): Board =>
+  fig("Crossing lines")
+    .at("A", -140, -34).at("B", 140, 34)
+    .at("C", -120, 78).at("D", 120, -78)
+    .seg("A", "B").seg("C", "D")
+    .cross("X", ["A", "B"], ["C", "D"])
+    .num("1", "AXD")
+    .num("2", "AXC")
+    .num("3", "CXB")
+    .num("4", "BXD")
+    .build();
+
+/** Fig. 1 and Fig. 5: four rays from V with a shared middle angle. */
+export const fan = (): Board => {
+  const f = fig("Shared middle angle");
+  f.at("V", 0, 60);
+  for (const [label, deg] of [["W", 152], ["X", 112], ["Y", 68], ["Z", 28]] as [string, number][]) {
+    const p = polar(0, 60, deg, 150);
+    f.at(label, p.x, p.y);
+  }
+  ["W", "X", "Y", "Z"].forEach((l) => f.ray("V", l));
+  f.arc("WVX", "YVZ");
+  return f.build();
+};
+
+/** Three collinear points, B between A and C. */
+export const collinear = (): Board =>
+  fig("Collinear points")
+    .at("A", -150, 0).at("C", 150, 0)
+    .seg("A", "C")
+    .on("B", "A", "C", 0.42)
+    .build();
+
+/** Fig. 3, second row: B outside AC, the counterexample arrangement. */
+export const notBetween = (): Board =>
+  fig("B outside AC")
+    .at("A", -150, 0).at("B", 170, 0)
+    .seg("A", "B")
+    .on("C", "A", "B", 0.55)
+    .build();
+
+/** Fig. 9: M the midpoint of AB, halves ticked. */
+export const midpoint = (): Board =>
+  fig("Midpoint")
+    .at("A", -150, 0).at("B", 150, 0)
+    .seg("A", "B")
+    .on("M", "A", "B", 0.5)
+    .tick(["A", "M"], ["M", "B"])
+    .build();
+
+/** Fig. 13 right: ray VD bisecting ∠AVC, halves arced. */
+export const bisector = (): Board => {
+  const f = fig("Angle bisector");
+  f.at("V", 0, 70);
+  for (const [l, d] of [["A", 128], ["D", 90], ["C", 52]] as [string, number][]) {
+    const p = polar(0, 70, d, 150);
+    f.at(l, p.x, p.y);
+  }
+  ["A", "D", "C"].forEach((l) => f.ray("V", l));
+  f.arc("AVD", "DVC");
+  return f.build();
+};
+
+/** Fig. 15 left: a linear pair on line AC with ray BD standing on it. */
+export const linearPair = (): Board => {
+  const f = fig("Linear pair");
+  f.at("A", -160, 0).at("C", 160, 0);
+  f.seg("A", "C");
+  f.on("B", "A", "C", 0.5);
+  const d = polar(0, 0, 65, 150);
+  f.at("D", d.x, d.y);
+  f.ray("B", "D");
+  return f.build();
+};
+
+/** Fig. 15 right: a right angle split into two complementary parts. */
+export const complementary = (): Board => {
+  const f = fig("Complementary angles");
+  f.at("V", 0, 80);
+  for (const [l, d] of [["A", 90], ["D", 55], ["C", 0]] as [string, number][]) {
+    const p = polar(0, 80, d, 150);
+    f.at(l, p.x, p.y);
+  }
+  ["A", "D", "C"].forEach((l) => f.ray("V", l));
+  f.right("AVC");
+  return f.build();
+};
+
+/** Fig. 16: three consecutive angles sharing one straight line. */
+export const threeOnLine = (): Board => {
+  const f = fig("Angles on a line");
+  f.at("P", -170, 0).at("Q", 170, 0);
+  f.seg("P", "Q");
+  f.on("V", "P", "Q", 0.5);
+  for (const [l, d] of [["R", 120], ["S", 60]] as [string, number][]) {
+    const p = polar(0, 0, d, 150);
+    f.at(l, p.x, p.y);
+  }
+  ["R", "S"].forEach((l) => f.ray("V", l));
+  return f.build();
+};
+
+/** Fig. 18: two parallel supports with two independent tick classes. */
+export const markedPair = (): Board =>
+  fig("Marked segments")
+    .at("A", -150, -60).at("B", 150, -60)
+    .at("D", -150, 70).at("C", 150, 70)
+    .seg("A", "B").seg("D", "C").seg("A", "D").seg("B", "C")
+    .on("E", "A", "B", 0.55)
+    .on("F", "D", "C", 0.45)
+    .tick(["A", "D"], ["B", "C"])
+    .build();
+
+/** Fig. 13: a straight angle in disguise — line EF through X, rays to C and D. */
+export const straightInDisguise = (): Board => {
+  const f = fig("Straight angle at a crossing");
+  f.at("E", -170, 0).at("F", 170, 0);
+  f.seg("E", "F");
+  f.on("X", "E", "F", 0.5);
+  const c = polar(0, 0, 128, 155),
+    d = polar(0, 0, -52, 155);
+  f.at("C", c.x, c.y).at("D", d.x, d.y);
+  f.seg("C", "D");
+  return f.build();
+};
+
+/** A right angle marked at the meeting of two segments. */
+export const perpendicular = (): Board => {
+  const f = fig("Perpendicular segments");
+  f.at("A", -160, 0).at("B", 160, 0);
+  f.seg("A", "B");
+  f.on("P", "A", "B", 0.5);
+  f.at("Q", 0, -150);
+  f.seg("P", "Q");
+  f.right("APQ");
+  return f.build();
+};
+
+export const LIBRARY: Record<string, () => Board> = {
+  crossing,
+  fan,
+  collinear,
+  notBetween,
+  midpoint,
+  bisector,
+  linearPair,
+  complementary,
+  threeOnLine,
+  markedPair,
+  straightInDisguise,
+  perpendicular,
+};
