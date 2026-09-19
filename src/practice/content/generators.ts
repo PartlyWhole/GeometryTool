@@ -22,7 +22,7 @@ import {
   vr,
 } from "../terms";
 import { figureObjects } from "../inventory";
-import { measureOf, threePointName } from "../oracle";
+import { isCollinear, measureOf, threePointName } from "../oracle";
 import { LIBRARY } from "./library";
 import { fig, polar } from "./figures";
 
@@ -81,17 +81,75 @@ export type NameItem = {
 
 const FIGURE_NAMES = Object.keys(LIBRARY);
 
+/**
+ * Figures that differ only in their measures pose the same naming problem, so
+ * for scheduling they count as one drawing. A run that asked the linear pair
+ * and its 90° case in the choose form would spend two of its slots on one
+ * lesson.
+ */
+const FIGURE_FAMILY: Record<string, string> = {
+  linearPairCaseA: "linearPair",
+  linearPairCaseB: "linearPair",
+  linearPairCaseC: "linearPair",
+  perpBisector: "perpendicular",
+  twoSupplementsPlain: "twoSupplementPairs",
+};
+
+const familyOf = (id: string) => {
+  const figName = id.split(":")[0];
+  return FIGURE_FAMILY[figName] ?? figName;
+};
+
+/** One figure family asked in one of the four forms: the scheduling slot. */
+const slotOf = (id: string) => {
+  const parts = id.split(":");
+  return familyOf(id) + ":" + parts[parts.length - 1];
+};
+
+/**
+ * A click item prints the name in the prompt, so all that is left is finding
+ * the points. On a crowded figure, or one whose shape cannot separate two
+ * candidates, that is real work; on a sparse one the student clicks the two
+ * labelled ends of the only edge in sight and nothing has been tested. Six
+ * labelled points, or an angle with a congruent twin on the same figure, is
+ * the bar; sparser figures are asked in the choose form instead.
+ */
+function worthClicking(board: Board, target: SegId | AngId): boolean {
+  if (board.points.length >= 6) return true;
+  if (target.k !== "ang") return false;
+  const deg = measureOf(board, target);
+  if (deg === undefined) return false;
+  // Three-point names only: a labelled angle and its three-point name are one
+  // angle measured twice, not a twin.
+  return figureObjects(board).angles.some(
+    (a) =>
+      splitLabels(a.name).length === 3 &&
+      objKey(a) !== objKey(target) &&
+      Math.abs((measureOf(board, a) ?? -1) - deg) < 1e-6,
+  );
+}
+
 export function nameItems(seed: number, count = 10): NameItem[] {
   const r = rng(seed);
   const out: NameItem[] = [];
+  // Each figure family gets one slot per form, and never two items running,
+  // so no session spends three of its twelve items on one drawing.
+  const served = new Set<string>();
+  const fresh = (id: string) =>
+    !served.has(slotOf(id)) &&
+    !out.slice(-2).some((o) => familyOf(o.id) === familyOf(id));
+  const keep = (item: NameItem) => {
+    served.add(slotOf(item.id));
+    out.push(item);
+  };
   let guard = 0;
   while (out.length < count && guard++ < count * 40) {
     // Roughly a third of items exercise the equivalence between naming an
     // angle by three points and naming it by its own label.
     if (r() < 0.3) {
       const item = equivalenceItem(r);
-      if (item && !out.some((o) => o.id === item.id)) {
-        out.push(item);
+      if (item && fresh(item.id)) {
+        keep(item);
         continue;
       }
     }
@@ -110,12 +168,13 @@ export function nameItems(seed: number, count = 10): NameItem[] {
     const wantAngle = angles.length > 0 && r() < 0.6;
     const target: SegId | AngId = wantAngle ? pick(r, angles) : pick(r, inv.segments);
     if (!target) continue;
-    const mode: NameItem["mode"] = r() < 0.65 ? "click" : "choose";
+    const mode: NameItem["mode"] =
+      r() < 0.65 && worthClicking(board, target) ? "click" : "choose";
     const id = figName + ":" + (target.k === "ang" ? target.name : target.a + target.b) + ":" + mode;
-    if (out.some((o) => o.id === id)) continue;
+    if (!fresh(id)) continue;
 
     if (mode === "click") {
-      out.push({
+      keep({
         id,
         figure: board,
         mode,
@@ -132,9 +191,9 @@ export function nameItems(seed: number, count = 10): NameItem[] {
     } else {
       const answer =
         target.k === "ang" ? "∠" + target.name : target.a + target.b;
-      const choices = distractors(r, target, inv, answer);
+      const choices = distractors(r, board, target, inv, answer);
       if (choices.length < 3) continue;
-      out.push({
+      keep({
         id,
         figure: board,
         mode,
@@ -145,10 +204,9 @@ export function nameItems(seed: number, count = 10): NameItem[] {
             : "Which name belongs to the highlighted segment?",
         choices,
         answer,
-        why:
-          target.k === "ang"
-            ? "The middle letter names the vertex, so reordering the letters can name a different angle entirely."
-            : "Either order names the same segment, but the letters must be its endpoints.",
+        // Named for the item in hand: a fixed sentence per target type spends
+        // half itself on a confusion the options may not raise.
+        why: target.k === "ang" ? angleWhy(target) : segmentWhy(target),
       });
     }
   }
@@ -213,6 +271,26 @@ function equivalenceItem(r: () => number): NameItem | undefined {
   };
 }
 
+/** The vertex misnaming every angle option set carries, named outright. */
+const movedVertex = (name: string) => {
+  const [a, v, c] = splitLabels(name);
+  return v + a + c;
+};
+
+const angleWhy = (target: AngId) => {
+  const [a, v, c] = splitLabels(target.name);
+  return (
+    "∠" + target.name + " has vertex " + v + ", with arms through " + a +
+    " and " + c + ". The middle letter is what says so, which is why ∠" +
+    movedVertex(target.name) +
+    " is a different angle rather than another way of writing this one."
+  );
+};
+
+const segmentWhy = (target: SegId) =>
+  "Segment " + target.a + target.b + " runs from " + target.a + " to " +
+  target.b + ", in either order. Every other option names a different stretch of the figure, including the ones lying along this same line — so the letters decide it, not the slant.";
+
 function shuffleNames(r: () => number, xs: string[]) {
   const a = xs.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -224,6 +302,7 @@ function shuffleNames(r: () => number, xs: string[]) {
 
 function distractors(
   r: () => number,
+  board: Board,
   target: SegId | AngId,
   inv: ReturnType<typeof figureObjects>,
   answer: string,
@@ -242,15 +321,25 @@ function distractors(
   add(target, answer);
 
   if (target.k === "ang") {
-    const [a, v, c] = splitLabels(target.name);
+    const v = splitLabels(target.name)[1];
     // One vertex misplacement: the misconception actually worth testing.
-    const moved = v + a + c;
+    const moved = movedVertex(target.name);
     add({ k: "ang", name: moved }, "∠" + moved);
-    // The rest are other angles the figure really contains.
-    for (const other of inv.angles)
-      if (splitLabels(other.name).length === 3) add(other, "∠" + other.name);
+    // The rest are other angles the figure really contains, an angle at the
+    // answer's own vertex first: with every option somewhere else on the
+    // drawing, the answer is found by where it points rather than by its
+    // letters.
+    const real = inv.angles.filter((o) => splitLabels(o.name).length === 3);
+    const atVertex = real.filter((o) => splitLabels(o.name)[1] === v);
+    for (const other of [...atVertex, ...real]) add(other, "∠" + other.name);
   } else {
-    for (const other of inv.segments) add(other, other.a + other.b);
+    // Likewise for a segment: one option along the answer's own line, so a
+    // segment is never picked out by its slant alone.
+    const along = inv.segments.filter((o) =>
+      isCollinear(board, [target.a, target.b, o.a, o.b]),
+    );
+    for (const other of [...along, ...inv.segments])
+      add(other, other.a + other.b);
   }
 
   for (let i = out.length - 1; i > 0; i--) {

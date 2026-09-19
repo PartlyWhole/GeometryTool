@@ -93,7 +93,7 @@ export function NameExercise() {
           height={330}
           chosen={item.mode === "click" ? chosen : undefined}
           highlights={
-            item.highlight ?? item.mode === "choose"
+            (item.highlight ?? item.mode === "choose")
               ? [{ obj: item.target, role: "prove" }]
               : undefined
           }

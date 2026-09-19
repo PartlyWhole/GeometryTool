@@ -1171,6 +1171,35 @@ describe("logic statements read as English in every form", () => {
   });
 });
 
+describe("no offered option is guaranteed wrong", () => {
+  // Three card types offered an option naming the family's own failure mode —
+  // "Nothing follows", "None of these", "the original conditional" — that the
+  // generator could never key correct. The deck told the student what would
+  // make it right while guaranteeing it never was.
+  it("keys the escape option correctly at least sometimes", async () => {
+    const { logicCards } = await import("../src/practice/content/logicCards");
+    const probe: [string, RegExp][] = [
+      ["Law of Syllogism", /Nothing follows/i],
+      ["Logical equivalence", /None of these/i],
+      ["Conditional forms", /the original conditional/i],
+    ];
+    for (const [tag, re] of probe) {
+      let offered = 0;
+      let correct = 0;
+      for (let seed = 1; seed <= 200; seed++)
+        for (const c of logicCards(seed, 16)) {
+          if (c.tag !== tag) continue;
+          const i = c.choices.findIndex((o) => re.test(o));
+          if (i < 0) continue;
+          offered++;
+          if (c.correct === i) correct++;
+        }
+      expect(offered, tag + " never offers it").toBeGreaterThan(0);
+      expect(correct / offered, tag + " offers it but never keys it").toBeGreaterThan(0.02);
+    }
+  });
+});
+
 describe("every authored item can actually be reached", () => {
   // Taking the first N from a fixed-order pool made the last entries all but
   // unreachable — the best reason-check item turned up once in 400 sessions.

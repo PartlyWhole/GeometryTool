@@ -67,7 +67,7 @@ export const CONCEPTS: Concept[] = [
     section: "§5",
     examples: [
       { figure: "collinear", caption: "A, B and C all lie on one line." },
-      { text: "Any two points always lie on one line; three is the first interesting case." },
+      { text: "P, Q and R are all marked along one edge of a ruler, so the single line PR passes through every one of them." },
     ],
     watch: "Three points is the first interesting case, which is why “X, Y, Z are collinear” is only sometimes true.",
   },
@@ -83,7 +83,7 @@ export const CONCEPTS: Concept[] = [
     section: "§6",
     examples: [
       { figure: "collinear", caption: "The parts make the whole: AB + BC = AC." },
-      { text: "Read backwards it is a subtraction: if AC = 80.5 and AB = 25.75, then BC = 54.75." },
+      { text: "A ladder reaches 80.5 ft up a wall and a marker sits at 25.75 ft; the stretch between them is 54.75 ft." },
     ],
     nonExamples: [
       { figure: "notBetween", caption: "All three are collinear, but the order is A, C, B — so B is not between A and C, and AB + BC = AC fails." },
@@ -123,7 +123,7 @@ export const CONCEPTS: Concept[] = [
     definition: "Any line, ray or segment through the midpoint of a segment.",
     section: "§6",
     examples: [
-      { text: "A ray drawn through the midpoint of AB bisects it." },
+      { text: "AB measures 22 cm, and a ray crosses it at the point 11 cm from each end." },
     ],
     watch: "Every perpendicular bisector is a bisector, but not the reverse.",
   },

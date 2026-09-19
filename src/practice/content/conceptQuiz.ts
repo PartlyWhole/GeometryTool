@@ -37,20 +37,76 @@ const shuffle = <T>(r: () => number, xs: T[]) => {
 };
 
 /**
- * Distractors a student could plausibly weigh: same subject and same kind
- * first, then same subject, then same kind, then anything. Offering three
- * angle terms against a segment term makes the answer obvious without
- * knowing any geometry.
+ * What sort of thing a concept is about. A student who cannot tell a ray from
+ * a pair of angles still answers "which of these does this define?" correctly
+ * when the other three options are the wrong sort of thing, so this is what
+ * distractors are matched on first: a definition of a ray set against three
+ * angle-size classes is a question about grammar, not about geometry.
  */
-function siblings(r: () => number, c: Concept, n: number): Concept[] {
+export type Subject =
+  | "angle" // one angle, classified by how big it is
+  | "angle-pair" // two or more angles taken together
+  | "line" // a line, ray or segment, named by how it meets another
+  | "segment" // points, and the segments they determine
+  | "equality" // a property of equality
+  | "argument"; // a form of reasoning
+
+/** The three the rule below cannot read off the wording. */
+const SUBJECT: Record<string, Subject> = {
+  // "Two lines, rays or segments that meet at right angles" is about the
+  // lines, not about the angles the phrase happens to name.
+  perpendicular: "line",
+  // Adjacent parts and the whole they make: several angles, not one.
+  "angle-addition": "angle-pair",
+  proof: "argument",
+};
+
+export function subjectOf(c: Concept): Subject {
+  const tagged = SUBJECT[c.id];
+  if (tagged) return tagged;
+  if (c.kind === "property") return "equality";
+  if (c.kind === "reasoning") return "argument";
+  const text = c.term + " " + c.definition;
+  if (/bisect/i.test(text)) return "line";
+  if (/\bangles\b/i.test(text)) return "angle-pair";
+  if (/\bangle\b/i.test(text)) return "angle";
+  return "segment";
+}
+
+/**
+ * Distractors a student could plausibly weigh. Three of the four directions
+ * offer terms or definitions, where the first question a student asks is
+ * which options are even the right sort of thing, so those lead with the
+ * subject: same subject and same kind first, then same subject, then the
+ * topic, then anything. The fourth offers siblings' own example sentences,
+ * whose sharpest near-misses come from the same topic — the midpoint set
+ * against the segment bisector — so there the subject is the backstop.
+ */
+function siblings(
+  r: () => number,
+  c: Concept,
+  n: number,
+  lead: "subject" | "topic" = "subject",
+): Concept[] {
   const rest = CONCEPTS.filter((x) => x.id !== c.id);
+  const subject = subjectOf(c);
   const topic = topicOf(c);
-  const tiers = [
-    rest.filter((x) => topicOf(x) === topic && x.kind === c.kind),
-    rest.filter((x) => topicOf(x) === topic && x.kind !== c.kind),
-    rest.filter((x) => topicOf(x) !== topic && x.kind === c.kind),
-    rest.filter((x) => topicOf(x) !== topic && x.kind !== c.kind),
-  ];
+  const sameSubject = (x: Concept) => subjectOf(x) === subject;
+  const sameTopic = (x: Concept) => topicOf(x) === topic;
+  const tiers =
+    lead === "subject"
+      ? [
+          rest.filter((x) => sameSubject(x) && x.kind === c.kind),
+          rest.filter((x) => sameSubject(x) && x.kind !== c.kind),
+          rest.filter((x) => !sameSubject(x) && sameTopic(x)),
+          rest.filter((x) => !sameSubject(x) && !sameTopic(x)),
+        ]
+      : [
+          rest.filter((x) => sameTopic(x) && sameSubject(x)),
+          rest.filter((x) => sameTopic(x) && !sameSubject(x)),
+          rest.filter((x) => !sameTopic(x) && sameSubject(x)),
+          rest.filter((x) => !sameTopic(x) && !sameSubject(x)),
+        ];
   return tiers.flatMap((t) => shuffle(r, t)).slice(0, n);
 }
 
@@ -132,15 +188,32 @@ const FIGURE_PRIMARY: Record<string, string> = {
   congruentComplements: "congruent-complements",
 };
 
-/** Distractor examples, taken from as far down the candidate list as needed. */
-function otherExamples(pool: Concept[], n: number): Example[] {
-  const out: Example[] = [];
-  for (const o of pool) {
-    const e = o.examples.find((x) => x.text);
-    if (e) out.push(e);
-    if (out.length === n) break;
-  }
-  return out;
+/**
+ * Is this sentence an instance, or a remark about the concept? An instance
+ * points at something — a measure, a named point, a quoted claim — while
+ * "three is the first interesting case" is a note to the reader. A remark
+ * standing among three self-contained statements is the only option of its
+ * grammatical type, which decides the question without any geometry.
+ */
+const isInstance = (t: string) =>
+  /[∠°≅⊥=]|\d|\b[A-Z]{2}\b/.test(t) || /^\s*[“"']/.test(t.trim());
+
+/**
+ * Distractor examples, taken from as far down the candidate list as needed.
+ * `prefer` puts a class of option first without insisting on it.
+ */
+function otherExamples(
+  pool: Concept[],
+  n: number,
+  prefer?: (t: string) => boolean,
+): Example[] {
+  const found = pool
+    .map((o) => o.examples.find((x) => x.text && isInstance(x.text)))
+    .filter((e): e is Example => !!e);
+  const ordered = prefer
+    ? [...found.filter((e) => prefer(e.text!)), ...found.filter((e) => !prefer(e.text!))]
+    : found;
+  return ordered.slice(0, n);
 }
 
 const exampleText = (e: Example) => e.text ?? e.caption ?? "";
@@ -158,7 +231,49 @@ const optionText = (c: Concept) => c.brief ?? c.definition;
  * a term-to-definition question it is the answer. Every concept carries a
  * `because` or a `watch` for this purpose, which a test enforces.
  */
-const explain = (c: Concept) => [c.because, c.watch].filter(Boolean).join(" ");
+const standingNote = (c: Concept) =>
+  [c.because, c.watch].filter(Boolean).join(" ");
+
+/**
+ * A `because` and a `watch` are written for the concept, not for a question,
+ * so they answer what was asked only by luck: a tip about finding the
+ * straight line first to save arithmetic turns up as the explanation for a
+ * figure question that asks no arithmetic, and one concept asked two ways
+ * gets the same paragraph twice. Where the standing note does not fit the
+ * question the kind poses, the line below replaces it. The Naming exercise's
+ * `label` and `points` forms build their explanation per item; this is the
+ * same move, one table wide.
+ */
+const REBUTTAL: Record<
+  string,
+  Partial<Record<ConceptQuestion["kind"], string>>
+> = {
+  "angles-around-point": {
+    "example-to-term":
+      "The angles go once around the vertex and close the full turn, so they total 360°. Adding adjacent parts is the other move available at a shared vertex, and it stops at the whole angle those parts make, not at a full turn.",
+  },
+  "segment-addition": {
+    // The standing note's subtraction disguise belongs to the example
+    // question; what a quoted definition raises is its hypothesis.
+    "def-to-term":
+      "Collinearity alone is not enough: B has to lie on AC, between A and C. That hypothesis is where every counterexample to this postulate is built.",
+  },
+  collinear: {
+    "term-to-example":
+      "Collinear is about where points sit, not how many of them there are: points are collinear exactly when one line passes through them all.",
+  },
+  "segment-bisector": {
+    "term-to-example":
+      "A midpoint is a point; a bisector is the line, ray or segment through it. Halving the segment is what the two have in common, so what the question turns on is which of them does the cutting.",
+  },
+  "addition-property": {
+    "term-to-example":
+      "Adding the same amount to both sides keeps them equal. An addition sign is not enough to make it this property: replacing a length by its value inside a sum adds nothing to either side, it swaps one name for another, and that is substitution.",
+  },
+};
+
+const explain = (c: Concept, kind: ConceptQuestion["kind"]) =>
+  REBUTTAL[c.id]?.[kind] ?? standingNote(c);
 
 /**
  * A crude root, enough to see that two words are the same idea: drop a
@@ -197,14 +312,33 @@ const STOP = new Set(
  * "angle(s)" is a stop word here: nearly every term and definition in the
  * module contains it, so counting it would suppress good questions.
  */
-export function givesItAway(text: string, term: string): boolean {
-  const wanted = term
+const termRoots = (term: string) =>
+  term
     .split(/[\s,]+/)
     .map(root)
     .filter((w) => w.length > 2 && !STOP.has(w));
+
+const rootsOf = (text: string) =>
+  new Set(spellOut(text).split(/[\s,.;:—–()"'“”]+/).map(root));
+
+export function givesItAway(text: string, term: string): boolean {
+  const wanted = termRoots(term);
   if (!wanted.length) return false;
-  const words = new Set(spellOut(text).split(/[\s,.;:—–()"'“”]+/).map(root));
+  const words = rootsOf(text);
   return wanted.every((w) => words.has(w));
+}
+
+/**
+ * Does this sentence use the term's own vocabulary? Saying the whole term is
+ * a giveaway wherever it appears; saying one word of it matters only by
+ * comparison. "A ray drawn through the midpoint of AB bisects it" is the only
+ * option in its set containing "bisects", so it can be matched on the word
+ * with the concept unknown — where "55° and 35° are complementary" sits
+ * beside a sibling that says "complementary" too, and nothing is given away.
+ */
+function carriesTerm(text: string, term: string): boolean {
+  const words = rootsOf(text);
+  return termRoots(term).some((w) => words.has(w));
 }
 
 /**
@@ -225,6 +359,21 @@ const KIND_NOUN: Record<Concept["kind"], string> = {
   theorem: "theorem",
   reasoning: "term",
 };
+
+/**
+ * May the stem name the kind? "Which postulate says this?" hands over half
+ * the answer when two of the four options are not postulates, so the wording
+ * waits until three same-kind distractors are there to go with it — and
+ * "term" is no help to anyone, so those questions never use it.
+ *
+ * Whether the options are matched by TYPE is a separate question, answered
+ * for every direction alike by `siblings`. One flag used to do both jobs, and
+ * because definitions have no kind noun of their own, the concepts that most
+ * needed type-matched options were the ones getting none.
+ */
+const namesKind = (c: Concept, pool: Concept[]) =>
+  KIND_NOUN[c.kind] !== "term" &&
+  pool.filter((o) => o.kind === c.kind).length >= 3;
 
 export function conceptQuestions(seed: number, count = 12): ConceptQuestion[] {
   const r = rng(seed);
@@ -252,21 +401,19 @@ function build(
   c: Concept,
   kind: ConceptQuestion["kind"],
 ): ConceptQuestion | undefined {
-  const candidates = siblings(r, c, 12);
+  const candidates = siblings(
+    r,
+    c,
+    12,
+    kind === "term-to-example" ? "topic" : "subject",
+  );
   const others = candidates.slice(0, 3);
   if (others.length < 3) return;
-  // "Which postulate says this?" hands over half the answer when two of the
-  // four options are not postulates. Offer the kind-specific wording only
-  // when three same-kind distractors exist to go with it.
-  const sameKind = candidates.filter((o) => o.kind === c.kind);
-  // Only worth restricting when the stem will actually name the kind;
-  // otherwise topic similarity is the better guide.
-  const kindMatched = KIND_NOUN[c.kind] !== "term" && sameKind.length >= 3;
   const base = {
     conceptId: c.id,
     kind,
     id: c.id + ":" + kind,
-    why: explain(c),
+    why: explain(c, kind),
     watch: c.watch,
   };
   const noun = KIND_NOUN[c.kind];
@@ -281,7 +428,10 @@ function build(
     return;
 
   if (kind === "def-to-term") {
-    const pool = kindMatched ? sameKind.slice(0, 3) : others;
+    const named = namesKind(c, candidates);
+    const pool = named
+      ? candidates.filter((o) => o.kind === c.kind).slice(0, 3)
+      : others;
     const choices = shuffle(r, [
       { text: c.term },
       ...pool.map((o) => ({ text: o.term })),
@@ -289,9 +439,9 @@ function build(
     return {
       ...base,
       prompt:
-        (noun === "term" || !kindMatched
-          ? `Which of these does this ${verb}? `
-          : "Which " + noun + " says this? ") + quoted(c.definition),
+        (named
+          ? "Which " + noun + " says this? "
+          : `Which of these does this ${verb}? `) + quoted(c.definition),
       choices,
       correct: choices.findIndex((x) => x.text === c.term),
     };
@@ -329,15 +479,20 @@ function build(
       (o) => o.id !== c.id && !alsoShown.includes(o.id),
     );
     if (safe.length < 3) return;
+    // Whatever the figure ruled out has gone; the stem may name the kind only
+    // if what is left can still fill the options with it.
+    const named = namesKind(c, safe);
+    const options = named ? safe.filter((o) => o.kind === c.kind) : safe;
+    const asks = named ? "Which " + noun : "Which of these";
     const choices = shuffle(r, [
       { text: c.term },
-      ...safe.slice(0, 3).map((o) => ({ text: o.term })),
+      ...options.slice(0, 3).map((o) => ({ text: o.term })),
     ]);
     return {
       ...base,
       prompt: ex.figure
-        ? "Which " + noun + " does this figure illustrate?"
-        : "Which " + noun + " does this illustrate? " + quoted(exampleText(ex)),
+        ? asks + " does this figure illustrate?"
+        : asks + " does this illustrate? " + quoted(exampleText(ex)),
       figure: ex.figure,
       caption: ex.figure ? ex.caption : undefined,
       choices,
@@ -347,12 +502,20 @@ function build(
 
   // term-to-example
   const mine = c.examples.filter(
-    (e) => e.text && !givesItAway(e.text, c.term),
+    (e) => e.text && isInstance(e.text) && !givesItAway(e.text, c.term),
   );
   if (!mine.length) return;
   const ex = mine[Math.floor(r() * mine.length)];
-  const wrong = otherExamples(candidates, 3);
+  const wrong = otherExamples(candidates, 3, (t) => carriesTerm(t, c.term));
   if (wrong.length < 3) return;
+  // An option that is the only one saying the word can be picked out by the
+  // word. A sibling saying it too settles that; nothing else does, so the
+  // question waits for an answer worded without it.
+  if (
+    carriesTerm(ex.text!, c.term) &&
+    !wrong.some((e) => carriesTerm(e.text!, c.term))
+  )
+    return;
   const choices = shuffle(r, [
     { text: ex.text! },
     ...wrong.slice(0, 3).map((e) => ({ text: e.text! })),
