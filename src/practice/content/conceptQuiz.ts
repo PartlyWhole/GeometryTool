@@ -334,7 +334,11 @@ function build(
   ]);
   return {
     ...base,
-    prompt: "Which of these is an example of " + inSentence(c.term) + "?",
+    // A named rule takes the definite article: "an example of the Vertical
+    // Angles Theorem", not "an example of Vertical Angles Theorem".
+    prompt:
+      "Which of these is an example of " +
+      (isNamedRule(c.term) ? "the " : "") + inSentence(c.term) + "?",
     choices,
     correct: choices.findIndex((x) => x.text === ex.text),
   };
