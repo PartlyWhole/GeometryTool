@@ -714,6 +714,37 @@ The arithmetic is checked rather than trusted: the failing equation is
 asserted against the oracle with holds: false, and the one that does hold is
 asserted true, so the counterexample cannot quietly stop being one.
 
+### Reviewing what each step actually points at
+
+Every step was checked against its figure mechanically: what does the
+sentence name, and what does the highlight pick out? Of 194 steps, 172 have
+a figure on screen, and 64 of those showed it with nothing marked at all —
+a third of the walkthrough drawing a diagram and directing the eye nowhere.
+
+Most of that was structural rather than authorial. A figure carries forward
+from step to step, but highlights did not, so any sentence that made no new
+claim about the figure blanked it out. Highlights now carry forward too, and
+clear only when the figure changes, since they described the old one. That
+alone took the blank count from 64 to 20 — and all 20 that remain are
+opening steps, where showing the whole figure before picking anything out of
+it is the point.
+
+Twenty-one steps then named something on the figure and highlighted
+something else, or nothing: the midpoint step that named AB while marking
+only M, the bisector step that named ∠AVC, the subtraction step whose whole
+subject was the shared ∠2, the linear-pair step about ray BD standing on
+line AC. Each now points at what it names. Two of them use highlight lanes
+to show a whole against its parts: the half of a bisected segment above its
+whole, and three congruent parts above the segment they make.
+
+Three attempts were reverted after looking at them, which is the part a
+mechanical check cannot do. Marking all four angles at a crossing drew a
+solid ring round the vertex and picked out nothing. Marking both segments in
+the perpendicular figure coloured every line on it. Marking a containing
+right angle drew its arc underneath the arcs of its own two parts, where it
+could not be seen. Highlighting everything is the same as highlighting
+nothing, and a review that only counts marks will not notice.
+
 ### Limitations
 
 - Proof checking validates the step you claim under the rules in the

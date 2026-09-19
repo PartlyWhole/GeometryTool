@@ -34,17 +34,23 @@ export function Concepts() {
     setStep(0);
   };
 
-  // A step keeps the figure of the step before it unless it names its own.
+  // A step keeps the figure of the step before it unless it names its own,
+  // and keeps that step's highlights too: a sentence that makes no new claim
+  // about the figure should leave the eye where it was, not blank the figure
+  // out. Changing the figure clears them, since they described the old one.
   const { board, marks } = useMemo(() => {
     if (!walk) return { board: undefined, marks: [] as Highlight[] };
     let figure: string | undefined;
-    for (let i = 0; i <= step && i < walk.steps.length; i++)
-      if (walk.steps[i].figure) figure = walk.steps[i].figure;
-    const current = walk.steps[step];
-    return {
-      board: figure ? LIBRARY[figure]() : undefined,
-      marks: (current?.marks ?? []) as Highlight[],
-    };
+    let held: Highlight[] = [];
+    for (let i = 0; i <= step && i < walk.steps.length; i++) {
+      const s = walk.steps[i];
+      if (s.figure && s.figure !== figure) {
+        figure = s.figure;
+        held = [];
+      }
+      if (s.marks?.length) held = s.marks as Highlight[];
+    }
+    return { board: figure ? LIBRARY[figure]() : undefined, marks: held };
   }, [walk, step]);
 
   const last = (walk?.steps.length ?? 1) - 1;

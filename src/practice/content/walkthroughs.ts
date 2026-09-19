@@ -84,14 +84,14 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "AD and BC both carry two ticks, so AD ≅ BC.", marks: [given(seg("A", "D")), given(seg("B", "C"))], assert: [{ statement: { k: "cong", l: seg("A", "D"), r: seg("B", "C") }, holds: true }] },
       { text: "EB and DF both carry one tick, so EB ≅ DF. One tick matches one tick; two match two.", marks: [given(seg("E", "B")), given(seg("D", "F"))], assert: [{ statement: { k: "cong", l: seg("E", "B"), r: seg("D", "F") }, holds: true }] },
       { text: "Different numbers of ticks say nothing about each other, and EF carries none at all — so nothing in this figure relates it to anything, however the drawing looks.", marks: [prove(seg("E", "F"))] },
-      { text: "Congruent segments have equal length: AB ≅ CD means AB = CD. That equality is the door into algebra." },
+      { text: "Congruent segments have equal length: AD ≅ BC means AD = BC. That equality is the door into algebra.", marks: [given(seg("A", "D")), given(seg("B", "C"))], show: { k: "eq", l: len("A", "D"), r: len("B", "C") } },
     ],
   },
   {
     conceptId: "midpoint",
     steps: [
       { text: "One point on a segment is special. Here is what makes it so.", figure: "midpoint" },
-      { text: "M lies on AB — that part matters. A point equally far from A and B but off the segment is not a midpoint.", marks: [shared(pt("M"))], assert: [{ statement: { k: "between", p: "M", a: "A", c: "B" }, holds: true }] },
+      { text: "M lies on AB — that part matters. A point equally far from A and B but off the segment is not a midpoint.", marks: [given(seg("A", "B")), shared(pt("M"))], assert: [{ statement: { k: "between", p: "M", a: "A", c: "B" }, holds: true }] },
       { text: "The matching ticks say the two halves are congruent.", marks: [given(seg("A", "M")), given(seg("M", "B"))], assert: [{ statement: { k: "midpoint", p: "M", seg: seg("A", "B") }, holds: true }] },
       { text: "So each half is exactly half the whole, which is usually what a question actually wants.", marks: [prove(seg("A", "B"))] },
       { text: "A midpoint is a point. A bisector is a line, ray or segment. Tests blur the two deliberately." },
@@ -101,8 +101,8 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "segment-bisector",
     steps: [
       { text: "A midpoint is a point. A bisector is a thing that goes through one — and it can cross at any angle it likes.", figure: "obliqueBisector" },
-      { text: "M is the midpoint of AB: the ticks mark the two halves equal.", marks: [shared(pt("M"))], assert: [{ statement: { k: "midpoint", p: "M", seg: seg("A", "B") }, holds: true }] },
-      { text: "Line QR passes through M, so it bisects AB — and it crosses at no particular angle. A bisector does not have to be perpendicular.", marks: [given(seg("M", "Q")), given(seg("M", "R"))], assert: [{ statement: { k: "angleClass", ang: ang("AMQ"), cls: "right" }, holds: false }] },
+      { text: "M is the midpoint of AB: the ticks mark the two halves equal.", marks: [given(seg("A", "B")), shared(pt("M"))], assert: [{ statement: { k: "midpoint", p: "M", seg: seg("A", "B") }, holds: true }] },
+      { text: "Line QR passes through M, so it bisects AB — and it crosses at no particular angle. A bisector does not have to be perpendicular.", marks: [given(seg("M", "Q")), given(seg("M", "R")), shared(seg("A", "B"))], assert: [{ statement: { k: "angleClass", ang: ang("AMQ"), cls: "right" }, holds: false }] },
       { text: "Whatever the angle, every bisector gives the same algebraic fact: the two halves are equal.", marks: [prove(seg("A", "M")), prove(seg("M", "B"))] },
       { text: "Tilt it to 90° and you have a perpendicular bisector — a special case. Every perpendicular bisector is a bisector, but not the reverse.", figure: "perpendicular", marks: [given(ang("APQ"))] },
     ],
@@ -120,7 +120,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "perpendicular",
     steps: [
       { text: "What the small square on a figure actually tells you.", figure: "perpendicular" },
-      { text: "PQ meets AB at P, and the small square marks the angle there as 90°.", marks: [given(ang("APQ"))] },
+      { text: "PQ meets AB at P, and the small square marks the angle there as 90°.", marks: [shared(pt("P")), given(ang("APQ"))] },
       { text: "That square is not decoration. It is a given fact worth 90°, usable without proof." },
       { text: "The other angle at P is 90° too — but the figure only marks one, and only what is marked may be used.", marks: [prove(ang("QPB"))], assert: [{ statement: { k: "angleClass", ang: ang("QPB"), cls: "right" }, holds: true }] },
     ],
@@ -156,7 +156,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     steps: [
       { text: "The one that does not look like an angle at all.", figure: "angleClasses", marks: [given(ang("GSH"))] },
       { text: "Its two sides are opposite rays, so it looks like a line — but it is a genuine angle, not a non-angle." },
-      { text: "That is the whole trick behind questions like “m∠CXE is ⅝ of m∠FXE”, where the angle named on the right quietly turns out to be straight." },
+      { text: "That is the whole trick behind questions like “one angle is ⅝ of another”, where the angle named on the right quietly turns out to be the straight one." },
     ],
   },
   {
@@ -172,7 +172,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "angle-addition",
     steps: [
       { text: "Three rays from one vertex, with the middle one inside the outer angle.", figure: "numberedCorner" },
-      { text: "Ray VB lies in the interior of ∠AVC. That is the condition, and it is easy to skip.", marks: [shared(pt("B"))], assert: [{ statement: { k: "interior", p: "B", ang: ang("AVC") }, holds: true }] },
+      { text: "Ray VB lies in the interior of ∠AVC. That is the condition, and it is easy to skip.", marks: [given(ang("AVC")), shared(seg("V", "B"))], assert: [{ statement: { k: "interior", p: "B", ang: ang("AVC") }, holds: true }] },
       { text: "∠1 is one part.", marks: [given(ang("1"))] },
       { text: "∠2 is the other part.", marks: [given(ang("2"))] },
       { text: "∠3 is the whole, and the parts make it.", marks: [prove(ang("3"))], show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("1") }, { k: "meas", ang: ang("2") }] }, r: { k: "meas", ang: ang("3") } } },
@@ -182,7 +182,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "angle-bisector",
     steps: [
       { text: "An interior ray cuts an angle in two. This is the case where the two pieces come out equal.", figure: "bisector" },
-      { text: "Ray VD lies inside ∠AVC.", marks: [shared(pt("D"))], assert: [{ statement: { k: "interior", p: "D", ang: ang("AVC") }, holds: true }] },
+      { text: "Ray VD lies inside ∠AVC.", marks: [given(ang("AVC")), shared(seg("V", "D"))], assert: [{ statement: { k: "interior", p: "D", ang: ang("AVC") }, holds: true }] },
       { text: "The matching arcs say the two parts are congruent.", marks: [given(ang("AVD")), given(ang("DVC"))] },
       { text: "It is the special case of an interior ray where the parts come out equal — so each half is exactly half the whole, and you can write that as an equation straight away.", marks: [prove(ang("AVC"))] },
     ],
@@ -200,8 +200,8 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "linear-pair",
     steps: [
-      { text: "Ray BD stands on line AC.", figure: "linearPair", marks: [shared(pt("D"))] },
-      { text: "∠ABD and ∠DBC are adjacent: same vertex, shared side BD.", marks: [given(ang("ABD")), given(ang("DBC"))], assert: [{ statement: { k: "linearPair", a: ang("ABD"), b: ang("DBC") }, holds: true }] },
+      { text: "Ray BD stands on line AC.", figure: "linearPair", marks: [given(seg("A", "C")), shared(seg("B", "D"))] },
+      { text: "∠ABD and ∠DBC are adjacent: same vertex, shared side BD.", marks: [given(ang("ABD")), given(ang("DBC")), shared(seg("B", "D"))], assert: [{ statement: { k: "linearPair", a: ang("ABD"), b: ang("DBC") }, holds: true }] },
       { text: "Their outer sides, BA and BC, together form a straight line. That is what makes them a linear pair rather than merely adjacent.", marks: [shared(seg("A", "B")), shared(seg("B", "C"))] },
       { text: "So the two must total 180°. Seeing two angles sit on a line is what licenses writing “= 180”.", show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("ABD") }, { k: "meas", ang: ang("DBC") }] }, r: { k: "num", v: 180 } } },
     ],
@@ -209,7 +209,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "vertical-angles",
     steps: [
-      { text: "Two lines crossing at X make four angles.", figure: "crossing" },
+      { text: "Two lines crossing at X make four angles.", figure: "crossing", marks: [shared(pt("X"))] },
       { text: "∠1 and ∠3 sit opposite each other. They share the vertex and nothing else.", marks: [given(ang("1")), given(ang("3"))] },
       { text: "What makes them vertical is the rays: each side of ∠1 is the opposite ray of a side of ∠3." },
       { text: "∠2 and ∠4 are the other vertical pair.", marks: [given(ang("2")), given(ang("4"))], assert: [{ statement: { k: "vertical", a: ang("2"), b: ang("4") }, holds: true }] },
@@ -230,7 +230,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     steps: [
       { text: "The same idea as supplementary, at 90° instead of 180°.", figure: "complementary" },
       { text: "The square marks ∠AVC as a right angle — 90° in total.", marks: [shared(ang("AVC"))] },
-      { text: "Ray VD splits it, so the two parts are complementary.", marks: [given(ang("AVD")), given(ang("DVC"))], assert: [{ statement: { k: "comp", a: ang("AVD"), b: ang("DVC") }, holds: true }] },
+      { text: "Ray VD splits it, so the two parts are complementary.", marks: [shared(seg("V", "D")), given(ang("AVD")), given(ang("DVC"))], assert: [{ statement: { k: "comp", a: ang("AVD"), b: ang("DVC") }, holds: true }] },
       { text: "Here the two sit side by side, but as with supplements neither angle has to be drawn near the other. Only the two measures matter.", show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("AVD") }, { k: "meas", ang: ang("DVC") }] }, r: { k: "num", v: 90 } } },
     ],
   },
@@ -271,7 +271,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "A second equation shares a term with the first.", show: { k: "eq", l: len("B", "C"), r: len("C", "D") } },
       { text: "BC is the hinge: it is the right side of one and the left side of the other.", show: { k: "eq", l: len("A", "B"), r: len("C", "D") } },
       { text: "Here is the same chain on a figure. The ticks give AB ≅ BC and BC ≅ CD.", figure: "fourInARow", marks: [given(seg("A", "B")), shared(seg("B", "C")), given(seg("C", "D"))], assert: [{ statement: { k: "cong", l: seg("A", "B"), r: seg("B", "C") }, holds: true }] },
-      { text: "BC is the shared middle, so AB ≅ CD follows — and nobody had to measure AB or CD.", marks: [prove(seg("A", "B")), prove(seg("C", "D"))], assert: [{ statement: { k: "cong", l: seg("A", "B"), r: seg("C", "D") }, holds: true }] },
+      { text: "BC is the shared middle, so AB ≅ CD follows — and nobody had to measure AB or CD.", marks: [shared(seg("B", "C")), prove(seg("A", "B")), prove(seg("C", "D"))], assert: [{ statement: { k: "cong", l: seg("A", "B"), r: seg("C", "D") }, holds: true }] },
       { text: "Transitive needs that shared middle term. Substitution does not, which is the difference between them." },
     ],
   },
@@ -291,7 +291,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "Subtracting the same amount from both sides keeps them equal.", show: { k: "eq", l: add(meas("1"), meas("2")), r: add(meas("2"), meas("3")) } },
       { text: "Take m∠2 from each side and it cancels.", show: { k: "eq", l: meas("1"), r: meas("3") } },
       { text: "Those numbers come off a figure. ∠1 and ∠2 sit on a line, and so do ∠2 and ∠3, so both pairs total 180°.", figure: "crossing", marks: [given(ang("1")), shared(ang("2")), given(ang("3"))] },
-      { text: "∠2 is the amount both sides carry. Subtract it and what is left is ∠1 ≅ ∠3.", marks: [prove(ang("1")), prove(ang("3"))], assert: [{ statement: { k: "cong", l: ang("1"), r: ang("3") }, holds: true }] },
+      { text: "∠2 is the amount both sides carry. Subtract it and what is left is ∠1 ≅ ∠3.", marks: [shared(ang("2")), prove(ang("1")), prove(ang("3"))], assert: [{ statement: { k: "cong", l: ang("1"), r: ang("3") }, holds: true }] },
       { text: "This is the last move of the Vertical Angles proof, and of every argument that shares a middle quantity and then removes it." },
     ],
   },
@@ -300,7 +300,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     steps: [
       { text: "Multiplying both sides by the same number keeps them equal.", show: { k: "eq", l: div(vr("x"), num(2)), r: num(5) } },
       { text: "Multiply each side by 2.", show: { k: "eq", l: vr("x"), r: num(10) } },
-      { text: "On a figure: M is the midpoint of AB, so AM is half of AB.", figure: "midpoint", marks: [shared(pt("M")), given(seg("A", "M"))], assert: [{ statement: { k: "midpoint", p: "M", seg: seg("A", "B") }, holds: true }] },
+      { text: "On a figure: M is the midpoint of AB, so AM is half of AB.", figure: "midpoint", marks: [shared(pt("M")), given(seg("A", "M")), { ...shared(seg("A", "B")), lane: 2 }], assert: [{ statement: { k: "midpoint", p: "M", seg: seg("A", "B") }, holds: true }] },
       { text: "Multiply both sides by 2 and you have the form a proof actually uses: twice the half is the whole.", marks: [prove(seg("A", "B"))], show: { k: "eq", l: mul(num(2), len("A", "M")), r: len("A", "B") } },
       { text: "Use it to clear a fraction: to undo a multiplication by ⅔, multiply by 3/2." },
     ],
@@ -310,7 +310,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     steps: [
       { text: "Dividing both sides by the same nonzero number keeps them equal.", show: { k: "eq", l: mul(num(3), vr("x")), r: num(30) } },
       { text: "Divide each side by 3.", show: { k: "eq", l: vr("x"), r: num(10) } },
-      { text: "On a figure: VD bisects ∠AVC, so the whole angle is twice either half.", figure: "bisector", marks: [given(ang("AVD")), given(ang("DVC"))], assert: [{ statement: { k: "cong", l: ang("AVD"), r: ang("DVC") }, holds: true }] },
+      { text: "On a figure: VD bisects ∠AVC, so the whole angle is twice either half.", figure: "bisector", marks: [given(ang("AVD")), given(ang("DVC")), shared(ang("AVC"))], assert: [{ statement: { k: "cong", l: ang("AVD"), r: ang("DVC") }, holds: true }] },
       { text: "Divide both sides by 2 to get a half on its own — which is the line most bisector proofs need.", marks: [prove(ang("AVD"))], show: { k: "eq", l: meas("AVD"), r: div(meas("AVC"), num(2)) } },
       { text: "It is the last step of most solve-for-x proofs — and finding x is usually the halfway point, not the answer." },
     ],
@@ -322,7 +322,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "Here is a second statement containing AB.", show: { k: "eq", l: add(len("A", "B"), len("B", "C")), r: num(12) } },
       { text: "Put 5 where AB stood.", show: { k: "eq", l: add(num(5), len("B", "C")), r: num(12) } },
       { text: "Read that on a figure. Suppose this one comes with AB = 5 and AB + BC = 12.", figure: "collinear", marks: [given(seg("A", "B")), shared(seg("B", "C"))] },
-      { text: "Nothing hinges the two statements together — the 5 simply stands in for AB, and BC = 7 falls out.", marks: [prove(seg("B", "C"))], show: { k: "eq", l: len("B", "C"), r: num(7) } },
+      { text: "Nothing hinges the two statements together — the 5 simply stands in for AB, and BC = 7 falls out.", marks: [given(seg("A", "B")), prove(seg("B", "C"))], show: { k: "eq", l: len("B", "C"), r: num(7) } },
       { text: "No shared hinge is needed, which is what separates it from the transitive property. The two overlap and either is usually accepted." },
     ],
   },
@@ -331,7 +331,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     steps: [
       { text: "The distributive property clears parentheses.", show: { k: "eq", l: mul(num(3), add(vr("x"), num(-4))), r: num(18) } },
       { text: "Multiply the 3 into each term inside.", show: { k: "eq", l: add(mul(num(3), vr("x")), num(-12)), r: num(18) } },
-      { text: "The picture behind it: AD is cut into three congruent parts.", figure: "fourInARow", marks: [given(seg("A", "B")), given(seg("B", "C")), given(seg("C", "D"))], assert: [{ statement: { k: "cong", l: seg("A", "B"), r: seg("B", "C") }, holds: true }] },
+      { text: "The picture behind it: AD is cut into three congruent parts, and AD is the whole they make.", figure: "fourInARow", marks: [given(seg("A", "B")), given(seg("B", "C")), given(seg("C", "D")), { ...shared(seg("A", "D")), lane: 2 }], assert: [{ statement: { k: "cong", l: seg("A", "B"), r: seg("B", "C") }, holds: true }] },
       { text: "If each part measures x − 4, then the whole is 3(x − 4) — and counting the same three parts term by term gives 3x − 12. One length, written two ways.", marks: [prove(seg("A", "D"))], show: { k: "eq", l: mul(num(3), add(vr("x"), num(-4))), r: add(mul(num(3), vr("x")), num(-12)) } },
       { text: "Neither side has changed in value — only in form. That is why it needs a name of its own in a proof." },
     ],
@@ -342,7 +342,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "linear-pair-theorem",
     steps: [
       { text: "This is the bridge from something you can see to something you can write down.", figure: "linearPair" },
-      { text: "Start from the picture fact. ∠ABD and ∠DBC are adjacent with their outer sides on line AC.", marks: [given(ang("ABD")), given(ang("DBC"))] },
+      { text: "Start from the picture fact. ∠ABD and ∠DBC are adjacent with their outer sides on line AC.", marks: [shared(seg("A", "C")), given(ang("ABD")), given(ang("DBC"))] },
       { text: "The theorem turns that into a number fact.", show: { k: "eq", l: add(meas("ABD"), meas("DBC")), r: num(180) } },
       { text: "It is the bridge you cross whenever a proof moves from “these two sit on a line” to “= 180”." },
     ],
@@ -354,7 +354,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "∠1 and ∠2 form a linear pair, so they total 180°.", marks: [given(ang("1")), shared(ang("2"))], show: { k: "eq", l: add(meas("1"), meas("2")), r: num(180) }, assert: [{ statement: { k: "linearPair", a: ang("1"), b: ang("2") }, holds: true }] },
       { text: "∠2 and ∠3 form a linear pair too, so they also total 180°.", marks: [shared(ang("2")), given(ang("3"))], show: { k: "eq", l: add(meas("2"), meas("3")), r: num(180) } },
       { text: "Two quantities equal to the same thing are equal to each other.", show: { k: "eq", l: add(meas("1"), meas("2")), r: add(meas("2"), meas("3")) } },
-      { text: "Subtract the shared m∠2 and what remains must be equal.", marks: [prove(ang("1")), prove(ang("3"))], show: { k: "eq", l: meas("1"), r: meas("3") }, assert: [{ statement: { k: "cong", l: ang("1"), r: ang("3") }, holds: true }] },
+      { text: "Subtract the shared m∠2 and what remains must be equal.", marks: [shared(ang("2")), prove(ang("1")), prove(ang("3"))], show: { k: "eq", l: meas("1"), r: meas("3") }, assert: [{ statement: { k: "cong", l: ang("1"), r: ang("3") }, holds: true }] },
       { text: "No measuring, no special case: it holds for any two crossing lines." },
     ],
   },
@@ -376,7 +376,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "One square marks ∠AVC as a right angle, so ∠1 and ∠2 total 90°.", marks: [given(ang("1")), shared(ang("2"))], show: { k: "eq", l: add(meas("1"), meas("2")), r: num(90) }, assert: [{ statement: { k: "comp", a: ang("1"), b: ang("2") }, holds: true }] },
       { text: "The other square marks ∠BVD, so ∠2 and ∠3 total 90° as well.", marks: [shared(ang("2")), given(ang("3"))], show: { k: "eq", l: add(meas("2"), meas("3")), r: num(90) } },
       { text: "Both sums equal 90, so they equal each other.", show: { k: "eq", l: add(meas("1"), meas("2")), r: add(meas("2"), meas("3")) } },
-      { text: "Subtract the shared m∠2 and ∠1 ≅ ∠3.", marks: [prove(ang("1")), prove(ang("3"))], show: { k: "eq", l: meas("1"), r: meas("3") }, assert: [{ statement: { k: "cong", l: ang("1"), r: ang("3") }, holds: true }, { statement: { k: "vertical", a: ang("1"), b: ang("3") }, holds: false }] },
+      { text: "Subtract the shared m∠2 and ∠1 ≅ ∠3.", marks: [shared(ang("2")), prove(ang("1")), prove(ang("3"))], show: { k: "eq", l: meas("1"), r: meas("3") }, assert: [{ statement: { k: "cong", l: ang("1"), r: ang("3") }, holds: true }, { statement: { k: "vertical", a: ang("1"), b: ang("3") }, holds: false }] },
       { text: "Identical reasoning to congruent supplements, at 90° instead of 180°. Unlike that case, these two are not vertical angles — the conclusion needs this theorem." },
     ],
   },
