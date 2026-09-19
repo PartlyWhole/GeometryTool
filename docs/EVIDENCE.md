@@ -140,8 +140,8 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 
 ### Automated
 
-- `npm run check`: 77 tests, TypeScript, and the production build pass
-  (40 pre-existing whiteboard tests, 37 new).
+- `npm run check`: 85 tests, TypeScript, and the production build pass
+  (40 pre-existing whiteboard tests, 45 new).
 - Every generated multiple-choice card is asserted to carry four distinct
   options with a valid answer index and a real explanation.
 - Every one of the 11 authored proofs is replayed through the strict validator
@@ -203,6 +203,50 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
   choice. Straight angles remain in the inventory, since the statement builder
   needs them and the module teaches them directly; only the naming drill
   excludes them.
+
+### Second review pass
+
+Found by the user exercising the deployed build, and fixed:
+
+- `∠AXB` on the crossing figure is a straight angle, because A and B are
+  opposite ends of one line through X. The first straight-angle fix filtered
+  by measure and did cover it, but the case is now pinned by name in a test.
+- Highlights matched whole edges only, so "the highlighted segment" showed
+  nothing whenever the answer was a piece of a longer support, such as BC
+  inside A—B—C. Highlighted segments are now drawn as their own overlay
+  between their real endpoints.
+- An angle highlighted as ∠AXD but drawn as ∠4 got no colour, because the
+  lookup compared names. Angle highlights now match on resolved geometry, so
+  either notation reaches the same arc.
+- The naming exercise carried A/B/C/D option badges, which collide with
+  answers that are themselves point letters ("A. AC"). Removed for that mode.
+- The concept quiz asked "Which term does this define? *If two angles form a
+  linear pair, they are supplementary.*" — a spot-the-phrase task, not a
+  question about the theorem. Definition questions are now suppressed when the
+  text restates the term, and such concepts are reached through their examples.
+- That guard did not fire at first: its stemmer reduced "angles" to "angl"
+  rather than "angle", because the alternation `(ness|ity|s|es)$` matched `es`
+  before `s`. The stop word never matched, so "angl" stayed in the required
+  set and no text could satisfy it. Replaced with a plural strip plus a
+  six-letter root, which also makes congruent/congruence and
+  supplement/supplementary agree. The predicate is exported and tested
+  directly on both the cases it must catch and the ones it must not.
+- Quiz feedback repeated the definition the student had just chosen. Every
+  concept now carries a `because` explaining why it holds or what it is for,
+  and a test asserts the explanation differs from the definition.
+- "Which statement defines vertical Angles Theorem?" — the sentence-casing
+  helper lowercased only the first word of a proper name. Named theorems,
+  postulates and properties now keep their capitals, and theorems are asked
+  with "What does the X say?" rather than "defines".
+- The Congruent Supplements and Congruent Complements options ran to a full
+  line each. Concepts may now carry a `brief` used for options, keeping the
+  reference's full wording for flashcards and explanations.
+- One example gave its answer away in prose the checker cannot see — "conclude
+  3x = 30, by adding 12 to both sides" for the Addition Property. Clause cut.
+
+New exercise, at the user's request: naming items that move between the two
+ways of naming an angle — clicking the three points that name a marked ∠2,
+and picking which marked angle a three-point name refers to.
 
 ### Limitations
 

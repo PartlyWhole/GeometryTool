@@ -21,7 +21,7 @@ import {
   vr,
 } from "../terms";
 import { figureObjects } from "../inventory";
-import { measureOf } from "../oracle";
+import { measureOf, threePointName } from "../oracle";
 import { LIBRARY } from "./library";
 
 /** Small deterministic generator, so a seed reproduces a whole session. */
@@ -55,6 +55,14 @@ export type NameItem = {
   choices?: string[];
   answer?: string;
   why: string;
+  /**
+   * Points that count as a correct click, when they cannot be read off the
+   * target's own name — as when the target is a labelled angle like ∠2 and
+   * the answer is the three-point name of the same angle.
+   */
+  expectPoints?: string[];
+  /** Show the target on the figure. */
+  highlight?: boolean;
 };
 
 const FIGURE_NAMES = Object.keys(LIBRARY);
@@ -64,6 +72,15 @@ export function nameItems(seed: number, count = 10): NameItem[] {
   const out: NameItem[] = [];
   let guard = 0;
   while (out.length < count && guard++ < count * 40) {
+    // Roughly a third of items exercise the equivalence between naming an
+    // angle by three points and naming it by its own label.
+    if (r() < 0.3) {
+      const item = equivalenceItem(r);
+      if (item && !out.some((o) => o.id === item.id)) {
+        out.push(item);
+        continue;
+      }
+    }
     const figName = pick(r, FIGURE_NAMES);
     const board = LIBRARY[figName]();
     const inv = figureObjects(board);
@@ -122,6 +139,73 @@ export function nameItems(seed: number, count = 10): NameItem[] {
     }
   }
   return out;
+}
+
+/** Figures that label their angles, so both naming systems are visible. */
+const LABELLED_FIGURES = ["crossing", "numberedCorner"];
+
+/**
+ * ∠2 and ∠AXC can be the same angle. These items make a student move between
+ * the two notations in both directions.
+ */
+function equivalenceItem(r: () => number): NameItem | undefined {
+  const figName = pick(r, LABELLED_FIGURES);
+  const board = LIBRARY[figName]();
+  const labelled = board.angles.filter((a) => a.label);
+  if (labelled.length < 2) return;
+  const chosen = pick(r, labelled);
+  const name = threePointName(board, chosen);
+  if (!name || !chosen.label) return;
+  const deg = measureOf(board, { k: "ang", name } as AngId);
+  if (deg === undefined || deg <= 1 || deg >= 179) return;
+
+  const toPoints = r() < 0.55;
+  if (toPoints) {
+    return {
+      id: figName + ":equiv:" + chosen.label + ":points",
+      figure: board,
+      mode: "click",
+      target: { k: "ang", name } as AngId,
+      expectPoints: splitLabels(name),
+      highlight: true,
+      prompt:
+        "∠" + chosen.label +
+        " is marked on the figure. Click the three points that name the same angle.",
+      why:
+        "∠" + chosen.label + " and ∠" + name +
+        " are two names for one angle. A label is a shorthand; the three-point name says where the angle is, with the vertex in the middle.",
+    };
+  }
+
+  // The other direction: given the three-point name, say which label it is.
+  const options = labelled
+    .map((a) => "∠" + a.label)
+    .filter((x, i, xs) => xs.indexOf(x) === i);
+  if (options.length < 2) return;
+  return {
+    id: figName + ":equiv:" + chosen.label + ":label",
+    figure: board,
+    mode: "choose",
+    target: { k: "ang", name } as AngId,
+    highlight: false,
+    prompt: "Which marked angle is ∠" + name + "?",
+    choices: shuffleNames(r, options),
+    answer: "∠" + chosen.label,
+    why:
+      "∠" + name + " has vertex " + splitLabels(name)[1] +
+      " with arms through " + splitLabels(name)[0] + " and " +
+      splitLabels(name)[2] + ", which is the region marked ∠" + chosen.label +
+      ". The two names refer to the same angle and may be used interchangeably.",
+  };
+}
+
+function shuffleNames(r: () => number, xs: string[]) {
+  const a = xs.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(r() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 function distractors(

@@ -567,7 +567,7 @@ describe("generators never emit an unsolvable problem", () => {
   it("never asks a student to name a straight or zero angle", async () => {
     const { nameItems } = await import("../src/practice/content/generators");
     const { measureOf } = await import("../src/practice/oracle");
-    for (let seed = 1; seed <= 30; seed++)
+    for (let seed = 1; seed <= 80; seed++)
       for (const it of nameItems(seed, 12)) {
         if (it.target.k !== "ang") continue;
         const deg = measureOf(it.figure, it.target);
@@ -577,6 +577,50 @@ describe("generators never emit an unsolvable problem", () => {
         expect(deg!, it.id).toBeGreaterThan(1);
         expect(deg!, it.id).toBeLessThan(179);
       }
+  });
+
+  it("rejects the straight angles hiding in a crossing", async () => {
+    const { crossing } = await import("../src/practice/content/library");
+    const b = crossing();
+    // A and B are opposite ends of one line through X, so ∠AXB is straight.
+    expect(measureOf(b, ang("AXB"))).toBeCloseTo(180, 4);
+    expect(measureOf(b, ang("DXC"))).toBeCloseTo(180, 4);
+  });
+
+  it("teaches that a labelled angle and a three-point name are the same angle", async () => {
+    const { nameItems } = await import("../src/practice/content/generators");
+    const { threePointName, measureOf: mm } = await import("../src/practice/oracle");
+    const { splitLabels } = await import("../src/practice/terms");
+    let seen = 0;
+    for (let seed = 1; seed <= 60; seed++)
+      for (const it of nameItems(seed, 12)) {
+        if (!it.id.includes(":equiv:")) continue;
+        seen++;
+        const labelled = it.figure.angles.filter((a) => a.label);
+        expect(labelled.length, it.id).toBeGreaterThan(1);
+        if (it.mode === "click") {
+          // The expected points must genuinely name the marked angle.
+          expect(it.expectPoints, it.id).toHaveLength(3);
+          const name = it.expectPoints!.join("");
+          const match = labelled.find(
+            (a) => threePointName(it.figure, a) === name,
+          );
+          expect(match, it.id).toBeDefined();
+          expect(it.prompt, it.id).toContain("∠" + match!.label);
+          expect(mm(it.figure, { k: "ang", name })!, it.id).toBeLessThan(179);
+        } else {
+          expect(it.choices, it.id).toContain(it.answer);
+          const label = it.answer!.replace("∠", "");
+          const match = labelled.find((a) => a.label === label);
+          expect(match, it.id).toBeDefined();
+          expect(
+            threePointName(it.figure, match!),
+            it.id,
+          ).toBe((it.target as { name: string }).name);
+          expect(splitLabels((it.target as { name: string }).name)).toHaveLength(3);
+        }
+      }
+    expect(seen).toBeGreaterThan(20);
   });
 
   it("generates naming items whose targets exist on their figures", async () => {
@@ -641,6 +685,75 @@ describe("flashcard content is well formed", () => {
         expect(c.correct, c.id).toBeLessThan(c.choices.length);
         expect(c.why.length, c.id).toBeGreaterThan(20);
       }
+  });
+
+  it("detects a stem that restates the term", async () => {
+    const { givesItAway } = await import("../src/practice/content/conceptQuiz");
+    // Cases that must be caught.
+    for (const [text, term] of [
+      ["55° and 35° are complementary.", "Complementary angles"],
+      ["115° and 65° are supplementary.", "Supplementary angles"],
+      ["If two angles form a linear pair, they are supplementary.", "Linear Pair Theorem"],
+      ["Vertical angles are congruent.", "Vertical Angles Theorem"],
+      ["All right angles are congruent.", "Right Angle Congruence Theorem"],
+      ["Points that lie on one line are collinear.", "Collinear"],
+      ["Point B is between A and C.", "Betweenness"],
+    ] as [string, string][])
+      expect(givesItAway(text, term), term).toBe(true);
+    // Cases that must not be, or good questions would be suppressed.
+    for (const [text, term] of [
+      ["If B is between A and C, then AB + BC = AC.", "Segment Addition Postulate"],
+      ["An angle measuring exactly 180°.", "Straight angle"],
+      ["A point that divides a segment into two congruent halves.", "Midpoint"],
+      ["All the angles at a shared vertex, taken once around, total 360°.", "Angles around a point"],
+      ["Two angles that sit opposite each other at a crossing.", "Vertical angles"],
+      ["A bisector that also meets the segment at 90°.", "Perpendicular bisector"],
+    ] as [string, string][])
+      expect(givesItAway(text, term), term).toBe(false);
+  });
+
+  it("never hands the answer over in the question stem", async () => {
+    const { conceptQuestions, givesItAway } = await import(
+      "../src/practice/content/conceptQuiz"
+    );
+    const { CONCEPTS } = await import("../src/practice/content/concepts");
+    for (let seed = 1; seed <= 60; seed++)
+      for (const q of conceptQuestions(seed, 14)) {
+        // Only the directions whose answer is the term itself can leak.
+        if (q.kind !== "def-to-term" && q.kind !== "example-to-term") continue;
+        const c = CONCEPTS.find((x) => x.id === q.conceptId)!;
+        const stemOnly = q.prompt.replace(/^Which [^?]*\?\s*/, "");
+        expect(
+          givesItAway(stemOnly || q.prompt, c.term),
+          q.id + " :: " + q.prompt,
+        ).toBe(false);
+      }
+  });
+
+  it("gives every concept an explanation distinct from its definition", async () => {
+    const { CONCEPTS } = await import("../src/practice/content/concepts");
+    for (const c of CONCEPTS) {
+      const explanation = c.because ?? c.watch;
+      expect(explanation, c.id).toBeTruthy();
+      expect(explanation!.trim(), c.id).not.toBe(c.definition.trim());
+    }
+  });
+
+  it("explains rather than repeating the answer back", async () => {
+    const { conceptQuestions } = await import("../src/practice/content/conceptQuiz");
+    for (let seed = 1; seed <= 20; seed++)
+      for (const q of conceptQuestions(seed, 14)) {
+        if (q.kind !== "term-to-def") continue;
+        const answer = q.choices[q.correct].text.trim();
+        expect(q.why.trim(), q.id).not.toBe(answer);
+      }
+  });
+
+  it("writes named theorems with their capitals intact", async () => {
+    const { conceptQuestions } = await import("../src/practice/content/conceptQuiz");
+    for (let seed = 1; seed <= 40; seed++)
+      for (const q of conceptQuestions(seed, 14))
+        expect(q.prompt, q.id).not.toMatch(/[a-z]\w* (Angles|Pair|Addition) /);
   });
 
   it("offers four distinct options on every concept question", async () => {

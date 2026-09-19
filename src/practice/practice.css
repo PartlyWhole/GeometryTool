@@ -209,6 +209,7 @@
 /* Only the -hit layers take pointer events; everything drawn on top of them
    is decoration and must not swallow a click. */
 .fig-edge,
+.fig-highlight,
 .fig-point,
 .fig-arc,
 .fig-right,
@@ -234,6 +235,12 @@
   stroke: transparent;
   stroke-width: 16;
   fill: none;
+}
+.fig-highlight {
+  stroke-width: 5;
+  stroke-linecap: round;
+  fill: none;
+  pointer-events: none;
 }
 .fig-edge-hit:hover + .fig-edge {
   stroke: var(--accent);
@@ -861,3 +868,9 @@ code.answer.empty { color: var(--muted); font-size: 14px; }
   font-size: 14px;
 }
 .readout b { font-weight: 500; color: var(--muted); margin-right: 5px; }
+
+/* Naming answers are point letters, so they carry no A/B/C/D badge. */
+.choice-name {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}

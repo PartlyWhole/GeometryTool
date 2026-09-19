@@ -14,6 +14,7 @@ import {
   type AngleRef,
   type Board,
   type Constraint,
+  type DirectionRef,
   type SegmentRef,
   TAU,
   angleDegrees,
@@ -124,6 +125,23 @@ export function resolveAngle(b: Board, a: AngId): AngleRef | undefined {
   return mod(e - s) <= Math.PI + 1e-9
     ? probe
     : { ...probe, start: end, end: start };
+}
+
+/**
+ * The three-point name of an angle: arm, vertex, arm. This is what makes a
+ * labelled angle such as ∠2 and a named one such as ∠AXC interchangeable.
+ */
+export function threePointName(b: Board, ref: AngleRef): string | undefined {
+  const v = vertex(b, ref.vertex);
+  if (!v) return;
+  const vl = b.points.find((p) => distance(p, v) < 1e-4)?.label;
+  const arm = (d: DirectionRef) =>
+    b.points.find((p) => p.id === d.end)?.label;
+  const a = arm(ref.start),
+    c = arm(ref.end);
+  return vl && a && c && a !== vl && c !== vl && a !== c
+    ? a + vl + c
+    : undefined;
 }
 
 export function resolveObj(b: Board, o: ObjId) {

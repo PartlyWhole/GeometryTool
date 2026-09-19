@@ -84,6 +84,18 @@ export function Figure(props: Props) {
   const roleOf = (o: ObjId): Role | undefined =>
     props.highlights?.find((h) => objKey(h.obj) === objKey(o))?.role;
 
+  // An angle may be highlighted under one name (∠AXD) and drawn under another
+  // (∠4). Match on the resolved geometry so both notations reach the same arc.
+  const angleRoles = useMemo(() => {
+    const m = new Map<string, Role>();
+    for (const h of props.highlights ?? []) {
+      if (h.obj.k !== "ang") continue;
+      const r = resolveAngle(b, h.obj);
+      if (r) m.set(angleKey(r, b), h.role);
+    }
+    return m;
+  }, [b, props.highlights]);
+
   // Angles worth drawing: those the figure names, those carrying a constraint,
   // and those a highlight refers to.
   const drawn = useMemo(() => {
@@ -144,7 +156,6 @@ export function Figure(props: Props) {
         if (!a || !c) return null;
         const [p, q] = extend(a, c, e.kind, view);
         const ref: SegmentRef = { edge: e.id };
-        const role = roleFor(b, props.highlights, ref);
         return (
           <g key={e.id}>
             <line
@@ -165,11 +176,26 @@ export function Figure(props: Props) {
               }
               style={{ cursor: props.onPickSegment ? "pointer" : undefined }}
             />
-            <line
-              className={"fig-edge" + (role ? " role-" + role : "")}
-              x1={p.x} y1={p.y} x2={q.x} y2={q.y}
-            />
+            <line className="fig-edge" x1={p.x} y1={p.y} x2={q.x} y2={q.y} />
           </g>
+        );
+      })}
+
+      {/* Highlighted segments, drawn between their own endpoints. A highlight
+          is often a piece of a longer support — BC inside A—B—C — so it cannot
+          be expressed by recolouring the underlying edge. */}
+      {(props.highlights ?? []).map((h, i) => {
+        if (h.obj.k !== "seg") return null;
+        const ref = resolveSeg(b, h.obj);
+        const ends = ref && endpoints(b, ref);
+        if (!ends) return null;
+        return (
+          <line
+            key={"hl" + i}
+            className={"fig-highlight role-" + h.role}
+            x1={ends[0].x} y1={ends[0].y}
+            x2={ends[1].x} y2={ends[1].y}
+          />
         );
       })}
 
@@ -197,7 +223,7 @@ export function Figure(props: Props) {
             (c) => c.kind === "angle" && c.value === 90 &&
               angleKey(c.angle, b) === angleKey(ref, b),
           );
-        const role = roleOf(id);
+        const role = angleRoles.get(angleKey(ref, b)) ?? roleOf(id);
         const count = marksAng.get(angleKey(ref, b)) ?? 0;
         return (
           <g key={ref.id + id.name} className={role ? "role-" + role : ""}>
@@ -325,19 +351,6 @@ function namedFor(b: Board, ref: AngleRef): AngId {
     ? b.points.find((p) => distance(p, v) < 1e-6)?.label ?? "?"
     : "?";
   return { k: "ang", name: arm(ref.start) + vl + arm(ref.end) };
-}
-
-function roleFor(
-  b: Board,
-  highlights: Highlight[] | undefined,
-  ref: SegmentRef,
-): Role | undefined {
-  for (const h of highlights ?? []) {
-    if (h.obj.k !== "seg") continue;
-    const r = resolveSeg(b, h.obj);
-    if (r && segmentKey(r) === segmentKey(ref)) return h.role;
-  }
-  return undefined;
 }
 
 function Ticks(props: { board: Board; seg: SegmentRef; count: number }) {

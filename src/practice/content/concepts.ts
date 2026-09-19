@@ -26,6 +26,16 @@ export type Concept = {
   kind: ConceptKind;
   /** One-sentence definition, as the reference states it. */
   definition: string;
+  /**
+   * A shorter form used as a multiple-choice option, where the full wording
+   * would turn the question into a reading test.
+   */
+  brief?: string;
+  /**
+   * Why it is true, or what it is for. Quiz feedback uses this: repeating the
+   * definition back at a student who has just chosen it teaches nothing.
+   */
+  because?: string;
   /** Where it comes from in the reference, for the "why" line. */
   section: string;
   examples: Example[];
@@ -77,7 +87,7 @@ export const CONCEPTS: Concept[] = [
     section: "§5",
     examples: [
       { figure: "collinear", caption: "A, B and C all lie on one line." },
-      { text: "Any two points are collinear — a line can always be drawn through them." },
+      { text: "Any two points always lie on one line; three is the first interesting case." },
     ],
     watch: "Three points is the first interesting case, which is why “X, Y, Z are collinear” is only sometimes true.",
   },
@@ -86,6 +96,8 @@ export const CONCEPTS: Concept[] = [
     term: "Coplanar",
     kind: "definition",
     definition: "Points that lie in one plane are coplanar.",
+    because:
+      "Any three points are coplanar; four is the first number that can fail.",
     section: "§5",
     examples: [
       { text: "Any three points are coplanar; four is the first number that can fail." },
@@ -99,7 +111,7 @@ export const CONCEPTS: Concept[] = [
       "Point B is between A and C only if all three are collinear and B lies on AC.",
     section: "§5",
     examples: [
-      { figure: "collinear", caption: "B lies on AC, so B is between A and C." },
+      { figure: "collinear", caption: "B lies on AC, with A and C on either side of it." },
     ],
     nonExamples: [
       { figure: "notBetween", caption: "All three are collinear, but C is not between A and B in the way AB + BC = AC needs." },
@@ -114,6 +126,8 @@ export const CONCEPTS: Concept[] = [
     term: "Segment Addition Postulate",
     kind: "postulate",
     definition: "If B is between A and C, then AB + BC = AC.",
+    because:
+      "The parts make the whole. Its usual disguise is a measurement where you know the whole and one part, so the postulate runs backwards as a subtraction.",
     section: "§6",
     examples: [
       { figure: "collinear", caption: "The parts make the whole: AB + BC = AC." },
@@ -160,6 +174,8 @@ export const CONCEPTS: Concept[] = [
     term: "Perpendicular bisector",
     kind: "definition",
     definition: "A bisector that also meets the segment at 90°.",
+    because:
+      "It does two jobs at once — halves the segment and meets it at 90° — so it gives you both facts in a proof.",
     section: "§6",
     examples: [
       { figure: "perpendicular", caption: "PQ meets AB at its midpoint and at a right angle." },
@@ -172,6 +188,8 @@ export const CONCEPTS: Concept[] = [
     term: "Acute angle",
     kind: "definition",
     definition: "An angle measuring more than 0° and less than 90°.",
+    because:
+      "Strictly between 0° and 90°: a 90° angle is right, not acute.",
     section: "§8",
     examples: [{ text: "m∠A = 35°" }],
   },
@@ -191,6 +209,8 @@ export const CONCEPTS: Concept[] = [
     term: "Obtuse angle",
     kind: "definition",
     definition: "An angle measuring more than 90° and less than 180°.",
+    because:
+      "Strictly between 90° and 180°: a straight angle exceeds 90° without being obtuse.",
     section: "§8",
     examples: [{ text: "m∠B = 115°" }],
   },
@@ -222,6 +242,8 @@ export const CONCEPTS: Concept[] = [
     kind: "postulate",
     definition:
       "If P is in the interior of ∠ABC, then m∠ABP + m∠PBC = m∠ABC.",
+    because:
+      "The parts make the whole — provided the middle ray really does lie inside the angle.",
     section: "§8",
     examples: [
       { figure: "fan", caption: "m∠WVX + m∠XVY = m∠WVY, because X is interior to ∠WVY." },
@@ -232,6 +254,8 @@ export const CONCEPTS: Concept[] = [
     term: "Angle bisector",
     kind: "definition",
     definition: "A ray that splits an angle into two congruent angles.",
+    because:
+      "It is the special case of an interior ray where the two parts come out equal, so each half is exactly half the whole.",
     section: "§8",
     examples: [
       { figure: "bisector", caption: "Ray VD splits ∠AVC into two equal parts." },
@@ -254,6 +278,8 @@ export const CONCEPTS: Concept[] = [
     kind: "definition",
     definition:
       "Two adjacent angles whose outer sides form a straight line.",
+    because:
+      "It is a picture fact: adjacent, with the outer sides forming a line. That is what licenses writing “= 180”.",
     section: "§8",
     examples: [
       { figure: "linearPair", caption: "∠ABD and ∠DBC sit on line AC." },
@@ -289,6 +315,8 @@ export const CONCEPTS: Concept[] = [
     term: "Complementary angles",
     kind: "definition",
     definition: "Two angles whose measures total 90°.",
+    because:
+      "Neither angle has to be drawn near the other; only the two measures matter.",
     section: "§8",
     examples: [
       { text: "55° and 35° are complementary." },
@@ -300,6 +328,8 @@ export const CONCEPTS: Concept[] = [
     term: "Perpendicular",
     kind: "definition",
     definition: "Two lines, rays or segments that meet at right angles.",
+    because:
+      "The right angle it creates is a given fact worth 90°, usable without proof.",
     section: "§6",
     examples: [
       { figure: "perpendicular", caption: "PQ ⊥ AB." },
@@ -335,6 +365,8 @@ export const CONCEPTS: Concept[] = [
     term: "Symmetric Property",
     kind: "property",
     definition: "If a = b then b = a.",
+    because:
+      "Use it to flip an equation around so the piece you want ends up on the left.",
     section: "§4",
     examples: [{ text: "From AB = CD conclude CD = AB." }],
   },
@@ -354,9 +386,11 @@ export const CONCEPTS: Concept[] = [
     term: "Addition Property of Equality",
     kind: "property",
     definition: "If a = b then a + c = b + c.",
+    because:
+      "Adding the same amount to both sides keeps them equal — the move that lets a shared part enter a proof.",
     section: "§4",
     examples: [
-      { text: "From 3x − 12 = 18 conclude 3x = 30, by adding 12 to both sides." },
+      { text: "From 3x − 12 = 18 conclude 3x = 30." },
     ],
   },
   {
@@ -364,6 +398,8 @@ export const CONCEPTS: Concept[] = [
     term: "Subtraction Property of Equality",
     kind: "property",
     definition: "If a = b then a − c = b − c.",
+    because:
+      "Subtracting the same amount from both sides keeps them equal. It is how a shared angle is cancelled out.",
     section: "§4",
     examples: [
       { text: "From m∠1 + m∠2 = m∠2 + m∠3 conclude m∠1 = m∠3." },
@@ -374,6 +410,8 @@ export const CONCEPTS: Concept[] = [
     term: "Multiplication Property of Equality",
     kind: "property",
     definition: "If a = b then ac = bc.",
+    because:
+      "Multiplying both sides by the same nonzero number keeps them equal; use it to clear a fraction.",
     section: "§4",
     examples: [{ text: "From x/2 = 5 conclude x = 10." }],
   },
@@ -382,6 +420,8 @@ export const CONCEPTS: Concept[] = [
     term: "Division Property of Equality",
     kind: "property",
     definition: "If a = b then a/c = b/c, for c ≠ 0.",
+    because:
+      "Dividing both sides by the same nonzero number keeps them equal; it is the last step of most solve-for-x proofs.",
     section: "§4",
     examples: [{ text: "From 3x = 30 conclude x = 10." }],
   },
@@ -401,6 +441,8 @@ export const CONCEPTS: Concept[] = [
     term: "Distributive Property",
     kind: "property",
     definition: "a(b + c) = ab + ac.",
+    because:
+      "It clears parentheses inside a proof step without changing either side's value.",
     section: "§4",
     examples: [{ text: "From 3(x − 4) = 18 conclude 3x − 12 = 18." }],
   },
@@ -411,6 +453,8 @@ export const CONCEPTS: Concept[] = [
     term: "Linear Pair Theorem",
     kind: "theorem",
     definition: "If two angles form a linear pair, they are supplementary.",
+    because:
+      "It is the bridge from a picture fact to a number fact. Seeing two angles sit on a line is what licenses writing “= 180”.",
     section: "§9",
     examples: [
       { figure: "linearPair", caption: "Seeing the two angles sit on a line licenses writing “= 180”." },
@@ -421,6 +465,8 @@ export const CONCEPTS: Concept[] = [
     term: "Vertical Angles Theorem",
     kind: "theorem",
     definition: "Vertical angles are congruent.",
+    because:
+      "Both angles are supplements of the same third angle, so subtracting it leaves them equal. It holds for any two crossing lines, with no measuring.",
     section: "§9",
     examples: [
       { figure: "crossing", caption: "∠1 ≅ ∠3 and ∠2 ≅ ∠4, for any two crossing lines." },
@@ -432,6 +478,9 @@ export const CONCEPTS: Concept[] = [
     kind: "theorem",
     definition:
       "If two angles are supplementary to the same angle — or to congruent angles — then they are congruent.",
+    brief: "Two angles supplementary to the same angle are congruent.",
+    because:
+      "It is the vertical-angle argument stated in general: share a supplement, and what is left after subtracting it must be equal.",
     section: "§9",
     examples: [
       { text: "∠1 and ∠3 are both supplements of ∠2, so ∠1 ≅ ∠3." },
@@ -443,9 +492,11 @@ export const CONCEPTS: Concept[] = [
     kind: "theorem",
     definition:
       "If two angles are complementary to the same angle — or to congruent angles — then they are congruent.",
+    brief: "Two angles complementary to the same angle are congruent.",
+    because: "Identical reasoning to congruent supplements, at 90° instead of 180°.",
     section: "§9",
     examples: [
-      { text: "Identical reasoning to congruent supplements, at 90° instead of 180°." },
+      { text: "∠1 and ∠2 are each complementary to ∠3, so ∠1 ≅ ∠2." },
     ],
   },
   {
@@ -453,9 +504,11 @@ export const CONCEPTS: Concept[] = [
     term: "Right Angle Congruence Theorem",
     kind: "theorem",
     definition: "All right angles are congruent.",
+    because:
+      "Every one of them measures 90°, so any two are equal. It is the named reason a proof cites when two square marks must be equal to each other.",
     section: "§9",
     examples: [
-      { text: "The named reason you cite when a proof needs two right-angle marks to be equal." },
+      { text: "A figure marks two square corners; each measures 90°, so the two are equal." },
     ],
   },
 
@@ -475,6 +528,8 @@ export const CONCEPTS: Concept[] = [
     term: "Deductive reasoning",
     kind: "reasoning",
     definition: "Deriving a conclusion from accepted facts by logic alone.",
+    because:
+      "If the facts you start from are true and the logic is valid, the conclusion is certain. This is what a proof is made of.",
     section: "§2",
     examples: [{ text: "Every step of a two-column proof." }],
   },
@@ -483,6 +538,8 @@ export const CONCEPTS: Concept[] = [
     term: "Law of Detachment",
     kind: "reasoning",
     definition: "If “p → q” is true and p is true, then q is true.",
+    because:
+      "A rule, plus a case that fires it, detaches the conclusion. It fails if the case does not actually satisfy the hypothesis.",
     section: "§2",
     examples: [
       { text: "“If it rains, the match is cancelled.” It rained. So the match was cancelled." },

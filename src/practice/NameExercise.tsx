@@ -18,9 +18,13 @@ export function NameExercise() {
   const item = items[i];
   if (!item) return <p className="muted">No items generated.</p>;
 
-  const expected = item.target.k === "ang"
-    ? splitLabels(item.target.name)
-    : [item.target.a, item.target.b];
+  // An equivalence item supplies its own answer, because the target is named
+  // one way (∠2) and answered the other (A, X, C).
+  const expected =
+    item.expectPoints ??
+    (item.target.k === "ang"
+      ? splitLabels(item.target.name)
+      : [item.target.a, item.target.b]);
 
   const reset = () => {
     setChosen([]);
@@ -89,7 +93,9 @@ export function NameExercise() {
           height={330}
           chosen={item.mode === "click" ? chosen : undefined}
           highlights={
-            item.mode === "choose" ? [{ obj: item.target, role: "prove" }] : undefined
+            item.highlight ?? item.mode === "choose"
+              ? [{ obj: item.target, role: "prove" }]
+              : undefined
           }
           onPickPoint={
             item.mode === "click" && result === null
@@ -140,7 +146,9 @@ export function NameExercise() {
             </>
           ) : (
             <div className="choices tall">
-              {item.choices!.map((c, n) => (
+              {/* No A/B/C/D badges here: the answers are themselves point
+                  letters, and "A. AC" reads as two things at once. */}
+              {item.choices!.map((c) => (
                 <button
                   key={c}
                   className={
@@ -158,8 +166,7 @@ export function NameExercise() {
                     setResult(c === item.answer);
                   }}
                 >
-                  <span className="choice-letter">{"ABCD"[n]}</span>
-                  <span>{c}</span>
+                  <span className="choice-name">{c}</span>
                 </button>
               ))}
             </div>
@@ -172,7 +179,7 @@ export function NameExercise() {
                 : result
                   ? item.why
                   : item.target.k === "ang"
-                    ? `∠${item.target.name} has vertex ${expected[1]}, with arms through ${expected[0]} and ${expected[2]}.`
+                    ? `That angle has vertex ${expected[1]}, with arms through ${expected[0]} and ${expected[2]}. ${item.why}`
                     : `Segment ${expected[0]}${expected[1]} runs between those two endpoints.`}
             </Verdict>
           )}

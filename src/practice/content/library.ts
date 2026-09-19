@@ -141,6 +141,21 @@ export const perpendicular = (): Board => {
   return f.build();
 };
 
+/** Three rays from one vertex, with the parts and the whole all labelled. */
+export const numberedCorner = (): Board => {
+  const f = fig("Labelled angles");
+  f.at("V", 0, 80);
+  for (const [l, d] of [["A", 150], ["B", 96], ["C", 26]] as [string, number][]) {
+    const p = polar(0, 80, d, 155);
+    f.at(l, p.x, p.y);
+  }
+  ["A", "B", "C"].forEach((l) => f.ray("V", l));
+  f.num("1", "AVB");
+  f.num("2", "BVC");
+  f.num("3", "AVC");
+  return f.build();
+};
+
 export const LIBRARY: Record<string, () => Board> = {
   crossing,
   fan,
@@ -154,4 +169,5 @@ export const LIBRARY: Record<string, () => Board> = {
   markedPair,
   straightInDisguise,
   perpendicular,
+  numberedCorner,
 };
