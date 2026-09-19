@@ -89,12 +89,16 @@ export class Fig {
     return this;
   }
 
-  /** Give a three-point angle a short name, e.g. ∠1. */
-  num(name: string, threePoints: string) {
+  /**
+   * Give a three-point angle a short name, e.g. ∠1. `radius` widens its arc,
+   * which a vertex carrying several angles needs so their labels do not
+   * collide.
+   */
+  num(name: string, threePoints: string, radius?: number) {
     this.deferred.push((b) => {
       const r = resolveAngle(b, { k: "ang", name: threePoints });
       if (!r) throw Error("Cannot resolve angle " + threePoints);
-      b.angles.push({ ...r, id: uid(), label: name });
+      b.angles.push({ ...r, id: uid(), label: name, ...(radius ? { radius } : {}) });
     });
     return this;
   }

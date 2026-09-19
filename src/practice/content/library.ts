@@ -113,7 +113,9 @@ export const markedPair = (): Board =>
     .seg("A", "B").seg("D", "C").seg("A", "D").seg("B", "C")
     .on("E", "A", "B", 0.55)
     .on("F", "D", "C", 0.45)
+    .seg("E", "F")
     .tick(["A", "D"], ["B", "C"])
+    .tick(["E", "B"], ["D", "F"])
     .build();
 
 /** Fig. 13: a straight angle in disguise — line EF through X, rays to C and D. */
@@ -156,6 +158,90 @@ export const numberedCorner = (): Board => {
   return f.build();
 };
 
+/**
+ * Three lines through one point, with three consecutive angles sharing the
+ * straight line below them. Two measures are stated on the figure and the
+ * third is what the question asks for.
+ */
+export const threeConcurrent = (): Board => {
+  const f = fig("Three lines through a point");
+  f.at("V", 0, 0);
+  f.at("P", -155, 0).at("Q", 155, 0);
+  for (const [l, d] of [
+    ["R", 120], ["T", 300], ["S", 33], ["U", 213],
+  ] as [string, number][]) {
+    const p = polar(0, 0, d, 150);
+    f.at(l, p.x, p.y);
+  }
+  ["P", "Q", "R", "T", "S", "U"].forEach((l) => f.seg("V", l));
+  // Wide, stepped arcs so three labels round one vertex stay legible.
+  f.num("X", "PVR", 52).num("Z", "RVS", 78).num("Y", "SVQ", 52);
+  f.measure("RVS", 87).measure("SVQ", 33);
+  return f.build();
+};
+
+/** Two right angles in different places, the Right Angle Congruence figure. */
+export const twoRightAngles = (): Board => {
+  const f = fig("Two right angles");
+  f.at("A", -230, 40).at("B", -70, 40).at("C", -230, -90);
+  f.seg("A", "B").seg("A", "C");
+  f.at("D", 80, 40).at("E", 240, 40).at("F", 240, -90);
+  f.seg("D", "E").seg("E", "F");
+  f.right("BAC").right("DEF");
+  f.num("1", "BAC").num("2", "DEF");
+  return f.build();
+};
+
+/**
+ * A linear pair supplying two supplementary angles, plus a third angle marked
+ * congruent to the first — the shape of the "solve, then substitute back"
+ * question.
+ */
+export const suppAndCongruent = (): Board => {
+  const f = fig("Supplementary, with a congruent partner");
+  f.at("P", -230, 30).at("Q", 60, 30);
+  f.seg("P", "Q");
+  f.on("V", "P", "Q", 0.5);
+  const d = polar(-85, 30, 62, 150);
+  f.at("R", d.x, d.y);
+  f.seg("V", "R");
+  // A separate angle, marked congruent to the first.
+  f.at("W", 150, 30).at("Y", 300, 30);
+  f.seg("W", "Y");
+  const e = polar(150, 30, 62, 150);
+  f.at("Z", e.x, e.y);
+  f.seg("W", "Z");
+  f.num("A", "PVR").num("B", "RVQ").num("C", "ZWY");
+  f.arc("PVR", "ZWY");
+  return f.build();
+};
+
+/**
+ * Two separate linear pairs whose second angles are marked congruent. This is
+ * the general form of the Congruent Supplements Theorem: ∠1 and ∠2 are not
+ * vertical, so the conclusion cannot be reached by that shortcut.
+ */
+export const twoSupplementPairs = (): Board => {
+  const f = fig("Supplements of congruent angles");
+  f.at("A", -290, 40).at("B", -40, 40);
+  f.seg("A", "B");
+  f.on("V", "A", "B", 0.5);
+  const c = polar(-165, 40, 65, 140);
+  f.at("C", c.x, c.y);
+  f.seg("V", "C");
+
+  f.at("D", 40, 40).at("E", 290, 40);
+  f.seg("D", "E");
+  f.on("W", "D", "E", 0.5);
+  const g = polar(165, 40, 65, 140);
+  f.at("G", g.x, g.y);
+  f.seg("W", "G");
+
+  f.num("1", "AVC").num("3", "CVB").num("2", "DWG").num("4", "GWE");
+  f.arc("CVB", "GWE");
+  return f.build();
+};
+
 export const LIBRARY: Record<string, () => Board> = {
   crossing,
   fan,
@@ -170,4 +256,8 @@ export const LIBRARY: Record<string, () => Board> = {
   straightInDisguise,
   perpendicular,
   numberedCorner,
+  threeConcurrent,
+  twoRightAngles,
+  suppAndCongruent,
+  twoSupplementPairs,
 };

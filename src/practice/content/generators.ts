@@ -23,6 +23,7 @@ import {
 import { figureObjects } from "../inventory";
 import { measureOf, threePointName } from "../oracle";
 import { LIBRARY } from "./library";
+import { fig, polar } from "./figures";
 
 /**
  * Small deterministic generator, so a seed reproduces a whole session.
@@ -255,6 +256,42 @@ const m = meas;
 
 type PairKind = "supp" | "comp";
 
+/**
+ * A figure drawn to the values the problem actually uses, so a student can
+ * read the shape off the page and sanity-check the answer at the end.
+ */
+function anglePairFigure(kind: PairKind, v1: number): Board {
+  const f = fig(kind === "supp" ? "A linear pair" : "Two parts of a right angle");
+  f.at("V", 0, 0);
+  if (kind === "supp") {
+    f.at("A", -185, 0).at("B", 185, 0);
+    f.seg("V", "A").seg("V", "B");
+    const c = polar(0, 0, 180 - v1, 165);
+    f.at("C", c.x, c.y);
+    f.seg("V", "C");
+  } else {
+    const a = polar(0, 0, 90, 175),
+      b = polar(0, 0, 0, 175),
+      c = polar(0, 0, 90 - v1, 175);
+    f.at("A", a.x, a.y).at("B", b.x, b.y).at("C", c.x, c.y);
+    f.seg("V", "A").seg("V", "B").seg("V", "C");
+    f.right("AVB");
+  }
+  f.num("1", "AVC").num("2", "CVB");
+  return f.build();
+}
+
+/** A, B, C collinear with B placed in the ratio the problem states. */
+function segmentSumFigure(part1: number, part2: number): Board {
+  const t = part1 / (part1 + part2);
+  return fig("Parts and the whole")
+    .at("A", -180, 0)
+    .at("C", 180, 0)
+    .seg("A", "C")
+    .on("B", "A", "C", t)
+    .build();
+}
+
 /** ∠1 and ∠2 are supplementary (or complementary); solve for x. */
 export function anglePairProblem(seed: number, kind: PairKind = "supp"): ProofProblem {
   const r = rng(seed);
@@ -327,7 +364,11 @@ export function anglePairProblem(seed: number, kind: PairKind = "supp"): ProofPr
   return {
     id: `gen-${kind}-${seed}`,
     title: `Solve using ${word} angles`,
-    prompt: `∠1 and ∠2 are ${word}, m∠1 = ${show(a, b)} and m∠2 = ${show(c, d)}. Prove that x = ${x0}.`,
+    prompt:
+      kind === "supp"
+        ? `∠1 and ∠2 form a linear pair, so they are supplementary. m∠1 = ${show(a, b)} and m∠2 = ${show(c, d)}. Prove that x = ${x0}.`
+        : `∠1 and ∠2 make up the right angle ∠AVB, so they are complementary. m∠1 = ${show(a, b)} and m∠2 = ${show(c, d)}. Prove that x = ${x0}.`,
+    figure: anglePairFigure(kind, v1),
     givens,
     goal: { k: "eq", l: vr("x"), r: num(x0) },
     objects: [A, B] as ObjId[],
@@ -414,7 +455,7 @@ export function segmentSumProblem(seed: number): ProofProblem {
     id: "gen-seg-" + seed,
     title: "Solve using the Segment Addition Postulate",
     prompt: `B is between A and C, with AB = ${show(a, b)}, BC = ${show(c, d)} and AC = ${whole}. Prove that x = ${x0}.`,
-    figure: LIBRARY.collinear(),
+    figure: segmentSumFigure(part1, part2),
     givens,
     goal: { k: "eq", l: vr("x"), r: num(x0) },
     objects: [seg("A", "B"), seg("B", "C"), seg("A", "C")],

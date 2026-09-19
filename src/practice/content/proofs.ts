@@ -2,7 +2,17 @@
 // rewritten as proofs.
 import type { ProofProblem } from "../proof";
 import { add, ang, div, len, meas, mul, num, ray, seg, vr } from "../terms";
-import { bisector, collinear, crossing, fan, linearPair, midpoint } from "./library";
+import {
+  bisector,
+  collinear,
+  crossing,
+  fan,
+  linearPair,
+  midpoint,
+  suppAndCongruent,
+  twoRightAngles,
+  twoSupplementPairs,
+} from "./library";
 
 const m = meas;
 
@@ -60,41 +70,44 @@ export const PROOFS: ProofProblem[] = [
     id: "congruent-supplements",
     title: "Congruent Supplements Theorem",
     prompt:
-      "∠1 and ∠2 are both supplementary to ∠3. Prove ∠1 ≅ ∠2, without citing the theorem itself.",
+      "∠1 is supplementary to ∠3, ∠2 is supplementary to ∠4, and the arcs mark ∠3 ≅ ∠4. Prove ∠1 ≅ ∠2, without citing the theorem itself.",
+    figure: twoSupplementPairs(),
     givens: [
       { k: "supp", a: ang("1"), b: ang("3") },
-      { k: "supp", a: ang("2"), b: ang("3") },
+      { k: "supp", a: ang("2"), b: ang("4") },
+      { k: "cong", l: ang("3"), r: ang("4") },
     ],
     goal: { k: "cong", l: ang("1"), r: ang("2") },
     forbid: ["congruent-supplements"],
-    objects: [ang("1"), ang("2"), ang("3")],
     hints: [
       "Write each supplementary statement as a sum equal to 180.",
       "Both sums equal 180, so they equal each other.",
-      "Subtract the shared m∠3, then turn the equality back into a congruence.",
+      "Now bring in ∠3 ≅ ∠4 to cancel those two terms.",
     ],
     tags: ["§9"],
     solution: [
       { statement: { k: "supp", a: ang("1"), b: ang("3") }, reasonId: "given", cites: [] },
-      { statement: { k: "supp", a: ang("2"), b: ang("3") }, reasonId: "given", cites: [] },
+      { statement: { k: "supp", a: ang("2"), b: ang("4") }, reasonId: "given", cites: [] },
+      { statement: { k: "cong", l: ang("3"), r: ang("4") }, reasonId: "given", cites: [] },
       { statement: { k: "eq", l: add(m("1"), m("3")), r: num(180) }, reasonId: "def-supplementary", cites: [1] },
-      { statement: { k: "eq", l: add(m("2"), m("3")), r: num(180) }, reasonId: "def-supplementary", cites: [2] },
-      { statement: { k: "eq", l: add(m("1"), m("3")), r: add(m("2"), m("3")) }, reasonId: "substitution", cites: [3, 4] },
-      { statement: { k: "eq", l: m("1"), r: m("2") }, reasonId: "subtraction-property", cites: [5] },
-      { statement: { k: "cong", l: ang("1"), r: ang("2") }, reasonId: "def-cong-ang", cites: [6] },
+      { statement: { k: "eq", l: add(m("2"), m("4")), r: num(180) }, reasonId: "def-supplementary", cites: [2] },
+      { statement: { k: "eq", l: m("3"), r: m("4") }, reasonId: "def-cong-ang", cites: [3] },
+      { statement: { k: "eq", l: add(m("1"), m("3")), r: add(m("2"), m("4")) }, reasonId: "substitution", cites: [4, 5] },
+      { statement: { k: "eq", l: m("1"), r: m("2") }, reasonId: "substitution", cites: [6, 7] },
+      { statement: { k: "cong", l: ang("1"), r: ang("2") }, reasonId: "def-cong-ang", cites: [8] },
     ],
   },
   {
     id: "right-angles",
     title: "Right Angle Congruence Theorem",
-    prompt: "∠1 and ∠2 are right angles. Prove ∠1 ≅ ∠2.",
+    prompt: "The squares mark ∠1 and ∠2 as right angles. Prove ∠1 ≅ ∠2.",
+    figure: twoRightAngles(),
     givens: [
       { k: "angleClass", ang: ang("1"), cls: "right" },
       { k: "angleClass", ang: ang("2"), cls: "right" },
     ],
     goal: { k: "cong", l: ang("1"), r: ang("2") },
     forbid: ["right-angle-congruence"],
-    objects: [ang("1"), ang("2")],
     hints: [
       "The definition of a right angle turns each into a measure of 90.",
       "Two quantities each equal to 90 are equal to each other.",
@@ -204,7 +217,8 @@ export const PROOFS: ProofProblem[] = [
     id: "supplementary-solve",
     title: "Supplementary, then substitute back",
     prompt:
-      "∠A and ∠B are supplementary, m∠A = 16x − 7, m∠B = 21x + 2, and ∠A ≅ ∠C. Prove that m∠C = 73.",
+      "∠A and ∠B are a linear pair, so they are supplementary. m∠A = 16x − 7, m∠B = 21x + 2, and the arcs mark ∠A ≅ ∠C. Prove that m∠C = 73.",
+    figure: suppAndCongruent(),
     givens: [
       { k: "supp", a: ang("A"), b: ang("B") },
       { k: "eq", l: m("A"), r: add(mul(num(16), vr("x")), num(-7)) },
@@ -212,7 +226,6 @@ export const PROOFS: ProofProblem[] = [
       { k: "cong", l: ang("A"), r: ang("C") },
     ],
     goal: { k: "eq", l: m("C"), r: num(73) },
-    objects: [ang("A"), ang("B"), ang("C")],
     hints: [
       "Supplementary means the two measures total 180.",
       "Substitute both expressions, solve for x — but x is not the answer.",

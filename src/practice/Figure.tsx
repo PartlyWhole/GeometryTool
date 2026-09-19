@@ -315,13 +315,28 @@ export function Figure(props: Props) {
         );
       })}
 
-      {/* Angle names for numbered angles */}
+      {/* Angle names, and any measure the figure declares. A test figure
+          states its known angles on the drawing, so they are drawn here. */}
       {drawn.map(({ ref, id }) => {
-        if (id.name.length > 2) return null;
         const v = vertex(b, ref.vertex);
         const s = direction(b, ref, ref.start);
         if (!v || s === undefined) return null;
-        const r = (radii.get(angleKey(ref, b)) ?? 44) * 0.62;
+        const declared = b.constraints.find(
+          (c) =>
+            c.kind === "angle" &&
+            c.value !== 90 &&
+            angleKey(c.angle, b) === angleKey(ref, b),
+        );
+        const degrees =
+          declared && declared.kind === "angle"
+            ? formatDegrees(declared.value)
+            : undefined;
+        const short = id.name.length <= 2 ? id.name : undefined;
+        const label = [short, degrees].filter(Boolean).join(" = ");
+        if (!label) return null;
+        // Just outside the arc: at a vertex with several narrow angles, text
+        // placed inside them collides.
+        const r = (radii.get(angleKey(ref, b)) ?? 44) + 17;
         const mid = s + angleRadians(b, ref) / 2;
         return (
           <text
@@ -330,13 +345,16 @@ export function Figure(props: Props) {
             x={v.x + r * Math.cos(mid)}
             y={v.y + r * Math.sin(mid) + 4}
           >
-            {id.name}
+            {label}
           </text>
         );
       })}
     </svg>
   );
 }
+
+const formatDegrees = (v: number) =>
+  (Number.isInteger(v) ? String(v) : String(Number(v.toFixed(2)))) + "°";
 
 function namedFor(b: Board, ref: AngleRef): AngId {
   const stored = b.angles.find(

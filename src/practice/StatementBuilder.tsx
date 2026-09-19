@@ -278,6 +278,17 @@ export function StatementBuilder(props: Props) {
     props.onChange({ ...d, slots: d.slots.map((s, j) => (j === i ? v : s)) });
   const focus = (i: number) => props.onChange({ ...d, focus: i });
 
+  /**
+   * Fill a slot and move on in ONE update. Doing it as two calls sent both
+   * derived from the same stale draft, so the focus change overwrote the value
+   * that had just been chosen and the slot stayed empty.
+   */
+  const fillAndAdvance = (v: SlotValue) => {
+    const slots = d.slots.map((s, j) => (j === d.focus ? v : s));
+    const next = slots.findIndex((s, i) => i > d.focus && !filled(s));
+    props.onChange({ ...d, slots, focus: next >= 0 ? next : d.focus });
+  };
+
   const active = spec.slots[d.focus];
   const activeValue = d.slots[d.focus];
 
@@ -337,10 +348,7 @@ export function StatementBuilder(props: Props) {
             accept={active.accept}
             inv={inv}
             selected={activeValue.kind === "obj" ? activeValue.obj : undefined}
-            onPick={(obj) => {
-              setSlot(d.focus, { kind: "obj", obj });
-              advance();
-            }}
+            onPick={(obj) => fillAndAdvance({ kind: "obj", obj })}
           />
         )}
         {active.kind === "pt" && (
@@ -352,10 +360,7 @@ export function StatementBuilder(props: Props) {
                   "chip" +
                   (activeValue.kind === "pt" && activeValue.label === p ? " active" : "")
                 }
-                onClick={() => {
-                  setSlot(d.focus, { kind: "pt", label: p });
-                  advance();
-                }}
+                onClick={() => fillAndAdvance({ kind: "pt", label: p })}
               >
                 {p}
               </button>
@@ -383,10 +388,6 @@ export function StatementBuilder(props: Props) {
     </div>
   );
 
-  function advance() {
-    const next = d.slots.findIndex((s, i) => i > d.focus && !filled(s));
-    if (next >= 0) focus(next);
-  }
 }
 
 function joiner(form: FormId, i: number) {

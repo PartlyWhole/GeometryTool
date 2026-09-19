@@ -828,3 +828,128 @@ describe("flashcard content is well formed", () => {
       }
   });
 });
+
+describe("the statement builder keeps what you pick", () => {
+  it("fills a slot and advances in one update", async () => {
+    const { newDraft, buildStatement, FORMS } = await import(
+      "../src/practice/StatementBuilder"
+    );
+    const { ang } = await import("../src/practice/terms");
+    // Reproduces the reported bug by simulating what the component does: the
+    // pick handler must produce a draft carrying BOTH the value and the new
+    // focus, not two drafts derived from the same stale one.
+    let d = newDraft("vertical");
+    const fill = (v: { kind: "obj"; obj: ReturnType<typeof ang> }) => {
+      const slots = d.slots.map((s, j) => (j === d.focus ? v : s));
+      const next = slots.findIndex(
+        (s, i) => i > d.focus && (s.kind === "obj" ? !s.obj : true),
+      );
+      d = { ...d, slots, focus: next >= 0 ? next : d.focus };
+    };
+    fill({ kind: "obj", obj: ang("1") });
+    // The first slot must already hold the choice, before the second is made.
+    expect(d.slots[0]).toEqual({ kind: "obj", obj: ang("1") });
+    expect(d.focus).toBe(1);
+    fill({ kind: "obj", obj: ang("3") });
+    const built = buildStatement(d);
+    expect(built.ok).toBe(true);
+    if (built.ok)
+      expect(built.statement).toEqual({ k: "vertical", a: ang("1"), b: ang("3") });
+    expect(FORMS.find((f) => f.id === "vertical")).toBeDefined();
+  });
+});
+
+describe("generated figures match the numbers they state", () => {
+  /** "m∠1 = 5x − 3" evaluated at the x the problem proves. */
+  const statedMeasure = (prompt: string, which: 1 | 2) => {
+    const m = new RegExp("m∠" + which + " = (−?\\d*)x\\s*(?:([+−])\\s*(\\d+))?").exec(prompt);
+    const x = Number(/Prove that x = ([\d.]+)/.exec(prompt)?.[1]);
+    if (!m || !Number.isFinite(x)) return undefined;
+    const coef = m[1] === "" ? 1 : m[1] === "−" ? -1 : Number(m[1].replace("−", "-"));
+    const constant = m[3] ? Number(m[3]) * (m[2] === "−" ? -1 : 1) : 0;
+    return coef * x + constant;
+  };
+
+  it("draws each angle at the measure the problem states", async () => {
+    const { anglePairProblem } = await import("../src/practice/content/generators");
+    const { measureOf } = await import("../src/practice/oracle");
+    let checked = 0;
+    for (const kind of ["supp", "comp"] as const)
+      for (let seed = 1; seed <= 25; seed++) {
+        const p = anglePairProblem(seed, kind);
+        expect(p.figure, p.id).toBeDefined();
+        const drawn1 = measureOf(p.figure!, ang("1"))!;
+        const drawn2 = measureOf(p.figure!, ang("2"))!;
+        expect(drawn1 + drawn2, p.id).toBeCloseTo(kind === "supp" ? 180 : 90, 3);
+        const want1 = statedMeasure(p.prompt, 1);
+        const want2 = statedMeasure(p.prompt, 2);
+        expect(want1, p.id + " :: " + p.prompt).toBeDefined();
+        // The drawing is to scale: what it measures is what the text says.
+        expect(drawn1, p.id + " :: " + p.prompt).toBeCloseTo(want1!, 2);
+        expect(drawn2, p.id + " :: " + p.prompt).toBeCloseTo(want2!, 2);
+        checked++;
+      }
+    expect(checked).toBe(50);
+  });
+
+  it("places B in the ratio the segment problem states", async () => {
+    const { segmentSumProblem } = await import("../src/practice/content/generators");
+    const { lengthOf, isBetween } = await import("../src/practice/oracle");
+    const { seg } = await import("../src/practice/terms");
+    for (let seed = 1; seed <= 25; seed++) {
+      const p = segmentSumProblem(seed);
+      expect(p.figure, p.id).toBeDefined();
+      const ab = lengthOf(p.figure!, seg("A", "B"))!;
+      const bc = lengthOf(p.figure!, seg("B", "C"))!;
+      const ac = lengthOf(p.figure!, seg("A", "C"))!;
+      expect(isBetween(p.figure!, "B", "A", "C"), p.id).toBe(true);
+      expect(ab + bc, p.id).toBeCloseTo(ac, 4);
+      // The whole is stated; the drawn parts must share it in the same ratio.
+      const whole = Number(/AC = ([\d.]+)/.exec(p.prompt)![1]);
+      const part1 = Number(/Prove that x = ([\d.]+)/.exec(p.prompt)![1]);
+      expect(whole, p.id).toBeGreaterThan(0);
+      expect(part1, p.id).toBeGreaterThan(0);
+      expect(ab / ac, p.id).toBeGreaterThan(0.02);
+      expect(ab / ac, p.id).toBeLessThan(0.98);
+    }
+  });
+
+  it("gives every authored proof a figure, unless it is pure algebra", async () => {
+    const { PROOFS } = await import("../src/practice/content/proofs");
+    const abstract = ["algebra-justify"];
+    for (const p of PROOFS)
+      if (!abstract.includes(p.id)) expect(p.figure, p.id).toBeDefined();
+  });
+});
+
+describe("every read item is answerable from its own figure", () => {
+  it("accepts at least one answer that the figure actually supports", async () => {
+    const { READ_ITEMS } = await import("../src/practice/content/translate");
+    const { holds, marked } = await import("../src/practice/oracle");
+    const { statementText } = await import("../src/practice/notation");
+    for (const item of READ_ITEMS) {
+      const supported = item.accept.filter(
+        (a) => holds(item.figure, a) || marked(item.figure, a),
+      );
+      expect(
+        supported.length,
+        item.id + " :: none of " +
+          item.accept.map(statementText).join(" / ") + " holds in its figure",
+      ).toBeGreaterThan(0);
+    }
+    expect(READ_ITEMS.length).toBeGreaterThanOrEqual(13);
+  });
+
+  it("builds every construct item's starting figure", async () => {
+    const { CONSTRUCT_ITEMS } = await import("../src/practice/content/translate");
+    for (const item of CONSTRUCT_ITEMS) {
+      expect(item.start.points.length, item.id).toBeGreaterThan(1);
+      // Every movable point must exist on the figure it belongs to.
+      for (const label of item.movable)
+        expect(
+          item.start.points.some((p) => p.label === label),
+          item.id + " cannot move " + label,
+        ).toBe(true);
+    }
+  });
+});

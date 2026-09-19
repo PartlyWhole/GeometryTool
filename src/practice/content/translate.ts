@@ -9,8 +9,11 @@ import {
   crossing,
   fan,
   linearPair,
+  markedPair,
   midpoint,
+  threeConcurrent,
   threeOnLine,
+  twoSupplementPairs,
 } from "./library";
 
 const m = meas;
@@ -119,6 +122,46 @@ export const READ_ITEMS: ReadItem[] = [
     why: "X is in the interior of ∠WVY, so the parts make the whole.",
     allowForms: ["eq"],
     tags: ["§8"],
+  },
+  {
+    id: "three-concurrent",
+    prompt:
+      "Three lines pass through V. Two of the angles above line PQ are marked. Write the equation the figure gives you.",
+    figure: threeConcurrent(),
+    accept: [
+      { k: "eq", l: add(m("PVR"), m("RVS"), m("SVQ")), r: num(180) },
+    ],
+    why: "The three angles sit consecutively above one straight line, so they share its 180°. Working round the full 360° would also work and take twice as long.",
+    allowForms: ["eq"],
+    tags: ["§8", "Fig. 16"],
+  },
+  {
+    id: "marked-only",
+    prompt:
+      "Only the marks count. Write one congruence this figure actually asserts.",
+    figure: markedPair(),
+    accept: [
+      { k: "cong", l: seg("A", "D"), r: seg("B", "C") },
+      { k: "cong", l: seg("E", "B"), r: seg("D", "F") },
+      { k: "eq", l: len("A", "D"), r: len("B", "C") },
+      { k: "eq", l: len("E", "B"), r: len("D", "F") },
+    ],
+    why: "One tick matches one tick and two match two. EF carries no ticks at all, so nothing in the figure relates it to anything, however the drawing looks.",
+    allowForms: ["cong", "eq"],
+    tags: ["§6", "Fig. 18"],
+  },
+  {
+    id: "supplements-of-congruent",
+    prompt:
+      "The arcs mark ∠3 ≅ ∠4, and each sits on a straight line. Write what the figure says about ∠1 and ∠3.",
+    figure: twoSupplementPairs(),
+    accept: [
+      { k: "supp", a: ang("1"), b: ang("3") },
+      { k: "eq", l: add(m("1"), m("3")), r: num(180) },
+      { k: "linearPair", a: ang("1"), b: ang("3") },
+    ],
+    why: "∠1 and ∠3 are adjacent with their outer sides on one line, so they are a linear pair and therefore supplementary.",
+    tags: ["§9"],
   },
   {
     id: "double-part",

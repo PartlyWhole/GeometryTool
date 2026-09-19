@@ -140,8 +140,8 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 
 ### Automated
 
-- `npm run check`: 89 tests, TypeScript, and the production build pass
-  (40 pre-existing whiteboard tests, 49 new).
+- `npm run check`: 95 tests, TypeScript, and the production build pass
+  (40 pre-existing whiteboard tests, 55 new).
 - Every generated multiple-choice card is asserted to carry four distinct
   options with a valid answer index and a real explanation.
 - Every one of the 11 authored proofs is replayed through the strict validator
@@ -290,6 +290,30 @@ and picking which marked angle a three-point name refers to.
   midpoint, a linear pair and supplementary angles, so asking which term it
   illustrates had several right answers even after excluding co-true
   distractors.
+
+### Fifth review pass
+
+- Picking an object in the statement builder left the slot empty and moved the
+  focus on anyway. The pick handler called `onChange` twice — once to set the
+  value, once to advance the focus — and both were derived from the same
+  prop, so the second overwrote the first. Filling and advancing is now one
+  update, and a test walks the same sequence and asserts the first slot holds
+  its value before the second is chosen.
+- Figures now draw any measure they declare, which test-style figures state on
+  the drawing. Angle labels sit outside the arc, since a vertex carrying three
+  narrow angles put them on top of each other.
+- Diagrams added from the Form A paper: three lines through one point with two
+  measures stated (Q11), and the transversal figure with its two independent
+  tick classes (Q12, Fig. 18).
+- Proofs that described their geometry in words now show it. Two right angles,
+  the supplementary-plus-congruent question, and the Congruent Supplements
+  Theorem all have figures. The last was rewritten to its general form —
+  supplements of *congruent* angles rather than of the same angle — because
+  the single-angle version can only be drawn as a crossing, where the two
+  angles are vertical and the conclusion follows by the wrong theorem.
+- Generated problems are drawn to scale: a test parses the measure each
+  problem states and asserts the figure's own angle matches it, so the drawing
+  cannot drift from the numbers.
 
 ### Limitations
 
