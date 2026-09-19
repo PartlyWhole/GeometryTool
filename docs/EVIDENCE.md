@@ -639,6 +639,48 @@ names a live concept, every concept has a topic row and a walkthrough, and
 every entry in the figure tables names a concept and a figure that still
 exist. It reports consistent.
 
+### Giving every concept something to look at
+
+Thirteen concepts had no figure anywhere in their walkthrough — the eight
+properties of equality, the four reasoning concepts, and point and line.
+They now all do, and the properties carry both forms: the algebra they are
+usually stated in, and the same move made on a figure.
+
+Symmetric turns AD ≅ BC into BC ≅ AD on a ticked pair. Transitive walks a
+chain of three congruent parts, with the middle one marked as the hinge.
+Addition adds the shared angle to two marked-equal angles; subtraction takes
+the shared angle away at a crossing. Multiplication doubles a half of a
+bisected segment, division halves a bisected angle, substitution puts a
+number where a length stood, and distributive counts one segment's three
+equal parts two ways. In every case the figure is one the module already
+uses, so the property is seen in the place it will actually be needed.
+
+The reasoning concepts got concrete cases rather than descriptions.
+Inductive reasoning now measures three linear pairs — 130° and 50°, 90° and
+90°, 35° and 145° — reaches the conjecture that they always total 180°, and
+then says why three cases are not the reason it is true. Deductive reasoning
+applies the Vertical Angles Theorem to a crossing without measuring
+anything. The Law of Syllogism chains "vertical implies congruent" with
+"congruent implies equal measure" over the same crossing.
+
+Point and line are now shown rather than stated: one figure with a single
+point, one with the line through two points. The concept no longer talks
+about being undefined, which also means there is nothing to ask about it
+that is not a reading test — it is exempt from the flashcard coverage check,
+and the check asserts the exemption still names a real concept.
+
+The proof concept walks an actual proof, the reference's Fig. 5: given
+∠WVX ≅ ∠YVZ, prove m∠WVY = m∠XVZ. It reads the given first, then the goal,
+then looks for what the two share before writing anything — the shared angle
+is highlighted as the bridge — and only then works through the six lines,
+each with its reason. Every claim it makes about that figure is checked
+against the oracle, as all walkthrough assertions are.
+
+A step with neither a figure nor a line of algebra used to render a box
+saying so. It now renders nothing. The concept list is sticky and scrolls
+inside itself, so choosing the next concept no longer scrolls away from the
+one being read; below 820px it stacks above the content and stops sticking.
+
 ### Limitations
 
 - Proof checking validates the step you claim under the rules in the

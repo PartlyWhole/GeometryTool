@@ -5,7 +5,6 @@
 // example → definition) and for the flashcard deck. Distractors are drawn from
 // sibling concepts at run time rather than authored per question.
 export type ConceptKind =
-  | "undefined term"
   | "definition"
   | "postulate"
   | "property"
@@ -48,18 +47,17 @@ export type Concept = {
 export const CONCEPTS: Concept[] = [
   // --- Undefined terms and basic objects ------------------------------------
   {
-    id: "undefined-terms",
+    id: "point-and-line",
     term: "Point and line",
-    kind: "undefined term",
-    definition:
-      "Terms accepted without definition; everything else in geometry is defined using them.",
+    kind: "definition",
+    definition: "A point marks a position. A line is the straight path through two points.",
+    because:
+      "Everything else in the module — segments, angles, all of it — is built out of these two.",
     section: "§5",
     examples: [
-      { text: "A point has position and no size." },
-      { text: "A line is straight and has no width." },
+      { figure: "justAPoint", caption: "A point: a position, with no size of its own." },
+      { figure: "aLine", caption: "A line: straight, with no width, drawn through two points." },
     ],
-    watch:
-      "They are undefined on purpose — any definition would use words that themselves need defining.",
   },
   {
     id: "collinear",
@@ -531,7 +529,7 @@ export const CONCEPTS: Concept[] = [
 export type Topic = "space" | "segment" | "angle" | "algebra" | "logic";
 
 export const TOPIC: Record<string, Topic> = {
-  "undefined-terms": "space",
+  "point-and-line": "space",
   collinear: "space",
   "segment-addition": "segment",
   "congruent-segments": "segment",

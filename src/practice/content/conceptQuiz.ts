@@ -219,7 +219,6 @@ const inSentence = (term: string) =>
   isNamedRule(term) ? term : term.charAt(0).toLowerCase() + term.slice(1);
 
 const KIND_NOUN: Record<Concept["kind"], string> = {
-  "undefined term": "term",
   definition: "term",
   postulate: "postulate",
   property: "property",
@@ -271,9 +270,7 @@ function build(
     watch: c.watch,
   };
   const noun = KIND_NOUN[c.kind];
-  // An undefined term is not defined by anything — asking which term a
-  // statement "defines" contradicts the statement itself.
-  const verb = c.kind === "undefined term" ? "describe" : "define";
+  const verb = "define";
 
   // Both definition directions are unusable when the definition restates the
   // term. Such concepts are still reachable through their examples.

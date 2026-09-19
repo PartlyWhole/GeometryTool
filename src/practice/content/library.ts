@@ -367,6 +367,40 @@ export const obliqueBisector = (): Board => {
   return f.build();
 };
 
+/** A single point. The concept is shown rather than described. */
+export const justAPoint = (): Board =>
+  fig("A point")
+    .at("P", 0, 0)
+    .build();
+
+/** The line through two points. */
+export const aLine = (): Board =>
+  fig("A line")
+    .at("A", -110, 0).at("B", 110, 0)
+    .line("A", "B")
+    .build();
+
+/**
+ * A linear pair with both measures written on it. Three of these are the
+ * concrete cases the inductive-reasoning walkthrough generalises from, so the
+ * numbers have to be visible rather than merely true of the drawing.
+ */
+const measuredPair = (first: number): Board => {
+  const f = fig(`Linear pair, ${first}° and ${180 - first}°`);
+  f.at("A", -170, 0).at("C", 170, 0);
+  f.seg("A", "C");
+  f.on("B", "A", "C", 0.5);
+  const d = polar(0, 0, 180 - first, 150);
+  f.at("D", d.x, d.y);
+  f.seg("B", "D");
+  f.measure("ABD", first);
+  f.measure("DBC", 180 - first);
+  return f.build();
+};
+export const linearPairCaseA = (): Board => measuredPair(130);
+export const linearPairCaseB = (): Board => measuredPair(90);
+export const linearPairCaseC = (): Board => measuredPair(35);
+
 export const LIBRARY: Record<string, () => Board> = {
   crossing,
   fan,
@@ -390,6 +424,11 @@ export const LIBRARY: Record<string, () => Board> = {
   congruentComplements,
   angleClasses,
   obliqueBisector,
+  justAPoint,
+  aLine,
+  linearPairCaseA,
+  linearPairCaseB,
+  linearPairCaseC,
 };
 
 /** Figures built to order, so a drawing always matches the numbers given. */

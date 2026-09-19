@@ -100,27 +100,25 @@ export function Concepts() {
 
           {walk && (
             <>
-              <div className="concept-stage">
-                {board ? (
-                  <Figure
-                    board={board}
-                    highlights={marks}
-                    height={330}
-                    ariaLabel={walk.steps[step].text}
-                  />
-                ) : (
-                  <div className="concept-nofigure">
-                    <span className="muted small">
-                      This one is better shown in symbols than in a picture.
-                    </span>
-                  </div>
-                )}
-                {walk.steps[step].show && (
-                  <p className="concept-show">
-                    {statementText(walk.steps[step].show!)}
-                  </p>
-                )}
-              </div>
+              {/* A step with neither a figure nor a line of algebra shows
+                  nothing here rather than an empty box. */}
+              {(board || walk.steps[step].show) && (
+                <div className="concept-stage">
+                  {board && (
+                    <Figure
+                      board={board}
+                      highlights={marks}
+                      height={330}
+                      ariaLabel={walk.steps[step].text}
+                    />
+                  )}
+                  {walk.steps[step].show && (
+                    <p className="concept-show">
+                      {statementText(walk.steps[step].show!)}
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="concept-steps">
                 {walk.steps.map((s, n) => (
