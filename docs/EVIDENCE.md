@@ -572,6 +572,40 @@ and complementary relationships each theorem rests on. A sentence can still
 be wrong in ways prose alone can be wrong, but it can no longer contradict
 the geometry it is printed beside.
 
+### Reading the concepts as a student would
+
+All 43 walkthroughs, 179 steps, were dumped to prose and read in order rather
+than inspected as code. Eleven problems surfaced, and the largest was
+structural: 21 openers restated the definition the Concepts page already
+prints directly above them, seven of them word for word. Half the
+walkthroughs were spending their first step saying something the reader had
+just read. Every one now orients, sets up the figure, or poses the question
+the concept answers. The detection was mechanical — word overlap between
+step one and the definition — and it now sits at 75% for one concept whose
+overlap is incidental and below 55% for the rest.
+
+The same measurement found the "Watch out" box repeating the walkthrough's
+own last step on most concepts. It no longer renders on the Concepts page;
+it stays on the flashcards, where nothing else carries it.
+
+Four problems were about figures contradicting or failing their text: ray
+and line highlights coloured only the drawn portion, so the concept whose
+whole point is where a thing stops was drawn as if it stopped early; the
+segment-bisector walkthrough said a bisector "need not be perpendicular"
+over the perpendicular figure and nothing else; a step told the reader to
+move points on a static figure; and two steps named objects they did not
+highlight. The rest were smaller: a claim that four angle classes "cover
+every case", which reflex angles do not; a denial that position matters
+printed over a figure where position plainly did; and two steps missing the
+equations their counterparts in the parallel theorem carry.
+
+One defect was typographic rather than editorial and had been present from
+the start. Inter has no glyph for ∠ or ≅, and the system fallback draws them
+at roughly half the cap height — measured at 5.68px against 11.27px at body
+size — so "∠ABD" reads as "₂ABD". 419 occurrences of ∠ and 53 of ≅ were
+affected. A unicode-range face maps those code points to a font that draws
+them full size; the measurement is now 9.91px.
+
 ### Limitations
 
 - Proof checking validates the step you claim under the rules in the
