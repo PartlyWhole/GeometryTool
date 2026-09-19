@@ -2,7 +2,7 @@
 //
 // Questions are generated from the concept bank rather than authored one by
 // one, so adding a concept adds questions in all four directions at once.
-import { CONCEPTS, type Concept, type Example } from "./concepts";
+import { CONCEPTS, type Concept, type Example, topicOf } from "./concepts";
 import { rng } from "./generators";
 
 export type Choice = { text: string; figure?: string; caption?: string };
@@ -30,11 +30,22 @@ const shuffle = <T>(r: () => number, xs: T[]) => {
   return a;
 };
 
-/** Prefer distractors of the same kind — they are the ones actually confused. */
+/**
+ * Distractors a student could plausibly weigh: same subject and same kind
+ * first, then same subject, then same kind, then anything. Offering three
+ * angle terms against a segment term makes the answer obvious without
+ * knowing any geometry.
+ */
 function siblings(r: () => number, c: Concept, n: number): Concept[] {
-  const same = CONCEPTS.filter((x) => x.id !== c.id && x.kind === c.kind);
-  const rest = CONCEPTS.filter((x) => x.id !== c.id && x.kind !== c.kind);
-  return [...shuffle(r, same), ...shuffle(r, rest)].slice(0, n);
+  const rest = CONCEPTS.filter((x) => x.id !== c.id);
+  const topic = topicOf(c);
+  const tiers = [
+    rest.filter((x) => topicOf(x) === topic && x.kind === c.kind),
+    rest.filter((x) => topicOf(x) === topic && x.kind !== c.kind),
+    rest.filter((x) => topicOf(x) !== topic && x.kind === c.kind),
+    rest.filter((x) => topicOf(x) !== topic && x.kind !== c.kind),
+  ];
+  return tiers.flatMap((t) => shuffle(r, t)).slice(0, n);
 }
 
 /**
@@ -86,6 +97,27 @@ export const FIGURE_SHOWS: Record<string, string[]> = {
     "obtuse", "angle-addition",
   ],
   numberedCorner: ["adjacent", "angle-addition", "acute"],
+};
+
+/**
+ * The one concept each figure is really a picture of. "Which term does this
+ * figure illustrate?" only has a single answer when the figure has a dominant
+ * subject, so a figure may stand as a stem for this concept and no other. The
+ * perpendicular figure, for instance, equally shows a midpoint and a linear
+ * pair, and would otherwise be asked as though it showed only one of them.
+ */
+const FIGURE_PRIMARY: Record<string, string> = {
+  perpendicular: "perpendicular",
+  crossing: "vertical-angles",
+  fan: "congruent-angles",
+  collinear: "collinear",
+  midpoint: "midpoint",
+  bisector: "angle-bisector",
+  linearPair: "linear-pair",
+  complementary: "complementary",
+  threeOnLine: "angles-around-point",
+  markedPair: "congruent-segments",
+  straightInDisguise: "straight",
 };
 
 /** Distractor examples, taken from as far down the candidate list as needed. */
@@ -253,7 +285,9 @@ function build(
 
   if (kind === "example-to-term") {
     const pool = c.examples.filter(
-      (e) => (e.text || e.figure) && !givesItAway(exampleText(e), c.term),
+      (e) =>
+        (e.text || (e.figure && FIGURE_PRIMARY[e.figure] === c.id)) &&
+        !givesItAway(exampleText(e), c.term),
     );
     if (!pool.length) return;
     const ex = pool[Math.floor(r() * pool.length)];

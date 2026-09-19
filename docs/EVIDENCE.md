@@ -140,8 +140,8 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 
 ### Automated
 
-- `npm run check`: 87 tests, TypeScript, and the production build pass
-  (40 pre-existing whiteboard tests, 47 new).
+- `npm run check`: 89 tests, TypeScript, and the production build pass
+  (40 pre-existing whiteboard tests, 49 new).
 - Every generated multiple-choice card is asserted to carry four distinct
   options with a valid answer index and a real explanation.
 - Every one of the 11 authored proofs is replayed through the strict validator
@@ -275,6 +275,22 @@ and picking which marked angle a three-point name refers to.
   against a cached bundle that already contained the fix; the stamp makes that
   answerable instead of guesswork.
 
+### Fourth review pass
+
+- Distractors were chosen by concept *kind*, so "Congruent segments" could be
+  offered against "Right angle", "Linear pair" and "Complementary angles" —
+  three angle terms against a segment term, answerable without knowing any
+  geometry. Concepts now carry a topic (space, segment, angle, algebra,
+  logic) and distractors are drawn from the same topic first. The segment
+  questions now read Betweenness / Midpoint / Segment bisector /
+  Perpendicular bisector, which is the blur the reference warns about in
+  Fig. 9.
+- A figure may now stand as an "illustrate this" stem only for the one
+  concept it is really a picture of. The perpendicular figure equally shows a
+  midpoint, a linear pair and supplementary angles, so asking which term it
+  illustrates had several right answers even after excluding co-true
+  distractors.
+
 ### Limitations
 
 - Proof checking validates the step you claim under the rules in the
@@ -287,6 +303,8 @@ and picking which marked angle a three-point name refers to.
   exercises, compass-and-straightedge constructions, teacher authoring.
 - Touch-drag, screen readers, cross-browser behaviour and independent
   mathematical review remain unverified.
-- Which concepts a figure shows is an authored table, not derived from the
-  geometry. Adding a figure means adding its row, or a question may end up
-  with two right answers.
+- Which concepts a figure shows, which concept it is primarily a picture of,
+  and which topic a concept belongs to are all authored tables rather than
+  derived. Adding a figure or a concept means adding its rows, or a question
+  may end up with two right answers or implausible distractors. Tests assert
+  the topic table is complete and that no co-true distractor is offered.

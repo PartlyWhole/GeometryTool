@@ -337,7 +337,7 @@ export const CONCEPTS: Concept[] = [
       "The right angle it creates is a given fact worth 90°, usable without proof.",
     section: "§6",
     examples: [
-      { figure: "perpendicular", caption: "PQ ⊥ AB." },
+      { figure: "perpendicular", caption: "PQ meets AB at P, where the small square is marked." },
     ],
   },
   {
@@ -577,6 +577,61 @@ export const CONCEPTS: Concept[] = [
       "The thing you are proving may never appear as a reason — that is circular.",
   },
 ];
+
+/**
+ * What a concept is about. Distractors are drawn from the same topic first:
+ * offering "Right angle" against "Congruent segments" tests nothing, because
+ * no one weighing the two is thinking about geometry.
+ */
+export type Topic = "space" | "segment" | "angle" | "algebra" | "logic";
+
+export const TOPIC: Record<string, Topic> = {
+  "undefined-terms": "space",
+  "segment-vs-ray": "space",
+  collinear: "space",
+  coplanar: "space",
+  between: "segment",
+  "segment-addition": "segment",
+  "congruent-segments": "segment",
+  midpoint: "segment",
+  "segment-bisector": "segment",
+  "perpendicular-bisector": "segment",
+  acute: "angle",
+  right: "angle",
+  obtuse: "angle",
+  straight: "angle",
+  "congruent-angles": "angle",
+  "angle-addition": "angle",
+  "angle-bisector": "angle",
+  adjacent: "angle",
+  "linear-pair": "angle",
+  "vertical-angles": "angle",
+  supplementary: "angle",
+  complementary: "angle",
+  perpendicular: "angle",
+  "angles-around-point": "angle",
+  reflexive: "algebra",
+  symmetric: "algebra",
+  transitive: "algebra",
+  "addition-property": "algebra",
+  "subtraction-property": "algebra",
+  "multiplication-property": "algebra",
+  "division-property": "algebra",
+  substitution: "algebra",
+  distributive: "algebra",
+  "linear-pair-theorem": "angle",
+  "vertical-angles-theorem": "angle",
+  "congruent-supplements": "angle",
+  "congruent-complements": "angle",
+  "right-angle-congruence": "angle",
+  inductive: "logic",
+  deductive: "logic",
+  detachment: "logic",
+  syllogism: "logic",
+  proof: "logic",
+};
+
+export const topicOf = (c: Concept): Topic => TOPIC[c.id] ?? "space";
 
 export const conceptById = (id: string) => CONCEPTS.find((c) => c.id === id);
 export const conceptsOfKind = (k: ConceptKind) =>

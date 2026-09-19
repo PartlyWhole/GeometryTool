@@ -779,6 +779,35 @@ describe("flashcard content is well formed", () => {
       }
   });
 
+  it("gives every concept a topic", async () => {
+    const { CONCEPTS, TOPIC } = await import("../src/practice/content/concepts");
+    for (const c of CONCEPTS) expect(TOPIC[c.id], c.id).toBeTruthy();
+  });
+
+  it("draws distractors from the same subject", async () => {
+    const { conceptQuestions } = await import("../src/practice/content/conceptQuiz");
+    const { CONCEPTS, topicOf } = await import("../src/practice/content/concepts");
+    const byTerm = new Map(CONCEPTS.map((c) => [c.term, c]));
+    let checked = 0;
+    for (let seed = 1; seed <= 60; seed++)
+      for (const q of conceptQuestions(seed, 14)) {
+        // Only the directions whose options are terms can be judged this way.
+        if (q.kind !== "def-to-term" && q.kind !== "example-to-term") continue;
+        const me = CONCEPTS.find((c) => c.id === q.conceptId)!;
+        const topic = topicOf(me);
+        const others = q.choices
+          .map((x) => byTerm.get(x.text))
+          .filter((c): c is NonNullable<typeof c> => !!c && c.id !== me.id);
+        if (!others.length) continue;
+        checked++;
+        const sameTopic = others.filter((o) => topicOf(o) === topic).length;
+        // At least one plausible neighbour; the pool is small for some topics.
+        expect(sameTopic, q.id + " :: " + others.map((o) => o.term).join(", "))
+          .toBeGreaterThan(0);
+      }
+    expect(checked).toBeGreaterThan(100);
+  });
+
   it("covers every concept", async () => {
     const { conceptQuestions } = await import("../src/practice/content/conceptQuiz");
     const { CONCEPTS } = await import("../src/practice/content/concepts");
