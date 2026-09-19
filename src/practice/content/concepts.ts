@@ -116,7 +116,7 @@ export const CONCEPTS: Concept[] = [
       { text: "AB = 3 and BC = 1, and the whole of AC measures 4." },
     ],
     nonExamples: [
-      { figure: "notBetween", caption: "All three are collinear, but C is not between A and B in the way AB + BC = AC needs." },
+      { figure: "notBetween", caption: "All three are collinear, but the order is A, C, B — so B is not between A and C, and AB + BC = AC fails." },
     ],
     watch:
       "Collinearity alone is not enough. Betweenness is the hidden condition on the Segment Addition Postulate.",

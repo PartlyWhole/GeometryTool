@@ -18,6 +18,12 @@ export type WalkStep = {
   marks?: { obj: ObjId; role: Role }[];
   /** A line of algebra or a claim, shown as this step's focus. */
   show?: Statement;
+  /**
+   * Positional claims this step makes about its figure, checked against the
+   * oracle by the test suite. A caption saying "C lies outside AB" over a
+   * figure where C sits squarely inside it is the error this catches.
+   */
+  assert?: { statement: Statement; holds: boolean }[];
 };
 
 export type Walkthrough = { conceptId: string; steps: WalkStep[] };
@@ -53,7 +59,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     steps: [
       { text: "Points are collinear when one line passes through all of them.", figure: "collinear" },
       { text: "A and C lie on this line. Any two points are collinear — a line can always be drawn through them.", marks: [given(pt("A")), given(pt("C"))] },
-      { text: "B lies on it too, so all three are collinear. Three is the first interesting case.", marks: [given(pt("A")), given(pt("B")), given(pt("C"))] },
+      { text: "B lies on it too, so all three are collinear. Three is the first interesting case.", marks: [given(pt("A")), given(pt("B")), given(pt("C"))], assert: [{ statement: { k: "collinear", pts: ["A", "B", "C"] }, holds: true }] },
       { text: "That is why “X, Y and Z are collinear” is only sometimes true: three points may or may not line up." },
     ],
   },
@@ -70,8 +76,13 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "between",
     steps: [
       { text: "B is between A and C only if all three are collinear and B lies on AC.", figure: "collinear" },
-      { text: "Here B sits on the segment from A to C, with A and C on either side of it.", marks: [shared(pt("B")), given(pt("A")), given(pt("C"))] },
-      { text: "Collinearity alone is not enough. These three are still collinear, but C now lies outside AB.", figure: "notBetween", marks: [given(pt("A")), given(pt("B")), shared(pt("C"))] },
+      { text: "Here B sits on the segment from A to C, with A and C on either side of it.", marks: [shared(pt("B")), given(pt("A")), given(pt("C"))], assert: [
+          { statement: { k: "between", p: "B", a: "A", c: "C" }, holds: true },
+        ] },
+      { text: "Collinearity alone is not enough. Move the points so the order runs A, C, B: all three are still collinear, but B now lies outside AC, so B is no longer between A and C.", figure: "notBetween", marks: [given(pt("A")), given(pt("C")), shared(pt("B"))], assert: [
+          { statement: { k: "collinear", pts: ["A", "B", "C"] }, holds: true },
+          { statement: { k: "between", p: "B", a: "A", c: "C" }, holds: false },
+        ] },
       { text: "Betweenness is the hidden condition on the Segment Addition Postulate. Forgetting it is the source of most counterexample questions." },
     ],
   },
@@ -80,7 +91,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "segment-addition",
     steps: [
-      { text: "B lies between A and C. That is the condition everything else rests on.", figure: "collinear", marks: [shared(pt("B"))] },
+      { text: "B lies between A and C. That is the condition everything else rests on.", figure: "collinear", marks: [shared(pt("B"))], assert: [{ statement: { k: "between", p: "B", a: "A", c: "C" }, holds: true }] },
       { text: "AB is one part.", marks: [given(seg("A", "B"))] },
       { text: "BC is the other part.", marks: [given(seg("B", "C"))] },
       { text: "AC is the whole, and the parts make it.", marks: [prove(seg("A", "C"))], show: { k: "eq", l: { k: "add", ts: [{ k: "len", seg: seg("A", "B") }, { k: "len", seg: seg("B", "C") }] }, r: { k: "len", seg: seg("A", "C") } } },
@@ -91,8 +102,8 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "congruent-segments",
     steps: [
       { text: "Congruence is shown with tick marks, and the marks are the only evidence you have.", figure: "markedPair" },
-      { text: "AD and BC both carry two ticks, so AD ≅ BC.", marks: [given(seg("A", "D")), given(seg("B", "C"))] },
-      { text: "EB and DF both carry one tick, so EB ≅ DF. One tick matches one tick; two match two.", marks: [given(seg("E", "B")), given(seg("D", "F"))] },
+      { text: "AD and BC both carry two ticks, so AD ≅ BC.", marks: [given(seg("A", "D")), given(seg("B", "C"))], assert: [{ statement: { k: "cong", l: seg("A", "D"), r: seg("B", "C") }, holds: true }] },
+      { text: "EB and DF both carry one tick, so EB ≅ DF. One tick matches one tick; two match two.", marks: [given(seg("E", "B")), given(seg("D", "F"))], assert: [{ statement: { k: "cong", l: seg("E", "B"), r: seg("D", "F") }, holds: true }] },
       { text: "Different numbers of ticks say nothing about each other, and EF carries none at all — so nothing in this figure relates it to anything, however the drawing looks.", marks: [prove(seg("E", "F"))] },
       { text: "Congruent segments have equal length: AB ≅ CD means AB = CD. That equality is the door into algebra." },
     ],
@@ -101,8 +112,8 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "midpoint",
     steps: [
       { text: "A midpoint is a point that divides a segment into two congruent halves.", figure: "midpoint" },
-      { text: "M lies on AB — that part matters. A point equally far from A and B but off the segment is not a midpoint.", marks: [shared(pt("M"))] },
-      { text: "The matching ticks say the two halves are congruent.", marks: [given(seg("A", "M")), given(seg("M", "B"))] },
+      { text: "M lies on AB — that part matters. A point equally far from A and B but off the segment is not a midpoint.", marks: [shared(pt("M"))], assert: [{ statement: { k: "between", p: "M", a: "A", c: "B" }, holds: true }] },
+      { text: "The matching ticks say the two halves are congruent.", marks: [given(seg("A", "M")), given(seg("M", "B"))], assert: [{ statement: { k: "midpoint", p: "M", seg: seg("A", "B") }, holds: true }] },
       { text: "So each half is exactly half the whole, which is usually what a question actually wants.", marks: [prove(seg("A", "B"))] },
       { text: "A midpoint is a point. A bisector is a line, ray or segment. Tests blur the two deliberately." },
     ],
@@ -111,7 +122,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "segment-bisector",
     steps: [
       { text: "A segment bisector is any line, ray or segment passing through the midpoint of a segment.", figure: "perpendicular" },
-      { text: "P is the midpoint of AB.", marks: [shared(pt("P"))] },
+      { text: "P is the midpoint of AB.", marks: [shared(pt("P"))], assert: [{ statement: { k: "midpoint", p: "P", seg: seg("A", "B") }, holds: true }] },
       { text: "PQ passes through it, so PQ bisects AB. It need not be perpendicular to do that.", marks: [given(seg("P", "Q"))] },
       { text: "Every bisector gives you the same algebraic fact: the two halves are equal.", marks: [prove(seg("A", "P")), prove(seg("P", "B"))] },
     ],
@@ -120,8 +131,8 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "perpendicular-bisector",
     steps: [
       { text: "A perpendicular bisector does two jobs at once.", figure: "perpendicular" },
-      { text: "It passes through the midpoint, so it halves the segment.", marks: [shared(pt("P"))] },
-      { text: "And it meets the segment at 90°, marked by the square.", marks: [given(ang("APQ"))] },
+      { text: "It passes through the midpoint, so it halves the segment.", marks: [shared(pt("P"))], assert: [{ statement: { k: "midpoint", p: "P", seg: seg("A", "B") }, holds: true }] },
+      { text: "And it meets the segment at 90°, marked by the square.", marks: [given(ang("APQ"))], assert: [{ statement: { k: "angleClass", ang: ang("APQ"), cls: "right" }, holds: true }] },
       { text: "Every perpendicular bisector is a bisector, but not every bisector is perpendicular. The arrow only points one way." },
     ],
   },
@@ -131,7 +142,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "Two lines, rays or segments are perpendicular when they meet at right angles.", figure: "perpendicular" },
       { text: "PQ meets AB at P, and the small square marks the angle there as 90°.", marks: [given(ang("APQ"))] },
       { text: "That square is not decoration. It is a given fact worth 90°, usable without proof." },
-      { text: "The other angle at P is 90° too — but the figure only marks one, and only what is marked may be used.", marks: [prove(ang("QPB"))] },
+      { text: "The other angle at P is 90° too — but the figure only marks one, and only what is marked may be used.", marks: [prove(ang("QPB"))], assert: [{ statement: { k: "angleClass", ang: ang("QPB"), cls: "right" }, holds: true }] },
     ],
   },
 
@@ -181,7 +192,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "angle-addition",
     steps: [
       { text: "Three rays from one vertex, with the middle one inside the outer angle.", figure: "numberedCorner" },
-      { text: "Ray VB lies in the interior of ∠AVC. That is the condition, and it is easy to skip.", marks: [shared(pt("B"))] },
+      { text: "Ray VB lies in the interior of ∠AVC. That is the condition, and it is easy to skip.", marks: [shared(pt("B"))], assert: [{ statement: { k: "interior", p: "B", ang: ang("AVC") }, holds: true }] },
       { text: "∠1 is one part.", marks: [given(ang("1"))] },
       { text: "∠2 is the other part.", marks: [given(ang("2"))] },
       { text: "∠3 is the whole, and the parts make it.", marks: [prove(ang("3"))], show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("1") }, { k: "meas", ang: ang("2") }] }, r: { k: "meas", ang: ang("3") } } },
@@ -191,7 +202,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "angle-bisector",
     steps: [
       { text: "An angle bisector is a ray that splits an angle into two congruent angles.", figure: "bisector" },
-      { text: "Ray VD lies inside ∠AVC.", marks: [shared(pt("D"))] },
+      { text: "Ray VD lies inside ∠AVC.", marks: [shared(pt("D"))], assert: [{ statement: { k: "interior", p: "D", ang: ang("AVC") }, holds: true }] },
       { text: "The matching arcs say the two parts are congruent.", marks: [given(ang("AVD")), given(ang("DVC"))] },
       { text: "It is the special case of an interior ray where the parts come out equal — so each half is exactly half the whole, and you can write that as an equation straight away.", marks: [prove(ang("AVC"))] },
     ],
@@ -202,7 +213,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "Adjacent angles share a vertex and a side, and do not overlap.", figure: "crossing" },
       { text: "∠1 and ∠2 both have vertex X and share the ray between them.", marks: [given(ang("1")), given(ang("2"))] },
       { text: "Their interiors are separate: neither contains any part of the other." },
-      { text: "∠1 and ∠3 are not adjacent. They share the vertex but no side — they face each other instead.", marks: [prove(ang("1")), prove(ang("3"))] },
+      { text: "∠1 and ∠3 are not adjacent. They share the vertex but no side — they face each other instead.", marks: [prove(ang("1")), prove(ang("3"))], assert: [{ statement: { k: "adjacent", a: ang("1"), b: ang("3") }, holds: false }, { statement: { k: "vertical", a: ang("1"), b: ang("3") }, holds: true }] },
       { text: "Adjacent is about touching. Vertical is about facing." },
     ],
   },
@@ -210,7 +221,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "linear-pair",
     steps: [
       { text: "Ray BD stands on line AC.", figure: "linearPair", marks: [shared(pt("D"))] },
-      { text: "∠ABD and ∠DBC are adjacent: same vertex, shared side BD.", marks: [given(ang("ABD")), given(ang("DBC"))] },
+      { text: "∠ABD and ∠DBC are adjacent: same vertex, shared side BD.", marks: [given(ang("ABD")), given(ang("DBC"))], assert: [{ statement: { k: "linearPair", a: ang("ABD"), b: ang("DBC") }, holds: true }] },
       { text: "Their outer sides, BA and BC, together form a straight line. That is what makes them a linear pair rather than merely adjacent.", marks: [shared(pt("A")), shared(pt("C"))] },
       { text: "So the two must total 180°. Seeing two angles sit on a line is what licenses writing “= 180”.", show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("ABD") }, { k: "meas", ang: ang("DBC") }] }, r: { k: "num", v: 180 } } },
     ],
@@ -221,7 +232,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "Two lines crossing at X make four angles.", figure: "crossing" },
       { text: "∠1 and ∠3 sit opposite each other. They share the vertex and nothing else.", marks: [given(ang("1")), given(ang("3"))] },
       { text: "What makes them vertical is the rays: each side of ∠1 is the opposite ray of a side of ∠3." },
-      { text: "∠2 and ∠4 are the other vertical pair.", marks: [given(ang("2")), given(ang("4"))] },
+      { text: "∠2 and ∠4 are the other vertical pair.", marks: [given(ang("2")), given(ang("4"))], assert: [{ statement: { k: "vertical", a: ang("2"), b: ang("4") }, holds: true }] },
       { text: "Vertical angles are always congruent. The proof is three lines long and is worth knowing — see the Vertical Angles Theorem." },
     ],
   },
@@ -230,7 +241,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     steps: [
       { text: "Two angles are supplementary when their measures total 180°.", figure: "linearPair" },
       { text: "A linear pair is always supplementary, because the outer sides form a line.", marks: [given(ang("ABD")), given(ang("DBC"))] },
-      { text: "But supplementary angles need not touch at all. Two angles in different diagrams, on different pages, are supplementary if their measures add to 180°.", figure: "twoSupplementPairs", marks: [given(ang("1")), prove(ang("4"))] },
+      { text: "But supplementary angles need not touch at all. Two angles in different diagrams, on different pages, are supplementary if their measures add to 180°.", figure: "twoSupplementPairs", marks: [given(ang("1")), prove(ang("4"))], assert: [{ statement: { k: "supp", a: ang("1"), b: ang("4") }, holds: true }, { statement: { k: "linearPair", a: ang("1"), b: ang("4") }, holds: false }] },
       { text: "That is why “if ∠F and ∠G are supplementary then m∠F = 90°” is only sometimes true: it holds when both are right angles and fails for 100° and 80°." },
     ],
   },
@@ -239,7 +250,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
     steps: [
       { text: "Two angles are complementary when their measures total 90°.", figure: "complementary" },
       { text: "The square marks ∠AVC as a right angle — 90° in total.", marks: [shared(ang("AVC"))] },
-      { text: "Ray VD splits it, so the two parts are complementary.", marks: [given(ang("AVD")), given(ang("DVC"))] },
+      { text: "Ray VD splits it, so the two parts are complementary.", marks: [given(ang("AVD")), given(ang("DVC"))], assert: [{ statement: { k: "comp", a: ang("AVD"), b: ang("DVC") }, holds: true }] },
       { text: "As with supplements, neither angle has to be drawn near the other. Only the two measures matter.", show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("AVD") }, { k: "meas", ang: ang("DVC") }] }, r: { k: "num", v: 90 } } },
     ],
   },
@@ -344,10 +355,10 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "vertical-angles-theorem",
     steps: [
       { text: "The theorem: vertical angles are congruent. The proof is three real lines, and it is the shape of every argument in this module.", figure: "crossing" },
-      { text: "∠1 and ∠2 form a linear pair, so they total 180°.", marks: [given(ang("1")), shared(ang("2"))], show: { k: "eq", l: add(meas("1"), meas("2")), r: num(180) } },
+      { text: "∠1 and ∠2 form a linear pair, so they total 180°.", marks: [given(ang("1")), shared(ang("2"))], show: { k: "eq", l: add(meas("1"), meas("2")), r: num(180) }, assert: [{ statement: { k: "linearPair", a: ang("1"), b: ang("2") }, holds: true }] },
       { text: "∠2 and ∠3 form a linear pair too, so they also total 180°.", marks: [shared(ang("2")), given(ang("3"))], show: { k: "eq", l: add(meas("2"), meas("3")), r: num(180) } },
       { text: "Two quantities equal to the same thing are equal to each other.", show: { k: "eq", l: add(meas("1"), meas("2")), r: add(meas("2"), meas("3")) } },
-      { text: "Subtract the shared m∠2 and what remains must be equal.", marks: [prove(ang("1")), prove(ang("3"))], show: { k: "eq", l: meas("1"), r: meas("3") } },
+      { text: "Subtract the shared m∠2 and what remains must be equal.", marks: [prove(ang("1")), prove(ang("3"))], show: { k: "eq", l: meas("1"), r: meas("3") }, assert: [{ statement: { k: "cong", l: ang("1"), r: ang("3") }, holds: true }] },
       { text: "No measuring, no special case: it holds for any two crossing lines." },
     ],
   },
@@ -357,8 +368,8 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "The theorem: angles supplementary to the same angle — or to congruent angles — are congruent.", figure: "twoSupplementPairs" },
       { text: "∠1 and ∠3 sit on a line, so they total 180°.", marks: [given(ang("1")), shared(ang("3"))] },
       { text: "∠2 and ∠4 sit on a line too, so they also total 180°.", marks: [given(ang("2")), shared(ang("4"))] },
-      { text: "The arcs mark ∠3 ≅ ∠4, so the parts being subtracted are equal.", marks: [shared(ang("3")), shared(ang("4"))] },
-      { text: "What is left must be equal: ∠1 ≅ ∠2. Note that these two never touch — being supplements of congruent angles is enough.", marks: [prove(ang("1")), prove(ang("2"))] },
+      { text: "The arcs mark ∠3 ≅ ∠4, so the parts being subtracted are equal.", marks: [shared(ang("3")), shared(ang("4"))], assert: [{ statement: { k: "cong", l: ang("3"), r: ang("4") }, holds: true }, { statement: { k: "supp", a: ang("1"), b: ang("3") }, holds: true }] },
+      { text: "What is left must be equal: ∠1 ≅ ∠2. Note that these two never touch — being supplements of congruent angles is enough.", marks: [prove(ang("1")), prove(ang("2"))], assert: [{ statement: { k: "cong", l: ang("1"), r: ang("2") }, holds: true }, { statement: { k: "adjacent", a: ang("1"), b: ang("2") }, holds: false }] },
       { text: "It is the vertical-angle argument stated in general. Once you have the theorem you can skip straight to the conclusion." },
     ],
   },
@@ -366,10 +377,10 @@ export const WALKTHROUGHS: Walkthrough[] = [
     conceptId: "congruent-complements",
     steps: [
       { text: "The theorem: angles complementary to the same angle — or to congruent angles — are congruent.", figure: "congruentComplements" },
-      { text: "One square marks ∠AVC as a right angle, so ∠1 and ∠2 total 90°.", marks: [given(ang("1")), shared(ang("2"))], show: { k: "eq", l: add(meas("1"), meas("2")), r: num(90) } },
+      { text: "One square marks ∠AVC as a right angle, so ∠1 and ∠2 total 90°.", marks: [given(ang("1")), shared(ang("2"))], show: { k: "eq", l: add(meas("1"), meas("2")), r: num(90) }, assert: [{ statement: { k: "comp", a: ang("1"), b: ang("2") }, holds: true }] },
       { text: "The other square marks ∠BVD, so ∠2 and ∠3 total 90° as well.", marks: [shared(ang("2")), given(ang("3"))], show: { k: "eq", l: add(meas("2"), meas("3")), r: num(90) } },
       { text: "Both sums equal 90, so they equal each other.", show: { k: "eq", l: add(meas("1"), meas("2")), r: add(meas("2"), meas("3")) } },
-      { text: "Subtract the shared m∠2 and ∠1 ≅ ∠3.", marks: [prove(ang("1")), prove(ang("3"))], show: { k: "eq", l: meas("1"), r: meas("3") } },
+      { text: "Subtract the shared m∠2 and ∠1 ≅ ∠3.", marks: [prove(ang("1")), prove(ang("3"))], show: { k: "eq", l: meas("1"), r: meas("3") }, assert: [{ statement: { k: "cong", l: ang("1"), r: ang("3") }, holds: true }, { statement: { k: "vertical", a: ang("1"), b: ang("3") }, holds: false }] },
       { text: "Identical reasoning to congruent supplements, at 90° instead of 180°. Unlike that case, these two are not vertical angles — the conclusion needs this theorem." },
     ],
   },
@@ -379,7 +390,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "The theorem: all right angles are congruent.", figure: "twoRightAngles" },
       { text: "The square marks ∠1 as 90°.", marks: [given(ang("1"))] },
       { text: "The other square marks ∠2 as 90°, in a different place entirely.", marks: [given(ang("2"))] },
-      { text: "Two quantities each equal to 90 are equal to each other, so ∠1 ≅ ∠2.", marks: [prove(ang("1")), prove(ang("2"))] },
+      { text: "Two quantities each equal to 90 are equal to each other, so ∠1 ≅ ∠2.", marks: [prove(ang("1")), prove(ang("2"))], assert: [{ statement: { k: "angleClass", ang: ang("1"), cls: "right" }, holds: true }, { statement: { k: "angleClass", ang: ang("2"), cls: "right" }, holds: true }, { statement: { k: "cong", l: ang("1"), r: ang("2") }, holds: true }] },
       { text: "Trivial once stated — but it is the named reason you cite when a proof needs two right-angle marks to be equal." },
     ],
   },

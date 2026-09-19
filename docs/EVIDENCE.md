@@ -140,8 +140,8 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 
 ### Automated
 
-- `npm run check`: 129 tests, TypeScript, and the production build pass
-  (40 pre-existing whiteboard tests, 89 new).
+- `npm run check`: 131 tests, TypeScript, and the production build pass
+  (40 pre-existing whiteboard tests, 91 new).
 - Every generated multiple-choice card is asserted to carry four distinct
   options with a valid answer index and a real explanation.
 - Every one of the 11 authored proofs is replayed through the strict validator
@@ -552,6 +552,25 @@ classes with their measures.
 A test walks every step of every walkthrough and resolves each highlighted
 object against whichever figure is in effect at that step, so a highlight can
 never name something the figure does not contain.
+
+### A caption that contradicted its own figure
+
+The Betweenness walkthrough said "these three are still collinear, but C now
+lies outside AB" over a figure in which C sits squarely between A and B. The
+figure is right — its own title is "B outside AC", and the order along it is
+A, C, B — so it is *B* that is no longer between the other two. The same
+mistake was in the concept bank's caption for that figure. Both are corrected
+and the highlight now falls on B, the point the sentence is about.
+
+Two earlier defects were of this class — a stem asking what an undefined term
+defines, and a remark offered in place of a definition — so it now has a
+guard. A walkthrough step may declare the positional facts it asserts, and a
+test checks each one against whichever figure is in effect at that step. 34
+claims are checked this way, covering betweenness, collinearity, midpoints,
+interior rays, adjacency, vertical pairs, linear pairs, and the supplementary
+and complementary relationships each theorem rests on. A sentence can still
+be wrong in ways prose alone can be wrong, but it can no longer contradict
+the geometry it is printed beside.
 
 ### Limitations
 

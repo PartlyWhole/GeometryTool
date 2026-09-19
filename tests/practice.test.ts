@@ -1628,3 +1628,45 @@ describe("concept walkthroughs", () => {
     expect(withFigure).toBeGreaterThan(24);
   });
 });
+
+describe("a walkthrough caption cannot contradict its figure", () => {
+  it("checks every asserted claim against the figure in effect", async () => {
+    const { WALKTHROUGHS } = await import("../src/practice/content/walkthroughs");
+    const { LIBRARY } = await import("../src/practice/content/library");
+    const { holds } = await import("../src/practice/oracle");
+    const { statementText } = await import("../src/practice/notation");
+    const failures: string[] = [];
+    let checked = 0;
+    for (const w of WALKTHROUGHS) {
+      let figure: string | undefined;
+      w.steps.forEach((step, i) => {
+        if (step.figure) figure = step.figure;
+        for (const a of step.assert ?? []) {
+          checked++;
+          if (!figure) {
+            failures.push(`${w.conceptId} step ${i + 1}: asserts with no figure`);
+            continue;
+          }
+          const got = holds(LIBRARY[figure](), a.statement);
+          if (got !== a.holds)
+            failures.push(
+              `${w.conceptId} step ${i + 1} (${figure}): "${statementText(a.statement)}" is ${got}, claimed ${a.holds}`,
+            );
+        }
+      });
+    }
+    expect(failures).toEqual([]);
+    expect(checked).toBeGreaterThan(2);
+  });
+
+  it("pins what the notBetween figure actually shows", async () => {
+    const { notBetween } = await import("../src/practice/content/library");
+    const { isBetween, isCollinear } = await import("../src/practice/oracle");
+    const b = notBetween();
+    // The order is A, C, B. Its whole purpose is that B is NOT between A and C
+    // while the three stay collinear — captions have had this backwards.
+    expect(isCollinear(b, ["A", "B", "C"])).toBe(true);
+    expect(isBetween(b, "B", "A", "C")).toBe(false);
+    expect(isBetween(b, "C", "A", "B")).toBe(true);
+  });
+});
