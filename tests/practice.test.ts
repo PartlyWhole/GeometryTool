@@ -1171,6 +1171,40 @@ describe("logic statements read as English in every form", () => {
   });
 });
 
+describe("authored items are identified uniquely", () => {
+  // Two items sharing an id collide wherever an id is used as a key. One such
+  // pair went unnoticed until the content was listed out in full.
+  it("gives every item in every authored list a distinct id", async () => {
+    const logic = await import("../src/practice/content/logic");
+    const lists: [string, { id: string }[]][] = [
+      ["CONCEPTS", (await import("../src/practice/content/concepts")).CONCEPTS],
+      ["READ_ITEMS", (await import("../src/practice/content/translate")).READ_ITEMS],
+      ["CONSTRUCT_ITEMS", (await import("../src/practice/content/translate")).CONSTRUCT_ITEMS],
+      ["CLAIM_ITEMS", (await import("../src/practice/content/claims")).CLAIM_ITEMS],
+      ["NUMERIC_ITEMS", (await import("../src/practice/content/numeric")).NUMERIC_ITEMS],
+      ["MULTIPART_ITEMS", (await import("../src/practice/content/multipart")).MULTIPART_ITEMS],
+      ["PROOFS", (await import("../src/practice/content/proofs")).PROOFS],
+      ["CONDITIONALS", logic.CONDITIONALS],
+      ["NEGATIONS", logic.NEGATIONS],
+      ["ALWAYS_SOMETIMES_NEVER", logic.ALWAYS_SOMETIMES_NEVER],
+      ["COUNTEREXAMPLES", logic.COUNTEREXAMPLES],
+      ["CHAINS", logic.CHAINS],
+    ];
+    for (const [name, list] of lists) {
+      const seen = new Set<string>();
+      const dupes = list.map((i) => i.id).filter((id) => seen.size === seen.add(id).size);
+      expect(dupes, name).toEqual([]);
+    }
+  });
+
+  it("does not put the same walkthrough on two concepts", async () => {
+    const { WALKTHROUGHS } = await import("../src/practice/content/walkthroughs");
+    const seen = new Set<string>();
+    const dupes = WALKTHROUGHS.map((w) => w.conceptId).filter((id) => seen.size === seen.add(id).size);
+    expect(dupes).toEqual([]);
+  });
+});
+
 describe("every drag task is actually reachable", () => {
   it("finds a position of the movable point that satisfies it", async () => {
     const { CONSTRUCT_ITEMS } = await import("../src/practice/content/translate");

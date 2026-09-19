@@ -334,10 +334,10 @@ export const ALWAYS_SOMETIMES_NEVER: AlwaysItem[] = [
     why: "Two points always line up; three is the first number that can fail.",
   },
   {
-    id: "adjacent-vertical",
-    statement: "Two adjacent angles are vertical angles.",
+    id: "supplementary-acute",
+    statement: "Two supplementary angles are both acute.",
     verdict: "never",
-    why: "Adjacent angles share a side; vertical angles face each other across a vertex and share none.",
+    why: "Each acute angle is under 90°, so two of them total less than 180° and cannot be supplementary.",
   },
 ];
 
