@@ -525,6 +525,66 @@ function ObjectPalette(props: {
   );
 }
 
+/**
+ * Put an object from the figure into whichever slot is focused: as a token
+ * when that slot is an expression, as the value when it is an object or point
+ * slot. Returns the draft unchanged when the slot cannot take it.
+ */
+export function insertObject(d: Draft, obj: ObjId): Draft {
+  const spec = formSpec(d.form);
+  const slot = spec.slots[d.focus];
+  if (!slot) return d;
+
+  const advance = (slots: SlotValue[]): Draft => {
+    const next = slots.findIndex((s, i) => i > d.focus && !filled(s));
+    return { ...d, slots, focus: next >= 0 ? next : d.focus };
+  };
+  const put = (v: SlotValue) =>
+    advance(d.slots.map((s, j) => (j === d.focus ? v : s)));
+
+  if (slot.kind === "expr") {
+    const cur = d.slots[d.focus];
+    if (cur.kind !== "expr") return d;
+    const tok: Tok | undefined =
+      obj.k === "ang"
+        ? { t: "meas", ang: obj }
+        : obj.k === "seg"
+          ? { t: "len", seg: obj }
+          : undefined;
+    if (!tok || !accepts(cur.toks, tok)) return d;
+    return {
+      ...d,
+      slots: d.slots.map((s, j) =>
+        j === d.focus ? { kind: "expr", toks: push(cur.toks, tok) } : s,
+      ),
+    };
+  }
+  if (slot.kind === "obj") {
+    const kindOf =
+      obj.k === "seg" ? "seg" : obj.k === "ang" ? "ang"
+      : obj.k === "ray" ? "ray" : obj.k === "line" ? "line" : undefined;
+    if (!kindOf || !slot.accept.includes(kindOf)) return d;
+    return put({ kind: "obj", obj });
+  }
+  if (slot.kind === "pt" && obj.k === "pt") return put({ kind: "pt", label: obj.p });
+  return d;
+}
+
+/** What kind of thing the focused slot is waiting for, for a hint line. */
+export function wants(d: Draft): "expression" | "angle" | "segment" | "point" | "other" {
+  const slot = formSpec(d.form).slots[d.focus];
+  if (!slot) return "other";
+  if (slot.kind === "expr") return "expression";
+  if (slot.kind === "pt") return "point";
+  if (slot.kind === "obj")
+    return slot.accept.length === 1 && slot.accept[0] === "ang"
+      ? "angle"
+      : slot.accept.includes("seg") && !slot.accept.includes("ang")
+        ? "segment"
+        : "other";
+  return "other";
+}
+
 export const preview = (d: Draft) => {
   const r = buildStatement(d);
   return r.ok ? statementText(r.statement) : undefined;

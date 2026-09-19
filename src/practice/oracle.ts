@@ -144,6 +144,26 @@ export function threePointName(b: Board, ref: AngleRef): string | undefined {
     : undefined;
 }
 
+/**
+ * A naming function that sends every name for one angle to the same name.
+ * The crossing figure labels an angle ∠1 and also lets it be called ∠AXC;
+ * a student who clicks either must be judged the same way.
+ */
+export function angleNamer(b?: Board): (a: AngId) => AngId {
+  if (!b) return (a) => a;
+  const cache = new Map<string, AngId>();
+  return (a) => {
+    const key = objKey(a);
+    const hit = cache.get(key);
+    if (hit) return hit;
+    const ref = resolveAngle(b, a);
+    const name = ref && threePointName(b, ref);
+    const out: AngId = name ? { k: "ang", name } : a;
+    cache.set(key, out);
+    return out;
+  };
+}
+
 export function resolveObj(b: Board, o: ObjId) {
   if (o.k === "seg") return resolveSeg(b, o);
   if (o.k === "ang") return resolveAngle(b, o);

@@ -882,3 +882,17 @@ code.answer.empty { color: var(--muted); font-size: 14px; }
   color: #a4aaa8;
   font-variant-numeric: tabular-nums;
 }
+
+.pickable { display: flex; flex-direction: column; gap: 8px; }
+.pick-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 6px 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.pick-chips { display: inline-flex; gap: 5px; }

@@ -140,8 +140,8 @@ whiteboard, built against *Geometry Module 2 — Reasoning, Proof and Measure*.
 
 ### Automated
 
-- `npm run check`: 95 tests, TypeScript, and the production build pass
-  (40 pre-existing whiteboard tests, 55 new).
+- `npm run check`: 102 tests, TypeScript, and the production build pass
+  (40 pre-existing whiteboard tests, 62 new).
 - Every generated multiple-choice card is asserted to carry four distinct
   options with a valid answer index and a real explanation.
 - Every one of the 11 authored proofs is replayed through the strict validator
@@ -314,6 +314,23 @@ and picking which marked angle a three-point name refers to.
 - Generated problems are drawn to scale: a test parses the measure each
   problem states and asserts the figure's own angle matches it, so the drawing
   cannot drift from the numbers.
+
+### Sixth review pass
+
+- Statements can now be built by clicking the figure. Two points name a
+  segment, three name an angle with the vertex in the middle, and clicking a
+  drawn arc names the angle it marks. The chip palette remains, for figures
+  with no arcs and for problems with no figure. Reading a diagram is the skill
+  under test, so hunting for "m∠PVR" in a list was the wrong default.
+- That immediately exposed a naming problem: clicking an arc names the angle
+  by its label (∠X), while the palette offers its three-point name (∠PVR).
+  Both are the same angle, and only one was accepted. Comparison is now done
+  modulo naming — every angle is resolved through the figure before statements
+  are matched — in the read exercise, in every proof step, and in the
+  goal check. A student who clicks the arms is judged the same as one who
+  clicks the arc, and a genuinely different pair still fails.
+- The same fix removes a latent unfairness in the proof builder, where a given
+  written as ∠1 would have rejected a line the student built as ∠AXC.
 
 ### Limitations
 

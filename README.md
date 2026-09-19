@@ -46,8 +46,8 @@ Switch sections with the Board / Practice / Cards control at the top right.
 - **Diagram ↔ equation** — read a marked figure and build the equation it gives you, or drag a figure until it matches a description. Equivalent rearrangements are accepted, so `AC − AB = BC` passes where `AB + BC = AC` is expected.
 - **Proof** — build a two-column proof. Every line is checked against the reason cited for it and the earlier lines it rests on; a true statement with the wrong reason is rejected, and the theorem being proved may not be cited in its own proof. Any correct route is accepted.
 
-Statements are never typed. They are assembled from a toolbar: pick the form of the statement, then fill its slots from a palette of the figure's own objects, operators and digits.
+Statements are never typed. They are assembled by clicking: pick the form of the statement, then fill its slots from the figure itself — two points name a segment, three name an angle, an arc names the angle it marks — or from a palette of the figure's objects, operators and digits. Answers are judged modulo naming, so ∠1 and ∠AXC are the same angle.
 
 ## Verification
 
-`npm run check` runs **95 tests**, TypeScript and the production build. The suite replays every authored proof and 120 generated ones through the same strict validator a student faces, so an unsolvable problem fails the build. See [docs/EVIDENCE.md](docs/EVIDENCE.md) for browser checks and limitations.
+`npm run check` runs **102 tests**, TypeScript and the production build. The suite replays every authored proof and 120 generated ones through the same strict validator a student faces, so an unsolvable problem fails the build. See [docs/EVIDENCE.md](docs/EVIDENCE.md) for browser checks and limitations.

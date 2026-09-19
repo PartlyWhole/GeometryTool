@@ -2,10 +2,18 @@
 import React, { useMemo, useState } from "react";
 import { clone } from "../model";
 import { Figure } from "./Figure";
-import { StatementBuilder, type Draft, buildStatement, newDraft } from "./StatementBuilder";
+import {
+  StatementBuilder,
+  type Draft,
+  buildStatement,
+  insertObject,
+  newDraft,
+  wants,
+} from "./StatementBuilder";
+import { PickableFigure } from "./PickableFigure";
 import { CONSTRUCT_ITEMS, READ_ITEMS, type ConstructItem, type ReadItem } from "./content/translate";
 import { statementText } from "./notation";
-import { HAND, holds, measureOf, lengthOf } from "./oracle";
+import { HAND, angleNamer, holds, measureOf, lengthOf } from "./oracle";
 import { type ObjId, matchesAccepted, objKey, statementObjects } from "./terms";
 import { type Tally, loadTally, record, saveTally } from "./progress";
 import { Scoreboard, Tabs, Verdict } from "./ui";
@@ -58,7 +66,13 @@ function ReadMode() {
 
   const check = () => {
     if (!built.ok) return;
-    const ok = matchesAccepted(built.statement, item.accept);
+    // Judge modulo naming: ∠1 clicked on the arc and ∠AXC built from its
+    // three points are the same angle.
+    const ok = matchesAccepted(
+      built.statement,
+      item.accept,
+      angleNamer(item.figure),
+    );
     setResult(ok);
     const t = record(tally, ok);
     setTally(t);
@@ -70,7 +84,13 @@ function ReadMode() {
       <p className="prompt strong">{item.prompt}</p>
       <div className="exercise-body">
         <div>
-          <Figure board={item.figure} height={320} ariaLabel={item.prompt} />
+          <PickableFigure
+            board={item.figure}
+            height={320}
+            ariaLabel={item.prompt}
+            wants={wants(draft)}
+            onInsert={(obj) => setDraft(insertObject(draft, obj))}
+          />
           <div className="tagrow">
             {item.tags?.map((t) => <span key={t} className="tag">{t}</span>)}
             <Scoreboard tally={tally} />

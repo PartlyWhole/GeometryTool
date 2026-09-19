@@ -953,3 +953,132 @@ describe("every read item is answerable from its own figure", () => {
     }
   });
 });
+
+describe("building a statement by clicking the figure", () => {
+  it("builds the three-angle equation entirely by clicking", async () => {
+    const { newDraft, insertObject, buildStatement, wants } = await import(
+      "../src/practice/StatementBuilder"
+    );
+    const { statementText } = await import("../src/practice/notation");
+    const { push } = await import("../src/practice/tokens");
+    let d = newDraft("eq");
+    expect(wants(d)).toBe("expression");
+    // Click an arc, then +, then the next arc, and so on.
+    const plus = () => {
+      const cur = d.slots[d.focus];
+      if (cur.kind !== "expr") return;
+      d = {
+        ...d,
+        slots: d.slots.map((s, j) =>
+          j === d.focus ? { kind: "expr", toks: push(cur.toks, { t: "op", op: "+" }) } : s,
+        ),
+      };
+    };
+    d = insertObject(d, ang("PVR"));
+    plus();
+    d = insertObject(d, ang("RVS"));
+    plus();
+    d = insertObject(d, ang("SVQ"));
+    d = { ...d, focus: 1 };
+    const right = d.slots[1];
+    if (right.kind === "expr")
+      d = {
+        ...d,
+        slots: [d.slots[0], { kind: "expr", toks: [{ t: "num", v: "180" }] }],
+      };
+    const built = buildStatement(d);
+    expect(built.ok).toBe(true);
+    if (built.ok)
+      expect(statementText(built.statement)).toBe(
+        "m∠PVR + m∠RVS + m∠SVQ = 180",
+      );
+  });
+
+  it("treats two objects clicked in a row as a product, visibly", async () => {
+    const { newDraft, insertObject } = await import("../src/practice/StatementBuilder");
+    const { tokensText } = await import("../src/practice/tokens");
+    let d = newDraft("eq");
+    d = insertObject(d, ang("PVR"));
+    d = insertObject(d, ang("RVS"));
+    const slot = d.slots[0];
+    // Forgetting the operator is legible in the slot rather than silent.
+    expect(slot.kind === "expr" && tokensText(slot.toks)).toBe("m∠PVR m∠RVS");
+  });
+
+  it("fills an object slot from the figure and moves on", async () => {
+    const { newDraft, insertObject, buildStatement } = await import(
+      "../src/practice/StatementBuilder"
+    );
+    let d = newDraft("vertical");
+    d = insertObject(d, ang("1"));
+    expect(d.slots[0]).toEqual({ kind: "obj", obj: ang("1") });
+    expect(d.focus).toBe(1);
+    d = insertObject(d, ang("3"));
+    const built = buildStatement(d);
+    expect(built.ok).toBe(true);
+    if (built.ok)
+      expect(built.statement).toEqual({ k: "vertical", a: ang("1"), b: ang("3") });
+  });
+
+  it("refuses an object the focused slot cannot take", async () => {
+    const { newDraft, insertObject } = await import("../src/practice/StatementBuilder");
+    const { seg } = await import("../src/practice/terms");
+    // A segment cannot go where the form wants an angle.
+    const d = newDraft("supp");
+    expect(insertObject(d, seg("A", "B"))).toEqual(d);
+  });
+
+  it("reports what the focused slot is waiting for", async () => {
+    const { newDraft, wants } = await import("../src/practice/StatementBuilder");
+    expect(wants(newDraft("supp"))).toBe("angle");
+    expect(wants(newDraft("midpoint"))).toBe("point");
+    expect(wants(newDraft("eq"))).toBe("expression");
+  });
+});
+
+describe("a student is judged on the geometry, not the naming", () => {
+  it("accepts the three-point name where the item expects the label", async () => {
+    const { READ_ITEMS } = await import("../src/practice/content/translate");
+    const { matchesAccepted } = await import("../src/practice/terms");
+    const { angleNamer } = await import("../src/practice/oracle");
+    const item = READ_ITEMS.find((i) => i.id === "vertical-equal")!;
+    const canon = angleNamer(item.figure);
+    // The item is written with the figure's labels; ∠1 is also ∠AXD.
+    expect(matchesAccepted(item.accept[0], item.accept, canon)).toBe(true);
+    expect(
+      matchesAccepted(
+        { k: "cong", l: ang("AXD"), r: ang("CXB") },
+        item.accept,
+        canon,
+      ),
+      "clicking the arms should count the same as clicking the arc",
+    ).toBe(true);
+    // A genuinely different pair still fails.
+    expect(
+      matchesAccepted(
+        { k: "cong", l: ang("AXD"), r: ang("AXC") },
+        item.accept,
+        canon,
+      ),
+    ).toBe(false);
+  });
+
+  it("accepts a proof line written with either name", async () => {
+    const { PROOFS } = await import("../src/practice/content/proofs");
+    const { validateLine } = await import("../src/practice/proof");
+    const p = PROOFS.find((x) => x.id === "vertical-angles")!;
+    // The figure labels these ∠1 and ∠2; name them by their points instead.
+    const byPoints = validateLine(p, [], {
+      statement: { k: "linearPair", a: ang("AXD"), b: ang("AXC") },
+      reasonId: "def-linear-pair",
+      cites: [],
+    });
+    const byLabel = validateLine(p, [], {
+      statement: { k: "linearPair", a: ang("1"), b: ang("2") },
+      reasonId: "def-linear-pair",
+      cites: [],
+    });
+    expect(byLabel.ok).toBe(true);
+    expect(byPoints.ok, byPoints.ok ? "" : (byPoints as { why: string }).why).toBe(true);
+  });
+});

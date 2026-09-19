@@ -1,7 +1,15 @@
 // Exercise 4: building a two-column proof, every line checked.
 import React, { useMemo, useState } from "react";
 import { Figure, type Highlight } from "./Figure";
-import { StatementBuilder, type Draft, buildStatement, newDraft } from "./StatementBuilder";
+import {
+  StatementBuilder,
+  type Draft,
+  buildStatement,
+  insertObject,
+  newDraft,
+  wants,
+} from "./StatementBuilder";
+import { PickableFigure } from "./PickableFigure";
 import { statementText } from "./notation";
 import { KIND_LABEL, REASONS, type ReasonKind, reasonById } from "./reasons";
 import {
@@ -161,14 +169,27 @@ function ProofBoard(props: {
 
       <div className="proof-body">
         <aside className="proof-left">
-          {problem.figure && (
-            <Figure
-              board={problem.figure}
-              highlights={highlights}
-              height={290}
-              ariaLabel={"Figure for " + problem.title}
-            />
-          )}
+          {problem.figure &&
+            (done ? (
+              <Figure
+                board={problem.figure}
+                highlights={highlights}
+                height={290}
+                ariaLabel={"Figure for " + problem.title}
+              />
+            ) : (
+              <PickableFigure
+                board={problem.figure}
+                highlights={highlights}
+                height={290}
+                ariaLabel={"Figure for " + problem.title}
+                wants={wants(draft)}
+                onInsert={(obj) => {
+                  setDraft(insertObject(draft, obj));
+                  setError(null);
+                }}
+              />
+            ))}
           <section className="givens">
             <h3>Given</h3>
             {problem.givens.length ? (

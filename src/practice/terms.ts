@@ -326,8 +326,11 @@ export function isFlip(a: Statement, b: Statement): boolean {
 export function matchesAccepted(
   student: Statement,
   accepted: Statement[],
+  canon: (a: AngId) => AngId = (a) => a,
 ): boolean {
-  for (const a of accepted) {
+  student = mapAngles(student, canon);
+  for (const raw of accepted) {
+    const a = mapAngles(raw, canon);
     if (sameStatement(student, a) || isFlip(student, a)) return true;
     if (student.k === "eq" && a.k === "eq") {
       const k = scalarMultiple(diff(student), diff(a));
@@ -335,6 +338,54 @@ export function matchesAccepted(
     }
   }
   return false;
+}
+
+/**
+ * Rewrite every angle a statement names. Used to compare statements modulo
+ * how the student chose to name things: ∠1 and ∠AXC can be one angle, and a
+ * correct answer must not depend on which name was clicked.
+ */
+export function mapAngles(s: Statement, f: (a: AngId) => AngId): Statement {
+  const t = (x: Term): Term => {
+    switch (x.k) {
+      case "meas":
+        return { k: "meas", ang: f(x.ang) };
+      case "add":
+        return { k: "add", ts: x.ts.map(t) };
+      case "mul":
+        return { k: "mul", ts: x.ts.map(t) };
+      case "neg":
+        return { k: "neg", t: t(x.t) };
+      case "div":
+        return { k: "div", n: t(x.n), d: t(x.d) };
+      default:
+        return x;
+    }
+  };
+  const o = (x: ObjId): ObjId => (x.k === "ang" ? f(x) : x);
+  switch (s.k) {
+    case "eq":
+      return { k: "eq", l: t(s.l), r: t(s.r) };
+    case "cong":
+      return { k: "cong", l: o(s.l), r: o(s.r) };
+    case "supp":
+    case "comp":
+    case "vertical":
+    case "linearPair":
+    case "adjacent":
+      return { ...s, a: f(s.a), b: f(s.b) };
+    case "perp":
+    case "parallel":
+      return { ...s, a: o(s.a), b: o(s.b) };
+    case "bisects":
+      return { k: "bisects", by: o(s.by), of: o(s.of) };
+    case "interior":
+      return { k: "interior", p: s.p, ang: f(s.ang) };
+    case "angleClass":
+      return { k: "angleClass", ang: f(s.ang), cls: s.cls };
+    default:
+      return s;
+  }
 }
 
 /** Every object mentioned by a statement, for highlighting it on a figure. */

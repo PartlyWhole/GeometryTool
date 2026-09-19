@@ -6,9 +6,11 @@ import {
   diff,
   isFlip,
   isZero,
+  mapAngles,
   sameStatement,
   statementKey,
 } from "./terms";
+import { angleNamer } from "./oracle";
 import { type Check, type Ctx, reasonById } from "./reasons";
 import { statementText } from "./notation";
 
@@ -97,6 +99,12 @@ export function validateLine(
         " here — that is what this proof is establishing. Using it would be circular.",
     };
 
+  // Everything the validators compare is put into one naming first, so a
+  // student who clicks ∠AXC on the figure is not marked wrong against a given
+  // written as ∠1.
+  const name = angleNamer(problem.figure);
+  const canon = (s: Statement) => mapAngles(s, name);
+
   const byId = new Map(above.map((l) => [l.id, l]));
   const premises: Statement[] = [];
   for (const id of line.cites) {
@@ -106,7 +114,7 @@ export function validateLine(
         ok: false,
         why: "A cited line must appear earlier in the proof.",
       };
-    premises.push(l.statement);
+    premises.push(canon(l.statement));
   }
 
   // A line whose two sides are literally the same quantity is reflexive,
@@ -150,16 +158,20 @@ export function validateLine(
   if (dup >= 0)
     return { ok: false, why: "That statement is already on line " + (dup + 1) + "." };
 
-  const ctx: Ctx = { board: problem.figure, givens: problem.givens };
-  return reason.check(line.statement, premises, ctx);
+  const ctx: Ctx = {
+    board: problem.figure,
+    givens: problem.givens.map(canon),
+  };
+  return reason.check(canon(line.statement), premises, ctx);
 }
 
 export function reachedGoal(problem: ProofProblem, lines: ProofLine[]) {
-  return lines.some(
-    (l) =>
-      sameStatement(l.statement, problem.goal) ||
-      isFlip(l.statement, problem.goal),
-  );
+  const name = angleNamer(problem.figure);
+  const goal = mapAngles(problem.goal, name);
+  return lines.some((l) => {
+    const s = mapAngles(l.statement, name);
+    return sameStatement(s, goal) || isFlip(s, goal);
+  });
 }
 
 /** Lines that no later line depends on, and that are not the goal. */
