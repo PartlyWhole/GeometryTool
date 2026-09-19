@@ -115,11 +115,20 @@ export class Fig {
     return this;
   }
 
-  /** Matching arcs: an angle congruence the figure asserts. */
+  /**
+   * Matching arcs: an angle congruence the figure asserts. A name may carry a
+   * drawing radius as "ABC@30", so two congruent angles can be arced at
+   * visibly different sizes — the number of arcs is what matches, not the
+   * size, and a figure that draws them identically cannot make that point.
+   */
   arc(...angles: string[]) {
     this.deferred.push((b) => {
       const refs = angles
-        .map((name) => resolveAngle(b, { k: "ang", name } as AngId))
+        .map((spec) => {
+          const [name, r] = spec.split("@");
+          const ref = resolveAngle(b, { k: "ang", name } as AngId);
+          return ref && r ? { ...ref, radius: Number(r) } : ref;
+        })
         .filter(Boolean) as AngleRef[];
       if (refs.length < 2) throw Error("arc needs two resolvable angles");
       b.constraints.push({ id: uid(), kind: "equalAngle", angles: refs });

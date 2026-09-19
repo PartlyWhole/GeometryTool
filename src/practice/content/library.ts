@@ -230,10 +230,16 @@ export const twoSupplementPairs = (): Board => {
   f.at("C", c.x, c.y);
   f.seg("V", "C");
 
-  f.at("D", 40, 40).at("E", 290, 40);
+  // The right-hand pair is rotated rather than translated. Drawn as a copy of
+  // the left, ∠1 ≅ ∠2 is visible as a slide and the argument never has to be
+  // made; tilted, the congruence has to come from the reasoning.
+  const tilt = 28, half = 125;
+  const dx = half * Math.cos((tilt * Math.PI) / 180);
+  const dy = half * Math.sin((tilt * Math.PI) / 180);
+  f.at("D", 165 - dx, 40 + dy).at("E", 165 + dx, 40 - dy);
   f.seg("D", "E");
   f.on("W", "D", "E", 0.5);
-  const g = polar(165, 40, 65, 140);
+  const g = polar(165, 40, tilt + 65, 140);
   f.at("G", g.x, g.y);
   f.seg("W", "G");
 
@@ -419,6 +425,84 @@ export const perpBisector = (): Board => {
   return f.build();
 };
 
+/** Three points that do not line up — the other half of "sometimes". */
+export const notCollinear = (): Board =>
+  fig("Three points, not collinear")
+    .at("A", -150, 0).at("B", -20, -92).at("C", 150, 0)
+    .build();
+
+/**
+ * Two congruent angles, differently oriented and arced at different sizes.
+ * A figure that draws both arcs the same cannot make the point that the
+ * number of arcs is what matches and the size means nothing.
+ */
+export const congruentAnglesPair = (): Board => {
+  const f = fig("Congruent angles, different arcs");
+  f.at("V", -150, 40);
+  const a = polar(-150, 40, 145, 150), b = polar(-150, 40, 90, 150);
+  f.at("A", a.x, a.y).at("B", b.x, b.y);
+  f.seg("V", "A").seg("V", "B");
+  f.at("W", 150, 40);
+  const c = polar(150, 40, 20, 150), d = polar(150, 40, 75, 150);
+  f.at("C", c.x, c.y).at("D", d.x, d.y);
+  f.seg("W", "C").seg("W", "D");
+  f.arc("AVB@30", "CWD@68");
+  return f.build();
+};
+
+/** Two angles totalling 90°, drawn nowhere near each other. */
+export const complementsApart = (): Board => {
+  const f = fig("Complementary, and far apart");
+  f.at("V", -170, 60);
+  const a = polar(-170, 60, 90, 150), b = polar(-170, 60, 55, 150);
+  f.at("A", a.x, a.y).at("B", b.x, b.y);
+  f.seg("V", "A").seg("V", "B");
+  f.measure("AVB", 35);
+  f.at("W", 110, 60);
+  const c = polar(110, 60, 145, 150), d = polar(110, 60, 90, 150);
+  f.at("C", c.x, c.y).at("D", d.x, d.y);
+  f.seg("W", "C").seg("W", "D");
+  f.measure("CWD", 55);
+  return f.build();
+};
+
+/** A segment cut into two unequal parts, for distributing over a sum. */
+export const twoUnequalParts = (): Board =>
+  fig("One segment, two unequal parts")
+    .at("A", -195, 0).at("C", 195, 0)
+    .seg("A", "C")
+    .on("B", "A", "C", 0.35)
+    .build();
+
+/**
+ * Two supplementary pairs at separate vertices, with nothing marked congruent
+ * and the second baseline tilted so the halves do not read as one diagram
+ * copied. ∠1 and ∠4 are supplementary to each other across the gap, which is
+ * the claim the Supplementary concept needs: the total is all that matters,
+ * and the angles need not touch or even share a drawing.
+ */
+export const twoSupplementsPlain = (): Board => {
+  const f = fig("Two supplementary pairs");
+  f.at("A", -290, 40).at("B", -40, 40);
+  f.seg("A", "B");
+  f.on("V", "A", "B", 0.5);
+  const c = polar(-165, 40, 115, 150);
+  f.at("C", c.x, c.y);
+  f.seg("V", "C");
+  // A baseline through W, tilted 20° off horizontal.
+  const tilt = 20, r = 125;
+  const dx = r * Math.cos((tilt * Math.PI) / 180), dy = r * Math.sin((tilt * Math.PI) / 180);
+  f.at("D", 165 - dx, 40 + dy).at("E", 165 + dx, 40 - dy);
+  f.seg("D", "E");
+  f.on("W", "D", "E", 0.5);
+  const g = polar(165, 40, tilt + 115, 150);
+  f.at("G", g.x, g.y);
+  f.seg("W", "G");
+  f.num("1", "AVC").num("2", "DWG").num("3", "CVB").num("4", "GWE");
+  return f.build();
+};
+
+
 export const LIBRARY: Record<string, () => Board> = {
   crossing,
   fan,
@@ -443,6 +527,11 @@ export const LIBRARY: Record<string, () => Board> = {
   angleClasses,
   obliqueBisector,
   perpBisector,
+  notCollinear,
+  congruentAnglesPair,
+  complementsApart,
+  twoUnequalParts,
+  twoSupplementsPlain,
   justAPoint,
   aLine,
   linearPairCaseA,
