@@ -1788,3 +1788,22 @@ describe("a walkthrough caption cannot contradict its figure", () => {
     expect(isBetween(b, "C", "A", "B")).toBe(true);
   });
 });
+
+describe("one-step proof items", () => {
+  // A one-step item asks what justifies a line. Both the line and the goal
+  // the proof is heading for have to be on screen: the line because it is
+  // the question, the goal because a step is otherwise floating free of the
+  // proof it came from.
+  it("carries a statement and a goal", async () => {
+    const { stepItems } = await import("../src/practice/content/stepReason");
+    const seen = new Set<string>();
+    for (let s = 0; s < 40; s++) {
+      for (const item of stepItems(s, 12)) {
+        seen.add(item.id);
+        expect(statementText(item.statement).length).toBeGreaterThan(0);
+        expect(statementText(item.goal).length).toBeGreaterThan(0);
+      }
+    }
+    expect(seen.size).toBeGreaterThan(20);
+  });
+});

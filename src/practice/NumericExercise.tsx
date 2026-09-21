@@ -8,11 +8,26 @@ import { NUMERIC_ITEMS, type NumericItem, type Trap, generatedNumeric } from "./
 
 /** One trap or several, read the same way. */
 const traps = (t: Trap | Trap[] | undefined): Trap[] => (t ? (Array.isArray(t) ? t : [t]) : []);
+import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
-import { Hints, Scoreboard, Verdict } from "./ui";
+import { Hints, ItemNav, Scoreboard, Verdict } from "./ui";
 import { NumberEntry, numberOf } from "./NumberEntry";
 
 const close = (a: number, b: number, tol: number) => Math.abs(a - b) <= tol;
+
+/** What a student has done to one numeric question. */
+type Work = {
+  entry: string;
+  result: null | "right" | "wrong" | "trap";
+  trapHit: Trap | null;
+  hintsShown: number;
+};
+const blankWork = (): Work => ({
+  entry: "",
+  result: null,
+  trapHit: null,
+  hintsShown: 0,
+});
 
 export function NumericExercise() {
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
@@ -20,14 +35,16 @@ export function NumericExercise() {
     () => [...NUMERIC_ITEMS, ...generatedNumeric(seed, 8)],
     [seed],
   );
-  const [i, setI] = useState(0);
-  const [entry, setEntry] = useState("");
-  const [result, setResult] = useState<null | "right" | "wrong" | "trap">(null);
-  const [trapHit, setTrapHit] = useState<Trap | null>(null);
-  const [hintsShown, setHintsShown] = useState(0);
+  const deck = useDeck<Work>(items.length, blankWork, {
+    key: String(seed),
+    onEnd: () => setSeed(Math.floor(Math.random() * 1e9)),
+  });
+  const { entry, result, trapHit, hintsShown } = deck.state;
+  const set = (patch: Partial<Work>) =>
+    deck.setState((w) => ({ ...w, ...patch }));
   const [tally, setTally] = useState<Tally>(() => loadTally("numeric"));
 
-  const item: NumericItem | undefined = items[i];
+  const item: NumericItem | undefined = items[deck.i];
   if (!item) return <p className="muted">No questions.</p>;
 
   const value = numberOf(entry);
@@ -36,7 +53,7 @@ export function NumericExercise() {
   const check = () => {
     if (value === undefined) return;
     if (close(value, item.answer, tol)) {
-      setResult("right");
+      set({ result: "right" });
       const t = record(tally, hintsShown === 0);
       setTally(t);
       saveTally("numeric", t);
@@ -45,22 +62,10 @@ export function NumericExercise() {
     // Entering x when the question asked for a measure is a specific mistake,
     // and the reference says it is the one questions are built to provoke.
     const hit = traps(item.trap).find((t) => close(value, t.value, 1e-6));
-    setTrapHit(hit ?? null);
-    setResult(hit ? "trap" : "wrong");
+    set({ trapHit: hit ?? null, result: hit ? "trap" : "wrong" });
     const t = record(tally, false);
     setTally(t);
     saveTally("numeric", t);
-  };
-
-  const next = () => {
-    setEntry("");
-    setResult(null);
-    setHintsShown(0);
-    if (i + 1 < items.length) setI(i + 1);
-    else {
-      setSeed(Math.floor(Math.random() * 1e9));
-      setI(0);
-    }
   };
 
   return (
@@ -75,6 +80,16 @@ export function NumericExercise() {
         </div>
         <Scoreboard tally={tally} />
       </header>
+
+      <ItemNav
+        i={deck.i}
+        count={deck.count}
+        onGo={deck.go}
+        onBack={deck.back}
+        onForward={deck.forward}
+        endLabel="New set"
+        marks={dots(deck, (w) => (w.result === null ? null : w.result === "right"))}
+      />
 
       <p className="prompt strong">{item.prompt}</p>
 
@@ -100,7 +115,7 @@ export function NumericExercise() {
         <div className="exercise-side">
           <NumberEntry
             value={entry}
-            onChange={setEntry}
+            onChange={(v) => set({ entry: v })}
             unit={item.unit}
             disabled={result !== null}
           />
@@ -113,17 +128,16 @@ export function NumericExercise() {
             >
               Check
             </button>
-            <button onClick={() => setEntry("")} disabled={!entry || result !== null}>
+            <button onClick={() => set({ entry: "" })} disabled={!entry || result !== null}>
               Clear
             </button>
-            <button onClick={next}>Skip</button>
           </div>
 
           {result === null && (
             <Hints
               hints={item.hints}
               shown={hintsShown}
-              onMore={() => setHintsShown((n) => n + 1)}
+              onMore={() => deck.setState((w) => ({ ...w, hintsShown: w.hintsShown + 1 }))}
             />
           )}
 
@@ -139,13 +153,10 @@ export function NumericExercise() {
                 {result === "trap" ? trapHit!.note + " " + item.why : item.why}
               </Verdict>
               <div className="row">
-                <button className="primary" onClick={next}>Next</button>
+                <button className="primary" onClick={deck.forward}>Next</button>
                 {result !== "right" && (
                   <button
-                    onClick={() => {
-                      setEntry("");
-                      setResult(null);
-                    }}
+                    onClick={() => set({ entry: "", result: null })}
                   >
                     Try again
                   </button>

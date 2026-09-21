@@ -4,8 +4,9 @@ import { Figure } from "./Figure";
 import { statementText } from "./notation";
 import { reasonById } from "./reasons";
 import { type StepItem, stepItems } from "./content/stepReason";
+import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
-import { Scoreboard, Verdict } from "./ui";
+import { ItemNav, Scoreboard, Verdict } from "./ui";
 
 /** "2, 5 and 6" rather than "2 and 5 and 6". */
 const listOf = (ns: number[]) =>
@@ -16,27 +17,22 @@ const listOf = (ns: number[]) =>
 export function StepExercise() {
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const items = useMemo(() => stepItems(seed, 12), [seed]);
-  const [i, setI] = useState(0);
-  const [picked, setPicked] = useState<string | null>(null);
+  const deck = useDeck<string | null>(items.length, () => null, {
+    key: String(seed),
+    onEnd: () => setSeed(Math.floor(Math.random() * 1e9)),
+  });
+  const picked = deck.state;
   const [tally, setTally] = useState<Tally>(() => loadTally("steps"));
 
-  const item: StepItem | undefined = items[i];
+  const item: StepItem | undefined = items[deck.i];
   if (!item) return <p className="muted">No steps.</p>;
 
   const answer = (choice: string) => {
     if (picked !== null) return;
-    setPicked(choice);
+    deck.setState(choice);
     const t = record(tally, choice === item.answer);
     setTally(t);
     saveTally("steps", t);
-  };
-  const next = () => {
-    setPicked(null);
-    if (i + 1 < items.length) setI(i + 1);
-    else {
-      setSeed(Math.floor(Math.random() * 1e9));
-      setI(0);
-    }
   };
 
   return (
@@ -51,6 +47,17 @@ export function StepExercise() {
         <Scoreboard tally={tally} />
       </header>
 
+      <ItemNav
+        i={deck.i}
+        count={deck.count}
+        onGo={deck.go}
+        onBack={deck.back}
+        onForward={deck.forward}
+        noun="Step"
+        endLabel="New set"
+        marks={dots(deck, (p, n) => (p === null ? null : p === items[n].answer))}
+      />
+
       <div className={"exercise-body" + (item.figure ? "" : " no-figure")}>
         {item.figure && (
           <div>
@@ -61,35 +68,39 @@ export function StepExercise() {
           </div>
         )}
         <div className="exercise-side">
-          {item.givens.length > 0 && (
-            <section className="givens">
-              <h3>Given</h3>
+          <section className="givens">
+            <h3>Given</h3>
+            {item.givens.length ? (
               <ul>
                 {item.givens.map((g, n) => (
                   <li key={n} className="role-given">{statementText(g)}</li>
                 ))}
               </ul>
-            </section>
-          )}
+            ) : (
+              <p className="muted small">Read what you need from the figure.</p>
+            )}
+            <h3>Prove</h3>
+            <p className="role-prove goal">{statementText(item.goal)}</p>
+          </section>
 
-          {item.above.length > 0 && (
-            <table className="two-column compact">
-              <tbody>
-                {item.above.map((row) => (
-                  <tr key={row.n} className={item.cites.includes(row.n) ? "cited" : ""}>
-                    <td className="num">{row.n}</td>
-                    <td>{statementText(row.statement)}</td>
-                    <td className="reason">{reasonById(row.reasonId)?.name}</td>
-                  </tr>
-                ))}
-                <tr className="asking">
-                  <td className="num">{item.above.length + 1}</td>
-                  <td>{statementText(item.statement)}</td>
-                  <td className="reason"><em>which reason?</em></td>
+          {/* Unconditional: the row being asked about lives in this table, so
+              hiding it when nothing precedes would hide the statement too. */}
+          <table className="two-column compact">
+            <tbody>
+              {item.above.map((row) => (
+                <tr key={row.n} className={item.cites.includes(row.n) ? "cited" : ""}>
+                  <td className="num">{row.n}</td>
+                  <td>{statementText(row.statement)}</td>
+                  <td className="reason">{reasonById(row.reasonId)?.name}</td>
                 </tr>
-              </tbody>
-            </table>
-          )}
+              ))}
+              <tr className="asking">
+                <td className="num">{item.above.length + 1}</td>
+                <td>{statementText(item.statement)}</td>
+                <td className="reason"><em>which reason?</em></td>
+              </tr>
+            </tbody>
+          </table>
 
           <p className="cite-help">
             {item.cites.length
@@ -124,7 +135,7 @@ export function StepExercise() {
                 {item.whyByOption?.[picked] ?? item.why}
               </Verdict>
               <div className="row">
-                <button className="primary" onClick={next}>Next step</button>
+                <button className="primary" onClick={deck.forward}>Next step</button>
               </div>
             </>
           )}

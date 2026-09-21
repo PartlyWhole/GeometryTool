@@ -16,6 +16,12 @@ export type StepItem = {
   title: string;
   figure?: Board;
   givens: Statement[];
+  /**
+   * What the whole proof set out to show. A line is judged on its own, but
+   * without the goal on screen the student is asked to justify a step in a
+   * proof they cannot see the shape of.
+   */
+  goal: Statement;
   /** The lines already established, shown for context. */
   above: { n: number; statement: Statement; reasonId: string }[];
   /** Which of those this step rests on. */
@@ -134,6 +140,7 @@ export function stepItems(seed: number, count = 10): StepItem[] {
             title: p.title,
             figure: p.figure,
             givens: p.givens,
+            goal: p.goal,
             above: steps.slice(0, i).map((x, n) => ({
               n: n + 1,
               statement: x.statement,

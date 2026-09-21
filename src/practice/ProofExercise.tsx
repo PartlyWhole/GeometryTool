@@ -22,8 +22,9 @@ import {
 import { PROOFS } from "./content/proofs";
 import { generatedProofs } from "./content/generators";
 import { statementObjects } from "./terms";
+import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
-import { Hints, Scoreboard, Tabs, Verdict } from "./ui";
+import { Hints, ItemNav, Scoreboard, Tabs, Verdict } from "./ui";
 import { ReasonCheckMode } from "./SelectAllExercise";
 import { StepExercise } from "./StepExercise";
 
@@ -59,24 +60,71 @@ export function ProofExercise() {
   );
 }
 
+/**
+ * A proof in progress. Held outside the board so that leaving a proof and
+ * coming back to it finds the lines you had already written: half a proof is
+ * too much work to throw away for looking at the next one.
+ */
+type Work = {
+  lines: ProofLine[];
+  draft: Draft;
+  reasonId: string;
+  cites: string[];
+  error: string | null;
+  note: string | null;
+  hintsShown: number;
+  revealed: boolean;
+  scored: boolean;
+};
+const blankWork = (): Work => ({
+  lines: [],
+  draft: newDraft("eq"),
+  reasonId: "given",
+  cites: [],
+  error: null,
+  note: null,
+  hintsShown: 0,
+  revealed: false,
+  scored: false,
+});
+
 function ProofBuilder() {
   const [genSeed, setGenSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const problems = useMemo(
     () => [...PROOFS, ...generatedProofs(genSeed, 4)],
     [genSeed],
   );
-  const [pi, setPi] = useState(0);
-  const problem = problems[Math.min(pi, problems.length - 1)];
+  const deck = useDeck<Work>(problems.length, blankWork, {
+    key: String(genSeed),
+  });
+  const problem = problems[deck.i];
   return (
     <ProofBoard
-      key={problem.id}
       problem={problem}
       problems={problems}
-      index={Math.min(pi, problems.length - 1)}
-      onPick={setPi}
+      index={deck.i}
+      work={deck.state}
+      setWork={deck.setState}
+      onPick={deck.go}
+      nav={
+        <ItemNav
+          i={deck.i}
+          count={deck.count}
+          onGo={deck.go}
+          onBack={deck.back}
+          onForward={deck.forward}
+          noun="Proof"
+          marks={dots(deck, (w, n) =>
+            w.lines.length === 0
+              ? null
+              : reachedGoal(problems[n], w.lines)
+                ? true
+                : null,
+          )}
+        />
+      }
       onMore={() => {
         setGenSeed(Math.floor(Math.random() * 1e9));
-        setPi(PROOFS.length);
       }}
     />
   );
@@ -86,34 +134,29 @@ function ProofBoard(props: {
   problem: ProofProblem;
   problems: ProofProblem[];
   index: number;
+  work: Work;
+  setWork: (next: Work | ((prev: Work) => Work)) => void;
   onPick: (i: number) => void;
   onMore: () => void;
+  nav: React.ReactNode;
 }) {
   const { problem } = props;
-  const [lines, setLines] = useState<ProofLine[]>([]);
-  const [draft, setDraft] = useState<Draft>(() => newDraft("eq"));
-  const [reasonId, setReasonId] = useState("given");
-  const [cites, setCites] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [note, setNote] = useState<string | null>(null);
-  const [hintsShown, setHintsShown] = useState(0);
-  const [revealed, setRevealed] = useState(false);
+  const { lines, draft, reasonId, cites, error, note, hintsShown, revealed, scored } =
+    props.work;
+  const set = (patch: Partial<Work>) =>
+    props.setWork((w) => ({ ...w, ...patch }));
   const [tally, setTally] = useState<Tally>(() => loadTally("proof"));
-  const [scored, setScored] = useState(false);
 
   const built = buildStatement(draft);
   const done = reachedGoal(problem, lines);
   const loose = done ? unusedLines(problem, lines) : [];
 
-  const reset = () => {
-    setDraft(newDraft(draft.form));
-    setCites([]);
-    setError(null);
-  };
+  const reset = () =>
+    set({ draft: newDraft(draft.form), cites: [], error: null });
 
   const addStep = () => {
     if (!built.ok) {
-      setError(built.why);
+      set({ error: built.why });
       return;
     }
     const check = validateLine(problem, lines, {
@@ -122,19 +165,22 @@ function ProofBoard(props: {
       cites,
     });
     if (!check.ok) {
-      setError(check.why);
-      setNote(null);
+      set({ error: check.why, note: null });
       return;
     }
     const next = [
       ...lines,
       { id: "L" + (lines.length + 1) + ":" + Date.now(), statement: built.statement, reasonId, cites },
     ];
-    setLines(next);
-    setNote(check.note ?? null);
-    reset();
+    set({
+      lines: next,
+      note: check.note ?? null,
+      draft: newDraft(draft.form),
+      cites: [],
+      error: null,
+      scored: scored || reachedGoal(problem, next),
+    });
     if (!scored && reachedGoal(problem, next)) {
-      setScored(true);
       const t = record(tally, hintsShown === 0 && !revealed);
       setTally(t);
       saveTally("proof", t);
@@ -156,7 +202,12 @@ function ProofBoard(props: {
   }, [problem, draftKey]);
 
   const toggleCite = (id: string) =>
-    setCites((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
+    props.setWork((w) => ({
+      ...w,
+      cites: w.cites.includes(id)
+        ? w.cites.filter((x) => x !== id)
+        : [...w.cites, id],
+    }));
 
   const reason = reasonById(reasonId);
   // Forbidden reasons stay in the list. Deleting them taught nothing: the
@@ -176,6 +227,7 @@ function ProofBoard(props: {
           </div>
         </div>
         <div className="head-right">
+          {props.nav}
           <Scoreboard tally={tally} />
           <label className="picker">
             <span className="sr-only">Choose a proof</span>
@@ -214,8 +266,7 @@ function ProofBoard(props: {
                 ariaLabel={"Figure for " + problem.title}
                 wants={wants(draft)}
                 onInsert={(obj) => {
-                  setDraft(insertObject(draft, obj));
-                  setError(null);
+                  set({ draft: insertObject(draft, obj), error: null });
                 }}
               />
             ))}
@@ -238,7 +289,9 @@ function ProofBoard(props: {
           <Hints
             hints={problem.hints}
             shown={hintsShown}
-            onMore={() => setHintsShown((n) => n + 1)}
+            onMore={() =>
+              props.setWork((w) => ({ ...w, hintsShown: w.hintsShown + 1 }))
+            }
           />
           <div className="legend">
             <span><i className="sw given" /> given</span>
@@ -304,7 +357,18 @@ function ProofBoard(props: {
                 >
                   Next proof
                 </button>
-                <button onClick={() => { setLines([]); setScored(false); reset(); }}>
+                <button
+                  onClick={() =>
+                    set({
+                      lines: [],
+                      scored: false,
+                      draft: newDraft(draft.form),
+                      cites: [],
+                      error: null,
+                      note: null,
+                    })
+                  }
+                >
                   Prove it again
                 </button>
               </div>
@@ -322,7 +386,7 @@ function ProofBoard(props: {
                 board={problem.figure}
                 extraObjects={problem.objects}
                 value={draft}
-                onChange={(d) => { setDraft(d); setError(null); }}
+                onChange={(d) => set({ draft: d, error: null })}
                 variables={["x", "y"]}
               />
 
@@ -331,7 +395,7 @@ function ProofBoard(props: {
                   <span>Reason</span>
                   <select
                     value={reasonId}
-                    onChange={(e) => { setReasonId(e.target.value); setError(null); }}
+                    onChange={(e) => set({ reasonId: e.target.value, error: null })}
                   >
                     {KIND_ORDER.map((k) => {
                       const rs = allowed.filter((r) => r.kind === k);
@@ -366,13 +430,23 @@ function ProofBoard(props: {
                 <button className="primary" onClick={addStep}>Add step</button>
                 <button onClick={reset}>Clear step</button>
                 <button
-                  onClick={() => setLines((l) => l.slice(0, -1))}
+                  onClick={() =>
+                    props.setWork((w) => ({ ...w, lines: w.lines.slice(0, -1) }))
+                  }
                   disabled={!lines.length}
                 >
                   Undo last line
                 </button>
                 <button
-                  onClick={() => { setLines([]); reset(); }}
+                  onClick={() =>
+                    set({
+                      lines: [],
+                      draft: newDraft(draft.form),
+                      cites: [],
+                      error: null,
+                      note: null,
+                    })
+                  }
                   disabled={!lines.length}
                 >
                   Start over
@@ -380,7 +454,9 @@ function ProofBoard(props: {
                 {problem.solution && (
                   <button
                     className="link"
-                    onClick={() => { setRevealed(true); setHintsShown(problem.hints?.length ?? 0); }}
+                    onClick={() =>
+                      set({ revealed: true, hintsShown: problem.hints?.length ?? 0 })
+                    }
                   >
                     Show a worked proof
                   </button>

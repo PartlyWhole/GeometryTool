@@ -8,8 +8,9 @@ import { Figure } from "./Figure";
 import { statementText } from "./notation";
 import { CLAIM_ITEMS } from "./content/claims";
 import { reasonCheckItems, reasonName } from "./content/reasonCheck";
+import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
-import { Scoreboard, Verdict } from "./ui";
+import { ItemNav, Scoreboard, Verdict } from "./ui";
 
 type Row = { label: string; correct: boolean; note?: string };
 
@@ -41,8 +42,8 @@ function Checklist(props: {
             <span className="claim-box" aria-hidden="true">
               {props.done ? (row.correct ? "✓" : "✕") : chosen ? "✓" : ""}
             </span>
+            {props.numbered && <span className="claim-n">{i + 1}.</span>}
             <span className="claim-body">
-              {props.numbered && <span className="claim-n">{i + 1}.</span>}
               <span>{row.label}</span>
               {props.done && !row.correct && row.note && (
                 <span className="claim-note">{row.note}</span>
@@ -58,12 +59,15 @@ function Checklist(props: {
 const sameSet = (picked: Set<number>, rows: Row[]) =>
   rows.every((r, i) => r.correct === picked.has(i));
 
+/** What a student has done to one select-all item. */
+type Work = { picked: Set<number>; done: boolean };
+const blankWork = (): Work => ({ picked: new Set<number>(), done: false });
+
 /** Q12A: which statements does the figure assert? */
 export function ClaimMode() {
-  const [i, setI] = useState(0);
-  const item = CLAIM_ITEMS[i % CLAIM_ITEMS.length];
-  const [picked, setPicked] = useState<Set<number>>(new Set());
-  const [done, setDone] = useState(false);
+  const deck = useDeck<Work>(CLAIM_ITEMS.length, blankWork);
+  const item = CLAIM_ITEMS[deck.i];
+  const { picked, done } = deck.state;
   const [tally, setTally] = useState<Tally>(() => loadTally("claims"));
 
   const rows: Row[] = item.claims.map((c) => ({
@@ -71,21 +75,38 @@ export function ClaimMode() {
     correct: c.holds,
   }));
 
+  const setPicked = (f: (p: Set<number>) => Set<number>) =>
+    deck.setState((w) => ({ ...w, picked: f(w.picked) }));
+
   const check = () => {
     const ok = sameSet(picked, rows);
-    setDone(true);
+    deck.setState((w) => ({ ...w, done: true }));
     const t = record(tally, ok);
     setTally(t);
     saveTally("claims", t);
   };
-  const next = () => {
-    setPicked(new Set());
-    setDone(false);
-    setI(i + 1);
-  };
 
   return (
     <>
+      <ItemNav
+        i={deck.i}
+        count={deck.count}
+        onGo={deck.go}
+        onBack={deck.back}
+        onForward={deck.forward}
+        noun="Figure"
+        marks={dots(deck, (w, n) =>
+          !w.done
+            ? null
+            : sameSet(
+                w.picked,
+                CLAIM_ITEMS[n].claims.map((c) => ({
+                  label: "",
+                  correct: c.holds,
+                })),
+              ),
+        )}
+      />
       <p className="prompt strong">{item.prompt}</p>
       <div className="exercise-body">
         <div>
@@ -112,10 +133,10 @@ export function ClaimMode() {
             {!done ? (
               <button className="primary" onClick={check}>Check</button>
             ) : (
-              <button className="primary" onClick={next}>Next</button>
+              <button className="primary" onClick={deck.forward}>Next</button>
             )}
             {!done && (
-              <button onClick={() => setPicked(new Set())} disabled={!picked.size}>
+              <button onClick={() => setPicked(() => new Set())} disabled={!picked.size}>
                 Clear
               </button>
             )}
@@ -131,12 +152,14 @@ export function ClaimMode() {
 export function ReasonCheckMode() {
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const items = useMemo(() => reasonCheckItems(seed, 8), [seed]);
-  const [i, setI] = useState(0);
-  const [picked, setPicked] = useState<Set<number>>(new Set());
-  const [done, setDone] = useState(false);
+  const deck = useDeck<Work>(items.length, blankWork, {
+    key: String(seed),
+    onEnd: () => setSeed(Math.floor(Math.random() * 1e9)),
+  });
+  const { picked, done } = deck.state;
   const [tally, setTally] = useState<Tally>(() => loadTally("reasoncheck"));
 
-  const item = items[i];
+  const item = items[deck.i];
   if (!item) return <p className="muted">No items.</p>;
 
   const rows: Row[] = item.rows.map((row) => ({
@@ -145,25 +168,36 @@ export function ReasonCheckMode() {
     note: row.note,
   }));
 
+  const setPicked = (f: (p: Set<number>) => Set<number>) =>
+    deck.setState((w) => ({ ...w, picked: f(w.picked) }));
+
   const check = () => {
     const ok = sameSet(picked, rows);
-    setDone(true);
+    deck.setState((w) => ({ ...w, done: true }));
     const t = record(tally, ok);
     setTally(t);
     saveTally("reasoncheck", t);
   };
-  const next = () => {
-    setPicked(new Set());
-    setDone(false);
-    if (i + 1 < items.length) setI(i + 1);
-    else {
-      setSeed(Math.floor(Math.random() * 1e9));
-      setI(0);
-    }
-  };
 
   return (
     <>
+      <ItemNav
+        i={deck.i}
+        count={deck.count}
+        onGo={deck.go}
+        onBack={deck.back}
+        onForward={deck.forward}
+        noun="Proof"
+        endLabel="New set"
+        marks={dots(deck, (w, n) =>
+          !w.done
+            ? null
+            : sameSet(
+                w.picked,
+                items[n].rows.map((r) => ({ label: "", correct: r.correct })),
+              ),
+        )}
+      />
       <p className="prompt strong">{item.prompt}</p>
       <div className="exercise-body">
         <div>
@@ -207,10 +241,10 @@ export function ReasonCheckMode() {
             {!done ? (
               <button className="primary" onClick={check}>Check</button>
             ) : (
-              <button className="primary" onClick={next}>Next</button>
+              <button className="primary" onClick={deck.forward}>Next</button>
             )}
             {!done && (
-              <button onClick={() => setPicked(new Set())} disabled={!picked.size}>
+              <button onClick={() => setPicked(() => new Set())} disabled={!picked.size}>
                 Clear
               </button>
             )}

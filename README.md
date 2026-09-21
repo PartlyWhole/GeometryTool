@@ -48,8 +48,10 @@ Switch sections with the Board / Practice / Cards control at the top right.
 - **Solve** — work out the measure or length a question asks for, on a keypad, as one answer or as a question in parts where Part A feeds Part B. Questions that pair a small x with a different answer say so when you enter x instead.
 - **Proof** — three ways in: justify a single line of a finished proof, judge which lines of one carry the right reason, or build a proof from nothing. Every line is checked against the reason cited for it and the earlier lines it rests on; a true statement with the wrong reason is rejected, and the theorem being proved may not be cited in its own proof. Any correct route is accepted.
 
+Every exercise and both card decks let you move about inside the set: back and forward with the arrows or the ← and → keys, and straight to any item by clicking its dot, which is filled green or red once that item has been answered. Work is kept per item, so going back finds a question as you left it — your answer, the verdict you were given, the figure you had dragged, the proof lines you had already written — and an item already answered cannot be scored twice.
+
 Statements are never typed. They are assembled by clicking: pick the form of the statement, then fill its slots from the figure itself — two points name a segment, three name an angle, an arc names the angle it marks — or from a palette of the figure's objects, operators and digits. Answers are judged modulo naming, so ∠1 and ∠AXC are the same angle.
 
 ## Verification
 
-`npm run check` runs **118 tests**, TypeScript and the production build. The suite replays every authored proof and 120 generated ones through the same strict validator a student faces, so an unsolvable problem fails the build. See [docs/EVIDENCE.md](docs/EVIDENCE.md) for browser checks and limitations.
+`npm run check` runs **136 tests**, TypeScript and the production build. The suite replays every authored proof and 120 generated ones through the same strict validator a student faces, so an unsolvable problem fails the build. See [docs/EVIDENCE.md](docs/EVIDENCE.md) for browser checks and limitations.

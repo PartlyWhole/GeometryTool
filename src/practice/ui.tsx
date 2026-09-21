@@ -1,5 +1,6 @@
 // Small shared pieces of the practice interface.
 import React from "react";
+import type { DotState } from "./deck";
 import { type Tally, percent } from "./progress";
 
 export function Scoreboard(props: { tally: Tally }) {
@@ -73,6 +74,110 @@ export function Hints(props: { hints?: string[]; shown: number; onMore: () => vo
           {props.shown === 0 ? "Give me a hint" : "Another hint"}
         </button>
       )}
+    </div>
+  );
+}
+
+/**
+ * Moving about inside a set of items: back, forward, and a strip of dots for
+ * jumping straight to one — which is how you find the question you got wrong
+ * three ago. The arrows carry no words, so they never compete with the
+ * primary "Next" an exercise offers once you have answered.
+ */
+export function ItemNav(props: {
+  i: number;
+  count: number;
+  onGo: (n: number) => void;
+  onBack: () => void;
+  onForward: () => void;
+  /** What one item is called here: "Question", "Card", "Task", "Proof". */
+  noun?: string;
+  /** Shown on the forward button at the last item, e.g. "New set". */
+  endLabel?: string;
+  /** One entry per item: how each dot should read. Omit for no strip. */
+  marks?: DotState[];
+  children?: React.ReactNode;
+}) {
+  const noun = props.noun ?? "Question";
+  const atEnd = props.i >= props.count - 1;
+
+  // Arrow keys, so a student reviewing a set is not hunting for a button.
+  // Kept in a ref: rebinding the listener on every keystroke-free render is
+  // pointless churn.
+  const live = React.useRef(props);
+  live.current = props;
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      const t = e.target as HTMLElement | null;
+      const tag = t?.tagName;
+      // Arrows belong to the control the student is actually in.
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (t?.isContentEditable) return;
+      if (e.key === "ArrowLeft") {
+        if (live.current.i === 0) return;
+        e.preventDefault();
+        live.current.onBack();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        live.current.onForward();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  return (
+    <div className="itemnav">
+      <button
+        className="itemnav-btn"
+        onClick={props.onBack}
+        disabled={props.i === 0}
+        title={"Previous " + noun.toLowerCase() + " (←)"}
+        aria-label={"Previous " + noun.toLowerCase()}
+      >
+        ‹
+      </button>
+      <span className="itemnav-at" aria-live="polite">
+        {noun} <b>{props.i + 1}</b> of {props.count}
+      </span>
+      <button
+        className={"itemnav-btn" + (atEnd && props.endLabel ? " wide" : "")}
+        onClick={props.onForward}
+        title={
+          atEnd
+            ? (props.endLabel ?? "Back to the first " + noun.toLowerCase()) + " (→)"
+            : "Next " + noun.toLowerCase() + " (→)"
+        }
+        aria-label={atEnd ? (props.endLabel ?? "Start again") : "Next " + noun.toLowerCase()}
+      >
+        {atEnd && props.endLabel ? props.endLabel : "›"}
+      </button>
+      {props.marks && props.marks.length > 1 && (
+        <div className="itemdots">
+          {props.marks.map((m, n) => (
+            <button
+              key={n}
+              className={"itemdot " + m + (n === props.i ? " at" : "")}
+              onClick={() => props.onGo(n)}
+              aria-current={n === props.i ? "true" : undefined}
+              aria-label={
+                noun +
+                " " +
+                (n + 1) +
+                (m === "open" ? "" : m === "right" ? ", correct" : ", wrong")
+              }
+              title={
+                noun +
+                " " +
+                (n + 1) +
+                (m === "open" ? "" : m === "right" ? " — correct" : " — wrong")
+              }
+            />
+          ))}
+        </div>
+      )}
+      {props.children}
     </div>
   );
 }

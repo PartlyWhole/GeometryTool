@@ -1,6 +1,6 @@
 // Exercise 3: diagram → equation, and description → diagram.
 import React, { useMemo, useState } from "react";
-import { clone } from "../model";
+import { type Board, clone } from "../model";
 import { Figure } from "./Figure";
 import {
   StatementBuilder,
@@ -16,8 +16,9 @@ import { CONSTRUCT_ITEMS, READ_ITEMS, type ConstructItem, type ReadItem } from "
 import { statementText } from "./notation";
 import { HAND, angleNamer, holds, measureOf, lengthOf } from "./oracle";
 import { type ObjId, matchesAccepted, objKey, statementObjects } from "./terms";
+import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
-import { Scoreboard, Tabs, Verdict } from "./ui";
+import { ItemNav, Scoreboard, Tabs, Verdict } from "./ui";
 
 type Dir = "read" | "construct" | "claims";
 
@@ -54,21 +55,23 @@ export function TranslateExercise() {
   );
 }
 
+/** A half-written statement and the verdict on it, for one figure. */
+type ReadWork = { draft: Draft; result: boolean | null };
+
 function ReadMode() {
-  const [i, setI] = useState(0);
-  const item: ReadItem = READ_ITEMS[i % READ_ITEMS.length];
-  const [draft, setDraft] = useState<Draft>(() => newDraft("eq"));
-  const [result, setResult] = useState<null | boolean>(null);
+  const deck = useDeck<ReadWork>(READ_ITEMS.length, () => ({
+    draft: newDraft("eq"),
+    result: null,
+  }));
+  const item: ReadItem = READ_ITEMS[deck.i];
+  const { draft, result } = deck.state;
+  const setDraft = (d: Draft) => deck.setState((w) => ({ ...w, draft: d }));
+  const setResult = (r: boolean | null) =>
+    deck.setState((w) => ({ ...w, result: r }));
   const [tally, setTally] = useState<Tally>(() => loadTally("translate-read"));
 
   const built = buildStatement(draft);
   const preview = built.ok ? statementText(built.statement) : undefined;
-
-  const next = () => {
-    setI(i + 1);
-    setDraft(newDraft("eq"));
-    setResult(null);
-  };
 
   const check = () => {
     if (!built.ok) return;
@@ -87,6 +90,15 @@ function ReadMode() {
 
   return (
     <>
+      <ItemNav
+        i={deck.i}
+        count={deck.count}
+        onGo={deck.go}
+        onBack={deck.back}
+        onForward={deck.forward}
+        noun="Figure"
+        marks={dots(deck, (w) => w.result)}
+      />
       <p className="prompt strong">{item.prompt}</p>
       <div className="exercise-body">
         <div>
@@ -123,7 +135,6 @@ function ReadMode() {
               Check
             </button>
             <button onClick={() => setDraft(newDraft(draft.form))}>Reset</button>
-            <button onClick={next}>Skip</button>
           </div>
           {result !== null && (
             <>
@@ -135,7 +146,7 @@ function ReadMode() {
               </Verdict>
               {result && (
                 <div className="row">
-                  <button className="primary" onClick={next}>Next</button>
+                  <button className="primary" onClick={deck.forward}>Next</button>
                 </div>
               )}
             </>
@@ -146,21 +157,21 @@ function ReadMode() {
   );
 }
 
-function ConstructMode() {
-  const [i, setI] = useState(0);
-  const item: ConstructItem = CONSTRUCT_ITEMS[i % CONSTRUCT_ITEMS.length];
-  const [board, setBoard] = useState(() => clone(item.start));
-  const [result, setResult] = useState<null | boolean>(null);
-  const [tally, setTally] = useState<Tally>(() => loadTally("translate-build"));
+/** The figure as the student has dragged it, and the verdict on it. */
+type BuildWork = { board: Board; result: boolean | null };
 
-  // Reset the working board whenever the item changes.
-  const itemId = item.id;
-  const lastId = React.useRef(itemId);
-  if (lastId.current !== itemId) {
-    lastId.current = itemId;
-    setBoard(clone(item.start));
-    setResult(null);
-  }
+function ConstructMode() {
+  // The dragged figure is kept per task, so coming back to one shows the
+  // arrangement you left rather than the untouched start.
+  const deck = useDeck<BuildWork>(CONSTRUCT_ITEMS.length, (n) => ({
+    board: clone(CONSTRUCT_ITEMS[n].start),
+    result: null,
+  }));
+  const item: ConstructItem = CONSTRUCT_ITEMS[deck.i];
+  const { board, result } = deck.state;
+  const setResult = (r: boolean | null) =>
+    deck.setState((w) => ({ ...w, result: r }));
+  const [tally, setTally] = useState<Tally>(() => loadTally("translate-build"));
 
   // Only the points the task names may move, so the prompt and the figure agree.
   const movable = item.movable;
@@ -199,10 +210,11 @@ function ConstructMode() {
   }, [board, item]);
 
   const move = (label: string, x: number, y: number) =>
-    setBoard((b) => {
+    deck.setState((w) => {
+      const b = w.board;
       const n = clone(b);
       const p = n.points.find((q) => q.label === label);
-      if (!p) return b;
+      if (!p) return w;
       // A point declared to lie on a support stays on it.
       if (p.on) {
         const e = n.edges.find((x2) => x2.id === p.on!.edge);
@@ -215,14 +227,12 @@ function ConstructMode() {
           p.on.t = t;
           p.x = a.x + dx * t;
           p.y = a.y + dy * t;
-          setResult(null);
-          return n;
+          return { board: n, result: null };
         }
       }
       p.x = x;
       p.y = y;
-      setResult(null);
-      return n;
+      return { board: n, result: null };
     });
 
   // Hand tolerance: a student dragging a point cannot land on 90.000°.
@@ -240,6 +250,15 @@ function ConstructMode() {
 
   return (
     <>
+      <ItemNav
+        i={deck.i}
+        count={deck.count}
+        onGo={deck.go}
+        onBack={deck.back}
+        onForward={deck.forward}
+        noun="Task"
+        marks={dots(deck, (w) => w.result)}
+      />
       <p className="prompt strong">{item.prompt}</p>
       <div className="exercise-body">
         <div>
@@ -285,29 +304,28 @@ function ConstructMode() {
           <div className="row">
             <button className="primary" onClick={check}>Check</button>
             <button
-              onClick={() => {
-                setBoard(clone(item.start));
-                setResult(null);
-              }}
+              onClick={() =>
+                deck.setState({ board: clone(item.start), result: null })
+              }
             >
               Reset figure
             </button>
-            <button
-              onClick={() => {
-                setI(i + 1);
-              }}
-            >
-              Next task
-            </button>
           </div>
           {result !== null && (
-            <Verdict ok={result}>
-              {result
-                ? item.why
-                : violated.length
-                  ? "That still satisfies “" + statementText(violated[0]) + "”, which the task rules out."
-                  : "Not there yet: " + statementText(failures[0]) + "."}
-            </Verdict>
+            <>
+              <Verdict ok={result}>
+                {result
+                  ? item.why
+                  : violated.length
+                    ? "That still satisfies “" + statementText(violated[0]) + "”, which the task rules out."
+                    : "Not there yet: " + statementText(failures[0]) + "."}
+              </Verdict>
+              {result && (
+                <div className="row">
+                  <button className="primary" onClick={deck.forward}>Next task</button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

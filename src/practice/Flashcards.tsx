@@ -5,8 +5,9 @@ import { Figure } from "./Figure";
 import { CONCEPTS, type Concept } from "./content/concepts";
 import { LIBRARY } from "./content/library";
 import { type LogicCard, logicCards } from "./content/logicCards";
+import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
-import { Scoreboard, Tabs, Verdict } from "./ui";
+import { ItemNav, Scoreboard, Tabs, Verdict } from "./ui";
 
 type Deck = "logic" | "definitions";
 
@@ -41,35 +42,38 @@ export function Flashcards() {
 function LogicDeck() {
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const cards = useMemo(() => logicCards(seed, 16), [seed]);
-  const [i, setI] = useState(0);
-  const [picked, setPicked] = useState<number | null>(null);
+  const deck = useDeck<number | null>(cards.length, () => null, {
+    key: String(seed),
+    onEnd: () => setSeed(Math.floor(Math.random() * 1e9)),
+  });
+  const picked = deck.state;
   const [tally, setTally] = useState<Tally>(() => loadTally("logic"));
 
-  const card: LogicCard | undefined = cards[i];
+  const card: LogicCard | undefined = cards[deck.i];
   if (!card) return <p className="muted">No cards.</p>;
 
   const answer = (n: number) => {
     if (picked !== null) return;
-    setPicked(n);
+    deck.setState(n);
     const t = record(tally, n === card.correct);
     setTally(t);
     saveTally("logic", t);
-  };
-
-  const next = () => {
-    setPicked(null);
-    if (i + 1 < cards.length) setI(i + 1);
-    else {
-      setSeed(Math.floor(Math.random() * 1e9));
-      setI(0);
-    }
   };
 
   return (
     <div className="deck">
       <div className="deck-bar">
         <span className="tag">{card.tag}</span>
-        <span className="muted small">Card {i + 1} of {cards.length}</span>
+        <ItemNav
+          i={deck.i}
+          count={deck.count}
+          onGo={deck.go}
+          onBack={deck.back}
+          onForward={deck.forward}
+          noun="Card"
+          endLabel="New set"
+          marks={dots(deck, (p, n) => (p === null ? null : p === cards[n].correct))}
+        />
         <Scoreboard tally={tally} />
       </div>
 
@@ -108,7 +112,7 @@ function LogicDeck() {
                 .join(" ")}
             </Verdict>
             <div className="row">
-              <button className="primary" onClick={next}>Next card</button>
+              <button className="primary" onClick={deck.forward}>Next card</button>
             </div>
           </>
         )}
@@ -134,8 +138,7 @@ function DefinitionDeck() {
     [kind],
   );
   const [order, setOrder] = useState<number[]>(() => pool.map((_, i) => i));
-  const [i, setI] = useState(0);
-  const [flipped, setFlipped] = useState(false);
+  const [round, setRound] = useState(0);
   const [again, setAgain] = useState<string[]>([]);
 
   // Rebuild the running order whenever the filter changes.
@@ -144,12 +147,25 @@ function DefinitionDeck() {
   if (lastKey.current !== poolKey) {
     lastKey.current = poolKey;
     setOrder(pool.map((_, n) => n));
-    setI(0);
-    setFlipped(false);
+    setRound((r) => r + 1);
     setAgain([]);
   }
 
-  const c: Concept | undefined = pool[order[i] ?? 0];
+  // A run is keyed by filter and round, so re-shuffling starts the flips over
+  // while stepping back inside a run finds the card as you left it.
+  const deck = useDeck<{ flipped: boolean; knew: boolean | null }>(
+    order.length,
+    () => ({ flipped: false, knew: null }),
+    { key: poolKey + ":" + side + ":" + round },
+  );
+  const { flipped } = deck.state;
+  const setFlipped = (f: boolean | ((p: boolean) => boolean)) =>
+    deck.setState((w) => ({
+      ...w,
+      flipped: typeof f === "function" ? f(w.flipped) : f,
+    }));
+
+  const c: Concept | undefined = pool[order[deck.i] ?? 0];
   if (!c) return <p className="muted">No cards in this filter.</p>;
 
   const make = c.examples.find((e) => e.figure)?.figure;
@@ -157,21 +173,16 @@ function DefinitionDeck() {
 
   const advance = (knew: boolean) => {
     if (!knew) setAgain((a) => (a.includes(c.id) ? a : [...a, c.id]));
-    setFlipped(false);
-    if (i + 1 < order.length) setI(i + 1);
+    deck.setState((w) => ({ ...w, flipped: false, knew }));
+    if (deck.i + 1 < order.length) deck.go(deck.i + 1);
     else {
       // Second pass over the ones marked "again".
       const repeat = pool
         .map((x, n) => (again.includes(x.id) || (!knew && x.id === c.id) ? n : -1))
         .filter((n) => n >= 0);
-      if (repeat.length) {
-        setOrder(repeat);
-        setAgain([]);
-        setI(0);
-      } else {
-        setOrder(shuffled(pool.length));
-        setI(0);
-      }
+      setOrder(repeat.length ? repeat : shuffled(pool.length));
+      setAgain([]);
+      setRound((r) => r + 1);
     }
   };
 
@@ -195,16 +206,24 @@ function DefinitionDeck() {
             <button
               key={s}
               className={side === s ? "chip active" : "chip"}
-              onClick={() => { setSide(s); setFlipped(false); }}
+              onClick={() => setSide(s)}
             >
               {s === "term" ? "Term" : "Definition"}
             </button>
           ))}
-          <span className="muted small">
-            {i + 1} of {order.length}
-            {again.length > 0 && ` · ${again.length} to revisit`}
-          </span>
+          {again.length > 0 && (
+            <span className="muted small">{again.length} to revisit</span>
+          )}
         </div>
+        <ItemNav
+          i={deck.i}
+          count={deck.count}
+          onGo={deck.go}
+          onBack={deck.back}
+          onForward={deck.forward}
+          noun="Card"
+          marks={dots(deck, (w) => w.knew)}
+        />
       </div>
 
       <article

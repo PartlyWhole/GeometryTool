@@ -3,34 +3,29 @@ import React, { useMemo, useState } from "react";
 import { Figure } from "./Figure";
 import { conceptQuestions } from "./content/conceptQuiz";
 import { LIBRARY } from "./content/library";
+import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
-import { Scoreboard, Verdict } from "./ui";
+import { ItemNav, Scoreboard, Verdict } from "./ui";
 
 export function ConceptExercise() {
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const items = useMemo(() => conceptQuestions(seed, 14), [seed]);
-  const [i, setI] = useState(0);
-  const [picked, setPicked] = useState<number | null>(null);
+  const deck = useDeck<number | null>(items.length, () => null, {
+    key: String(seed),
+    onEnd: () => setSeed(Math.floor(Math.random() * 1e9)),
+  });
+  const picked = deck.state;
   const [tally, setTally] = useState<Tally>(() => loadTally("concepts"));
 
-  const q = items[i];
+  const q = items[deck.i];
   if (!q) return <p className="muted">No questions generated.</p>;
 
   const answer = (n: number) => {
     if (picked !== null) return;
-    setPicked(n);
+    deck.setState(n);
     const t = record(tally, n === q.correct);
     setTally(t);
     saveTally("concepts", t);
-  };
-
-  const next = () => {
-    setPicked(null);
-    if (i + 1 < items.length) setI(i + 1);
-    else {
-      setSeed(Math.floor(Math.random() * 1e9));
-      setI(0);
-    }
   };
 
   const make = q.figure ? LIBRARY[q.figure] : undefined;
@@ -44,6 +39,16 @@ export function ConceptExercise() {
         </div>
         <Scoreboard tally={tally} />
       </header>
+
+      <ItemNav
+        i={deck.i}
+        count={deck.count}
+        onGo={deck.go}
+        onBack={deck.back}
+        onForward={deck.forward}
+        endLabel="New set"
+        marks={dots(deck, (p, n) => (p === null ? null : p === items[n].correct))}
+      />
 
       <div className={"exercise-body" + (make ? "" : " no-figure")}>
         {make && (
@@ -76,7 +81,7 @@ export function ConceptExercise() {
             <>
               <Verdict ok={picked === q.correct}>{q.why}</Verdict>
               <div className="row">
-                <button className="primary" onClick={next}>Next</button>
+                <button className="primary" onClick={deck.forward}>Next</button>
               </div>
             </>
           )}

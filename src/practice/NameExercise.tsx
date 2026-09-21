@@ -3,19 +3,30 @@ import React, { useMemo, useState } from "react";
 import { Figure } from "./Figure";
 import { type NameItem, nameItems } from "./content/generators";
 import { objKey, splitLabels } from "./terms";
+import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
-import { Scoreboard, Verdict } from "./ui";
+import { ItemNav, Scoreboard, Verdict } from "./ui";
+
+/** What a student has done to one naming question. */
+type Work = { chosen: string[]; picked: string | null; result: boolean | null };
+const blankWork = (): Work => ({ chosen: [], picked: null, result: null });
 
 export function NameExercise() {
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const items = useMemo(() => nameItems(seed, 12), [seed]);
-  const [i, setI] = useState(0);
-  const [chosen, setChosen] = useState<string[]>([]);
-  const [picked, setPicked] = useState<string | null>(null);
-  const [result, setResult] = useState<null | boolean>(null);
+  const deck = useDeck<Work>(items.length, blankWork, {
+    key: String(seed),
+    onEnd: () => setSeed(Math.floor(Math.random() * 1e9)),
+  });
+  const { chosen, picked, result } = deck.state;
+  const setChosen = (c: string[] | ((p: string[]) => string[])) =>
+    deck.setState((w) => ({
+      ...w,
+      chosen: typeof c === "function" ? c(w.chosen) : c,
+    }));
   const [tally, setTally] = useState<Tally>(() => loadTally("name"));
 
-  const item = items[i];
+  const item = items[deck.i];
   if (!item) return <p className="muted">No items generated.</p>;
 
   // An equivalence item supplies its own answer, because the target is named
@@ -26,23 +37,10 @@ export function NameExercise() {
       ? splitLabels(item.target.name)
       : [item.target.a, item.target.b]);
 
-  const reset = () => {
-    setChosen([]);
-    setPicked(null);
-    setResult(null);
-  };
-
-  const next = () => {
-    reset();
-    if (i + 1 < items.length) setI(i + 1);
-    else {
-      setSeed(Math.floor(Math.random() * 1e9));
-      setI(0);
-    }
-  };
+  const reset = () => deck.setState(blankWork());
 
   const score = (ok: boolean) => {
-    setResult(ok);
+    deck.setState((w) => ({ ...w, result: ok }));
     const t = record(tally, ok);
     setTally(t);
     saveTally("name", t);
@@ -86,6 +84,16 @@ export function NameExercise() {
         </div>
         <Scoreboard tally={tally} />
       </header>
+
+      <ItemNav
+        i={deck.i}
+        count={deck.count}
+        onGo={deck.go}
+        onBack={deck.back}
+        onForward={deck.forward}
+        endLabel="New set"
+        marks={dots(deck, (w) => w.result)}
+      />
 
       <div className="exercise-body">
         <Figure
@@ -159,11 +167,14 @@ export function NameExercise() {
                   }
                   disabled={result !== null}
                   onClick={() => {
-                    setPicked(c);
+                    deck.setState((w) => ({
+                      ...w,
+                      picked: c,
+                      result: c === item.answer,
+                    }));
                     const t = record(tally, c === item.answer);
                     setTally(t);
                     saveTally("name", t);
-                    setResult(c === item.answer);
                   }}
                 >
                   <span className="choice-name">{c}</span>
@@ -186,7 +197,7 @@ export function NameExercise() {
 
           {result !== null && (
             <div className="row">
-              <button className="primary" onClick={next}>Next</button>
+              <button className="primary" onClick={deck.forward}>Next</button>
               {!result && (
                 <button onClick={reset}>Try again</button>
               )}

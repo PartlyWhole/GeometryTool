@@ -15,10 +15,33 @@ import type { Trap } from "./content/numeric";
 
 /** One trap or several, read the same way. */
 const traps = (t: Trap | Trap[] | undefined): Trap[] => (t ? (Array.isArray(t) ? t : [t]) : []);
+import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
-import { Hints, Scoreboard, Verdict } from "./ui";
+import { Hints, ItemNav, Scoreboard, Verdict } from "./ui";
 
 type Outcome = "right" | "wrong" | "trap";
+
+/** A whole question in parts, as far as the student has taken it. */
+type Work = {
+  at: number;
+  entry: string;
+  picked: Set<number>;
+  outcome: Outcome | null;
+  trapHit: Trap | null;
+  hintsShown: number;
+  answers: string[];
+  cleanRun: boolean;
+};
+const blankWork = (): Work => ({
+  at: 0,
+  entry: "",
+  picked: new Set<number>(),
+  outcome: null,
+  trapHit: null,
+  hintsShown: 0,
+  answers: [],
+  cleanRun: true,
+});
 
 export function MultiPartExercise() {
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
@@ -26,62 +49,75 @@ export function MultiPartExercise() {
     () => [...MULTIPART_ITEMS, ...generatedMultiPart(seed, 4)],
     [seed],
   );
-  const [i, setI] = useState(0);
+  const deck = useDeck<Work>(items.length, blankWork, {
+    key: String(seed),
+    onEnd: () => setSeed(Math.floor(Math.random() * 1e9)),
+  });
   const [tally, setTally] = useState<Tally>(() => loadTally("multipart"));
-  const item = items[i];
-
-  const next = () => {
-    if (i + 1 < items.length) setI(i + 1);
-    else {
-      setSeed(Math.floor(Math.random() * 1e9));
-      setI(0);
-    }
-  };
+  const item = items[deck.i];
 
   if (!item) return <p className="muted">No questions.</p>;
 
   return (
-    <MultiPartBoard
-      key={item.id}
-      item={item}
-      tally={tally}
-      onScore={(ok) => {
-        const t = record(tally, ok);
-        setTally(t);
-        saveTally("multipart", t);
-      }}
-      onNext={next}
-    />
+    <>
+      <MultiPartBoard
+        item={item}
+        work={deck.state}
+        setWork={deck.setState}
+        tally={tally}
+        onScore={(ok) => {
+          const t = record(tally, ok);
+          setTally(t);
+          saveTally("multipart", t);
+        }}
+        onNext={deck.forward}
+        nav={
+          <ItemNav
+            i={deck.i}
+            count={deck.count}
+            onGo={deck.go}
+            onBack={deck.back}
+            onForward={deck.forward}
+            endLabel="New set"
+            marks={dots(deck, (w, n) =>
+              w.at < items[n].parts.length ? null : w.cleanRun,
+            )}
+          />
+        }
+      />
+    </>
   );
 }
 
 function MultiPartBoard(props: {
   item: MultiPartItem;
+  work: Work;
+  setWork: (next: Work | ((prev: Work) => Work)) => void;
   tally: Tally;
   onScore: (ok: boolean) => void;
   onNext: () => void;
+  nav: React.ReactNode;
 }) {
   const { item } = props;
-  const [at, setAt] = useState(0);
-  const [entry, setEntry] = useState("");
-  const [picked, setPicked] = useState<Set<number>>(new Set());
-  const [outcome, setOutcome] = useState<Outcome | null>(null);
-  const [trapHit, setTrapHit] = useState<Trap | null>(null);
-  const [hintsShown, setHintsShown] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
-  const [cleanRun, setCleanRun] = useState(true);
+  const { at, entry, picked, outcome, trapHit, hintsShown, answers, cleanRun } =
+    props.work;
+  const set = (patch: Partial<Work>) =>
+    props.setWork((w) => ({ ...w, ...patch }));
 
   const part: Part | undefined = item.parts[at];
   const finished = at >= item.parts.length;
 
   const advance = (shown: string) => {
-    setAnswers((a) => [...a, shown]);
-    setEntry("");
-    setPicked(new Set());
-    setOutcome(null);
-    setHintsShown(0);
     const nextAt = at + 1;
-    setAt(nextAt);
+    props.setWork((w) => ({
+      ...w,
+      answers: [...w.answers, shown],
+      entry: "",
+      picked: new Set<number>(),
+      outcome: null,
+      hintsShown: 0,
+      at: nextAt,
+    }));
     if (nextAt >= item.parts.length) props.onScore(cleanRun);
   };
 
@@ -92,17 +128,18 @@ function MultiPartBoard(props: {
       if (v === undefined) return;
       const tol = part.body.tolerance ?? 1e-6;
       if (Math.abs(v - part.body.answer) <= tol) {
-        setOutcome("right");
+        set({ outcome: "right" });
         return;
       }
       const hit = traps(part.body.trap).find((t) => Math.abs(v - t.value) <= 1e-6);
-      setTrapHit(hit ?? null);
-      setOutcome(hit ? "trap" : "wrong");
-      setCleanRun(false);
+      set({
+        trapHit: hit ?? null,
+        outcome: hit ? "trap" : "wrong",
+        cleanRun: false,
+      });
     } else {
       const ok = part.body.claims.every((c, n) => c.holds === picked.has(n));
-      setOutcome(ok ? "right" : "wrong");
-      if (!ok) setCleanRun(false);
+      set({ outcome: ok ? "right" : "wrong", cleanRun: cleanRun && ok });
     }
   };
 
@@ -120,6 +157,8 @@ function MultiPartBoard(props: {
         </div>
         <Scoreboard tally={props.tally} />
       </header>
+
+      {props.nav}
 
       <p className="prompt strong">{item.stem}</p>
 
@@ -155,7 +194,7 @@ function MultiPartBoard(props: {
               {part.body.kind === "numeric" ? (
                 <NumberEntry
                   value={entry}
-                  onChange={setEntry}
+                  onChange={(v) => set({ entry: v })}
                   unit={part.body.unit}
                   disabled={outcome === "right"}
                 />
@@ -174,10 +213,10 @@ function MultiPartBoard(props: {
                           : "")
                       }
                       onClick={() =>
-                        setPicked((p2) => {
-                          const q = new Set(p2);
+                        props.setWork((w) => {
+                          const q = new Set(w.picked);
                           q.has(n) ? q.delete(n) : q.add(n);
-                          return q;
+                          return { ...w, picked: q };
                         })
                       }
                     >
@@ -194,7 +233,13 @@ function MultiPartBoard(props: {
                 <Hints
                   hints={part.hints}
                   shown={hintsShown}
-                  onMore={() => { setHintsShown((n) => n + 1); setCleanRun(false); }}
+                  onMore={() =>
+                    props.setWork((w) => ({
+                      ...w,
+                      hintsShown: w.hintsShown + 1,
+                      cleanRun: false,
+                    }))
+                  }
                 />
               )}
 
@@ -234,11 +279,9 @@ function MultiPartBoard(props: {
                     </button>
                     {outcome !== null && (
                       <button
-                        onClick={() => {
-                          setOutcome(null);
-                          setEntry("");
-                          setPicked(new Set());
-                        }}
+                        onClick={() =>
+                          set({ outcome: null, entry: "", picked: new Set<number>() })
+                        }
                       >
                         Try again
                       </button>
