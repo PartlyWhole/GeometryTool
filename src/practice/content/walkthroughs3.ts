@@ -92,6 +92,7 @@ export const WALKTHROUGHS3: Walkthrough[] = [
       { text: "Because m ∥ n, they are congruent.", marks: both(prove, 1, 5), show: cong(1, 5), assert: [{ statement: cong(1, 5), holds: true }] },
       { text: "So is every corresponding pair: ∠2 ≅ ∠6, ∠3 ≅ ∠7 and ∠4 ≅ ∠8.", marks: both(prove, 2, 6), show: cong(2, 6) },
       { text: "It is a postulate: accepted, not proved. The four theorems that follow are each proved from it." },
+      { text: "Why accept this one? Any of the five rules could have been the starting point — each follows from any other with one vertical pair or one linear pair. The corresponding pair is chosen because it can be seen: the two crossings are copies of each other, slid along t." },
       { text: "Take away m ∥ n and it says nothing. On these lines ∠1 and ∠5 still correspond, and they are not congruent.", figure: "transversalJK", marks: both(given, 1, 5), assert: [{ statement: cong(1, 5), holds: false }] },
     ],
   },
@@ -103,6 +104,7 @@ export const WALKTHROUGHS3: Walkthrough[] = [
       { text: "∠7 and ∠5 are vertical angles, so ∠7 ≅ ∠5.", marks: both(given, 7, 5), show: cong(7, 5), assert: [{ statement: { k: "vertical", a: a(7), b: a(5) }, holds: true }] },
       { text: "Chain the two through ∠7: ∠3 ≅ ∠5, by the Transitive Property.", marks: both(prove, 3, 5), show: cong(3, 5), assert: [{ statement: cong(3, 5), holds: true }] },
       { text: "The same three steps give the other pair, ∠4 ≅ ∠6.", marks: both(prove, 4, 6), show: cong(4, 6) },
+      { text: "Where did the proof use m ∥ n? Only in its first step. The vertical-angle step and the chain hold for any two lines — so take the arrowheads away and ∠3 and ∠5 are free to differ, as they do here.", figure: "transversalJK", marks: both(given, 3, 5), assert: [{ statement: cong(3, 5), holds: false }] },
     ],
   },
   {
@@ -112,7 +114,8 @@ export const WALKTHROUGHS3: Walkthrough[] = [
       { text: "∠5 and ∠1 correspond, so m∠5 = m∠1.", marks: both(given, 5, 1), show: { k: "eq", l: meas("5"), r: meas("1") } },
       { text: "∠1 and ∠4 form a linear pair, so m∠1 + m∠4 = 180.", marks: both(given, 1, 4), show: { k: "eq", l: add(meas("1"), meas("4")), r: num(180) }, assert: [{ statement: { k: "linearPair", a: a(1), b: a(4) }, holds: true }] },
       { text: "Substitute m∠5 for m∠1: m∠5 + m∠4 = 180. They are supplementary.", marks: both(prove, 4, 5), show: { k: "eq", l: add(meas("5"), meas("4")), r: num(180) }, assert: [{ statement: { k: "supp", a: a(4), b: a(5) }, holds: true }] },
-      { text: "Supplementary, not congruent: one of the pair is acute and the other obtuse, unless t meets the lines at right angles." },
+      { text: "Supplementary, not congruent: one of the pair is acute and the other obtuse — with one exception." },
+      { text: "The exception: when t meets the lines at right angles, both angles are 90°. The pair is then congruent and supplementary at once, and so is every other pair in the figure.", figure: "perpendicularTransversal", marks: both(given, 4, 5), assert: [{ statement: cong(4, 5), holds: true }, { statement: { k: "supp", a: a(4), b: a(5) }, holds: true }] },
     ],
   },
   {

@@ -1,46 +1,50 @@
 // The Concepts page: each concept explained in steps, with the figure
-// building up as you go.
+// building up as you go — and the concepts themselves told in the order of
+// content/story.ts, each opening on why it comes next and closing on what it
+// hands to the one after.
 //
 // Practice tests what you know and Cards drill it; this is where the idea is
 // laid out in the first place. A step may change the figure, move the
 // highlight on the figure already there, or put up a line of algebra.
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Figure, type Highlight } from "./Figure";
 import { statementText } from "./notation";
 import { CONCEPTS, type Concept } from "./content/concepts";
 import { CONCEPTS3 } from "./content/concepts3";
 import { LIBRARY } from "./content/library";
 import { WALKTHROUGHS } from "./content/walkthroughs";
+import { CHAPTERS, ECHOES, NEEDS, chapterNumber, placeOf } from "./content/story";
 import { BuildStamp, type Module } from "./ui";
 
-type Section = { label: string; match: (c: Concept) => boolean };
+/** Every concept in both modules: a Module 3 concept can build on Module 2's. */
+const ALL: Concept[] = [...CONCEPTS, ...CONCEPTS3];
+const conceptOf = (id: string) => ALL.find((c) => c.id === id)!;
+const moduleOf = (id: string): Module => (conceptOf(id).module === 3 ? 3 : 2);
 
-const SECTIONS3: Section[] = [
-  { label: "Transversals", match: (c) => c.section === "Transversals" },
-  { label: "Parallel lines", match: (c) => c.section === "Parallel lines" },
-  { label: "Proof", match: (c) => c.section === "Proof" },
-];
-
-const SECTIONS: Section[] = [
-  { label: "Points and lines", match: (c) => c.section === "§5" },
-  { label: "Segments", match: (c) => c.section === "§6" },
-  { label: "Angles", match: (c) => c.section === "§8" },
-  { label: "Properties of equality", match: (c) => c.section === "§4" },
-  { label: "The five theorems", match: (c) => c.section === "§9" },
-  { label: "Reasoning and proof", match: (c) => c.section === "§2" || c.section === "§3" },
-];
-
-export function Concepts(props: { module?: Module }) {
-  const bank = props.module === 3 ? CONCEPTS3 : CONCEPTS;
-  const sections = props.module === 3 ? SECTIONS3 : SECTIONS;
-  const [id, setId] = useState(bank[0].id);
+export function Concepts(props: { module?: Module; onModule?: (m: Module) => void }) {
+  const module: Module = props.module === 3 ? 3 : 2;
+  const chapters = CHAPTERS.filter((c) => c.module === module);
+  const [id, setId] = useState(chapters[0].stops[0].conceptId);
   const [step, setStep] = useState(0);
   const [seen, setSeen] = useState<Set<string>>(new Set());
+  // Following a "builds on" link from Module 3 back into Module 2 is a
+  // detour, so the page remembers where to come back to.
+  const [detourFrom, setDetourFrom] = useState<string | null>(null);
 
-  const concept = bank.find((c) => c.id === id)!;
+  // "Continue" walks down the list; keep the concept being read in view there.
+  const listRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    listRef.current
+      ?.querySelector(".concept-link.active")
+      ?.scrollIntoView?.({ block: "nearest" });
+  }, [id]);
+
+  const concept = conceptOf(id);
+  const place = placeOf(id)!;
   const walk = WALKTHROUGHS.find((w) => w.conceptId === id);
 
-  const choose = (next: string) => {
+  const choose = (next: string, detour = false) => {
+    setDetourFrom(detour ? (detourFrom ?? id) : null);
     setId(next);
     setStep(0);
   };
@@ -66,11 +70,34 @@ export function Concepts(props: { module?: Module }) {
 
   const last = (walk?.steps.length ?? 1) - 1;
   const atEnd = step >= last;
+  const opensChapter = place.index === 0;
+  const closesChapter = place.index === place.chapter.stops.length - 1;
+  const away = moduleOf(id) !== module;
 
   const advance = () => {
     if (atEnd) setSeen((s) => new Set(s).add(id));
     else setStep(step + 1);
   };
+
+  const links = (ids: string[], label: string) =>
+    ids.length > 0 && (
+      <div className="concept-links">
+        <span className="concept-links-label">{label}</span>
+        {ids.map((n) => (
+          <button
+            key={n}
+            className="chip"
+            onClick={() => choose(n, moduleOf(n) !== module)}
+            title={placeOf(n)?.stop.bridge}
+          >
+            {conceptOf(n).term}
+            {moduleOf(n) !== moduleOf(id) && (
+              <span className="concept-links-module">Module {moduleOf(n)}</span>
+            )}
+          </button>
+        ))}
+      </div>
+    );
 
   return (
     <div className="page concepts">
@@ -78,23 +105,24 @@ export function Concepts(props: { module?: Module }) {
         <div>
           <h1>Concepts</h1>
           <p className="muted">
-            {props.module === 3
-              ? "Two lines cut by a transversal: the names for the angle pairs, and what parallel lines make of them."
-              : "Every idea in the module, laid out a step at a time."}{" "}
-            Work through a concept here, then drill it in Practice.
+            {module === 3
+              ? "The story continues from Module 2: a second crossing, the names for the angles it makes, and what parallel lines make of them."
+              : "One idea at a time, each built from the ones before it. Work through a concept here, then drill it in Practice."}
           </p>
         </div>
       </header>
 
       <div className="concepts-body">
-        <nav className="concept-list" aria-label="Concepts">
-          {sections.map((section) => {
-            const members = bank.filter(section.match);
-            if (!members.length) return null;
-            return (
-              <div key={section.label} className="concept-group">
-                <h2>{section.label}</h2>
-                {members.map((c) => (
+        <nav className="concept-list" aria-label="Chapters and concepts" ref={listRef}>
+          {chapters.map((ch) => (
+            <div key={ch.id} className="concept-group">
+              <h2>
+                <span className="concept-chapter-n">Chapter {chapterNumber(ch)}</span>
+                {ch.title}
+              </h2>
+              {ch.stops.map((s) => {
+                const c = conceptOf(s.conceptId);
+                return (
                   <button
                     key={c.id}
                     className={"concept-link" + (c.id === id ? " active" : "")}
@@ -104,18 +132,44 @@ export function Concepts(props: { module?: Module }) {
                     <span>{c.term}</span>
                     {seen.has(c.id) && <span className="concept-done" aria-label="read">✓</span>}
                   </button>
-                ))}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         <article className="concept-main">
+          {detourFrom && (
+            <button className="link concept-detour" onClick={() => choose(detourFrom)}>
+              ← Back to {conceptOf(detourFrom).term}
+            </button>
+          )}
+
+          {/* A chapter opens on the question it exists to answer. */}
+          {opensChapter && (
+            <div className="concept-chapter">
+              <span className="concept-chapter-n">
+                {away ? "Module " + moduleOf(id) + " · " : ""}Chapter {chapterNumber(place.chapter)}
+              </span>
+              <h2>{place.chapter.title}</h2>
+              <p>{place.chapter.question}</p>
+            </div>
+          )}
+
           <div className="concept-head">
-            <span className="card-kind">{concept.kind} · {concept.section}</span>
+            <span className="card-kind">
+              {concept.kind} · {away && "Module " + moduleOf(id) + ", "}
+              {!opensChapter && "Chapter " + chapterNumber(place.chapter) + ", "}
+              {place.chapter.title}
+            </span>
             <h2>{concept.term}</h2>
             <p className="concept-def">{concept.definition}</p>
           </div>
+
+          {/* Why this idea, and why now: said from what came before. */}
+          <p className="concept-bridge">{place.stop.bridge}</p>
+          {links(NEEDS[id] ?? [], "Builds on")}
+          {links(ECHOES[id] ?? [], "The same idea as")}
 
           {walk && (
             <>
@@ -169,6 +223,54 @@ export function Concepts(props: { module?: Module }) {
             </>
           )}
 
+          {/* The hand-off. At the end of a concept the story says what comes
+              next and why; at the end of a chapter it first says what the
+              chapter has earned and what it still cannot do. */}
+          {atEnd && !away && (
+            <section className="concept-next" aria-label="What comes next">
+              {closesChapter && (
+                <p className="concept-close">
+                  <strong>End of chapter {chapterNumber(place.chapter)}.</strong>{" "}
+                  {place.chapter.close}
+                </p>
+              )}
+              {place.next ? (
+                <>
+                  <span className="concept-chapter-n">
+                    Next
+                    {place.next.chapter !== place.chapter &&
+                      " · Chapter " + chapterNumber(place.next.chapter) + ": " + place.next.chapter.title}
+                  </span>
+                  <h3>{conceptOf(place.next.stop.conceptId).term}</h3>
+                  <p>
+                    {place.next.chapter !== place.chapter
+                      ? place.next.chapter.question
+                      : place.next.stop.bridge}
+                  </p>
+                  <button
+                    className="primary"
+                    onClick={() => {
+                      setSeen((s) => new Set(s).add(id));
+                      choose(place.next!.stop.conceptId);
+                    }}
+                  >
+                    Continue
+                  </button>
+                </>
+              ) : module === 2 && props.onModule ? (
+                <>
+                  <span className="concept-chapter-n">Next · Module 3</span>
+                  <h3>One line across two</h3>
+                  <p>{CHAPTERS.find((c) => c.module === 3)!.question}</p>
+                  <button className="primary" onClick={() => props.onModule!(3)}>
+                    Continue to Module 3
+                  </button>
+                </>
+              ) : (
+                <p className="muted">That is the end of the story so far.</p>
+              )}
+            </section>
+          )}
         </article>
       </div>
       <BuildStamp />

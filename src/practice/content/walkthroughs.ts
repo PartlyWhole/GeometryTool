@@ -204,7 +204,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "Ray BD stands on line AC.", figure: "linearPair", marks: [given(seg("A", "C")), shared(seg("B", "D"))] },
       { text: "∠ABD and ∠DBC are adjacent: same vertex, shared side BD.", marks: [given(ang("ABD")), given(ang("DBC")), shared(seg("B", "D"))], assert: [{ statement: { k: "linearPair", a: ang("ABD"), b: ang("DBC") }, holds: true }] },
       { text: "Their outer sides, BA and BC, together form a straight line. That is what makes them a linear pair rather than merely adjacent.", marks: [given(ang("ABD")), given(ang("DBC")), shared(seg("A", "B")), shared(seg("B", "C"))] },
-      { text: "So the two must total 180°. Seeing two angles sit on a line is what licenses writing “= 180”.", show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("ABD") }, { k: "meas", ang: ang("DBC") }] }, r: { k: "num", v: 180 } } },
+      { text: "So the two must total 180°. Seeing two angles sit on a line is what licenses writing “= 180” — taken from the picture for now. It gets proved, and named the Linear Pair Theorem, once there is a way to prove things.", show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("ABD") }, { k: "meas", ang: ang("DBC") }] }, r: { k: "num", v: 180 } } },
     ],
   },
   {
@@ -342,7 +342,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "linear-pair-theorem",
     steps: [
-      { text: "This is the bridge from something you can see to something you can write down.", figure: "linearPair" },
+      { text: "You have proved this already: deduction gave the 180°, and a syllogism chained it to the definition of supplementary. It gets a name because it is the bridge every later theorem crosses — from something you can see to something you can write down.", figure: "linearPair" },
       { text: "Start from the picture fact. ∠ABD and ∠DBC are adjacent with their outer sides on line AC.", marks: [given(seg("A", "C")), given(ang("ABD")), given(ang("DBC"))] },
       { text: "The theorem turns that into a number fact.", show: { k: "eq", l: add(meas("ABD"), meas("DBC")), r: num(180) } },
       { text: "It is the bridge you cross whenever a proof moves from “these two sit on a line” to “= 180”.", marks: [given(ang("ABD")), given(ang("DBC"))], show: { k: "eq", l: add(meas("ABD"), meas("DBC")), r: num(180) } },
@@ -410,22 +410,23 @@ export const WALKTHROUGHS: Walkthrough[] = [
   {
     conceptId: "deductive",
     steps: [
-      { text: "The other kind of reasoning: no guessing, and no room left for doubt." },
-      { text: "Take this crossing. ∠1 and ∠3 are vertical angles — they sit opposite each other at X.", figure: "crossing", marks: [given(ang("1")), given(ang("3"))] },
-      { text: "The Vertical Angles Theorem says vertical angles are congruent. Apply it and ∠1 ≅ ∠3 — without measuring either one.", marks: [prove(ang("1")), prove(ang("3"))], show: { k: "cong", l: ang("1"), r: ang("3") }, assert: [{ statement: { k: "cong", l: ang("1"), r: ang("3") }, holds: true }] },
-      { text: "And not only here. The conclusion holds for every crossing ever drawn, which is what measuring three examples could never give you." },
-      { text: "This is what a proof is made of. Every line of a two-column proof is a deductive step." },
+      { text: "Three measured linear pairs all totalled 180°. That suggests a rule; it cannot prove one. Deduction proves it — for every linear pair at once.", figure: "linearPair", marks: [given(ang("ABD")), shared(ang("DBC"))] },
+      { text: "A, B and C lie on one line, with B between them, so ∠ABC is a straight angle. By definition it measures 180°.", marks: [given(ang("ABC"))], show: { k: "eq", l: { k: "meas", ang: ang("ABC") }, r: { k: "num", v: 180 } }, assert: [{ statement: { k: "angleClass", ang: ang("ABC"), cls: "straight" }, holds: true }] },
+      { text: "Ray BD lies inside ∠ABC, so the Angle Addition Postulate splits it into the two angles of the pair.", marks: [given(ang("ABD")), shared(ang("DBC"))], show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("ABD") }, { k: "meas", ang: ang("DBC") }] }, r: { k: "meas", ang: ang("ABC") } } },
+      { text: "Substitute 180 for m∠ABC, and the conjecture is proved.", marks: [prove(ang("ABD")), prove(ang("DBC"))], show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("ABD") }, { k: "meas", ang: ang("DBC") }] }, r: { k: "num", v: 180 } }, assert: [{ statement: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("ABD") }, { k: "meas", ang: ang("DBC") }] }, r: { k: "num", v: 180 } }, holds: true }] },
+      { text: "Nothing was measured. Each step used a definition, a postulate or a property — and those hold for every figure, so the conclusion holds for every linear pair anyone could draw. No number of examples gives you that." },
+      { text: "That is deductive reasoning. A two-column proof is nothing more than a row of such steps, each with its reason written beside it." },
     ],
   },
   {
     conceptId: "syllogism",
     steps: [
-      { text: "The Law of Syllogism chains two rules together." },
-      { text: "Rule one: if two angles are vertical, then they are congruent.", figure: "crossing", marks: [given(ang("1")), given(ang("3"))] },
-      { text: "Rule two: if two angles are congruent, then they have equal measure. The congruence is the middle term — the conclusion of rule one and the hypothesis of rule two.", marks: [shared(ang("1")), shared(ang("3"))], show: { k: "cong", l: ang("1"), r: ang("3") } },
-      { text: "The conclusion of the first is the hypothesis of the second — “congruent” is the shared middle term. Chain them: if two angles are vertical, then they have equal measure.", marks: [prove(ang("1")), prove(ang("3"))], show: { k: "eq", l: meas("1"), r: meas("3") }, assert: [{ statement: { k: "eq", l: meas("1"), r: meas("3") }, holds: true }] },
-      { text: "Applied here: ∠1 and ∠3 are vertical, so m∠1 = m∠3, in one move instead of two." },
-      { text: "The same move as the transitive property, one level up. Both fail if the middle terms do not match exactly." },
+      { text: "The Law of Syllogism chains two rules into one." },
+      { text: "Rule one, just proved: if two angles form a linear pair, then their measures total 180°.", figure: "linearPair", marks: [given(ang("ABD")), shared(ang("DBC"))], show: { k: "eq", l: { k: "add", ts: [{ k: "meas", ang: ang("ABD") }, { k: "meas", ang: ang("DBC") }] }, r: { k: "num", v: 180 } } },
+      { text: "Rule two, a definition: if two angles' measures total 180°, then the angles are supplementary. Its hypothesis is exactly rule one's conclusion — “total 180°” is the shared middle term.", marks: [shared(ang("ABD")), shared(ang("DBC"))] },
+      { text: "Chain them: if two angles form a linear pair, then they are supplementary.", marks: [prove(ang("ABD")), prove(ang("DBC"))], show: { k: "supp", a: ang("ABD"), b: ang("DBC") }, assert: [{ statement: { k: "supp", a: ang("ABD"), b: ang("DBC") }, holds: true }] },
+      { text: "That chained rule is the Linear Pair Theorem, word for word. It came out of a proof and a definition, not out of a measurement." },
+      { text: "The same move as the Transitive Property, one level up — and it fails the same way when the middle terms do not match: “total 180°” will not chain with a rule that starts “total 90°”." },
     ],
   },
   {

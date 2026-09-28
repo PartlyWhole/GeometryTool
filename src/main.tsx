@@ -661,7 +661,7 @@ function App() {
         </div>
         {/* Keyed by module: switching starts each page afresh on the other
             module's material rather than carrying positions across. */}
-        {page === "concepts" && <Concepts key={module} module={module} />}
+        {page === "concepts" && <Concepts key={module} module={module} onModule={setModule} />}
         {page === "practice" && <Practice key={module} module={module} />}
         {page === "cards" && <Flashcards key={module} module={module} />}
         {page !== "concepts" && <BuildStamp />}

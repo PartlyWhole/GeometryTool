@@ -215,6 +215,19 @@ export const twoMeasures = () =>
     title: "Two measures between them",
   });
 
+/**
+ * The degenerate case: t perpendicular to m and n. Every angle is right, so
+ * every pair is congruent and supplementary at once.
+ */
+export const perpendicularTransversal = () =>
+  transversal({
+    marked: true,
+    cross: 90,
+    numbers: onlyThese(4, 5),
+    measures: { "4": 90, "5": 90 },
+    title: "t perpendicular to m and n",
+  });
+
 export const LIBRARY3: Record<string, () => Board> = {
   transversalJK,
   parallelMN,
@@ -232,4 +245,5 @@ export const LIBRARY3: Record<string, () => Board> = {
   thmAltExterior,
   thmConsExterior,
   twoMeasures,
+  perpendicularTransversal,
 };

@@ -3,7 +3,7 @@
 A static React/TypeScript geometry application in three parts:
 
 - **Board** — an SVG whiteboard with drawing, angle/segment selection, snapping, numerical constraints, undo and local persistence.
-- **Concepts** — every idea in the module explained a step at a time, with the figure building up as you go and the highlight moving to whatever the step is about.
+- **Concepts** — every idea explained a step at a time, with the figure building up as you go and the highlight moving to whatever the step is about. The concepts are told as a story in eight chapters, each built from the ones before: every concept opens with why it comes next, links what it builds on, and hands off to the next. See [docs/NARRATIVE.md](docs/NARRATIVE.md).
 - **Practice** — five exercise modes: naming figures, definitions and properties, translating between diagrams and equations, solving for a measure, and proof.
 - **Cards** — flashcards for conditional-statement logic and for the definitions, postulates, properties and theorems of the module.
 
@@ -64,4 +64,4 @@ Statements are never typed. They are assembled by clicking: pick the form of the
 
 ## Verification
 
-`npm run check` runs **153 tests**, TypeScript and the production build. The suite replays every authored proof and 120 generated ones through the same strict validator a student faces, so an unsolvable problem fails the build. Module 3's classifier is checked against the reference's table for all 28 pairs, and again over randomly turned and renumbered figures; every Module 3 claim and accepted answer is checked against what the marks license, and every printed measure against the drawing. See [docs/EVIDENCE.md](docs/EVIDENCE.md) for browser checks and limitations.
+`npm run check` runs **157 tests**, TypeScript and the production build. The suite replays every authored proof and 120 generated ones through the same strict validator a student faces, so an unsolvable problem fails the build. Module 3's classifier is checked against the reference's table for all 28 pairs, and again over randomly turned and renumbered figures; every Module 3 claim and accepted answer is checked against what the marks license, and every printed measure against the drawing. See [docs/EVIDENCE.md](docs/EVIDENCE.md) for browser checks and limitations.

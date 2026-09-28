@@ -5,6 +5,15 @@ import { Figure } from "./Figure";
 import { CONCEPTS, type Concept } from "./content/concepts";
 import { CONCEPTS3 } from "./content/concepts3";
 import { cards3 } from "./content/cards3";
+import { storyOrder } from "./content/story";
+
+/** The first pass through a deck follows the story, so each card's idea has
+    already been met on the cards before it. */
+const STORY = storyOrder();
+const inStoryOrder = (bank: Concept[]) =>
+  [...bank].sort((x, y) => STORY.indexOf(x.id) - STORY.indexOf(y.id));
+const DECK2 = inStoryOrder(CONCEPTS);
+const DECK3 = inStoryOrder(CONCEPTS3);
 import { LIBRARY } from "./content/library";
 import { type LogicCard, logicCards } from "./content/logicCards";
 import { dots, useDeck } from "./deck";
@@ -51,7 +60,7 @@ export function Flashcards(props: { module?: Module }) {
       {deck === "logic" ? (
         m3 ? <LogicDeck source={cards3} tallyKey="cards-m3" /> : <LogicDeck />
       ) : (
-        <DefinitionDeck bank={m3 ? CONCEPTS3 : CONCEPTS} />
+        <DefinitionDeck bank={m3 ? DECK3 : DECK2} />
       )}
     </div>
   );
