@@ -27,6 +27,34 @@
   unicode-range: U+2220, U+2245, U+2248;
 }
 
+/* "∥" needs its own source: the system fallback draws two squat bars jammed
+   together, so "m ∥ n" reads as "m ı n". These draw them at full height. */
+@font-face {
+  font-family: "GeometryGlyphs";
+  src:
+    local("STIX Two Math"),
+    local("STIXTwoMath-Regular"),
+    local("Arial Unicode MS"),
+    local("ArialUnicodeMS"),
+    local("Cambria Math"),
+    local("Segoe UI Symbol"),
+    local("DejaVu Sans");
+  unicode-range: U+2225, U+2226;
+}
+@font-face {
+  font-family: "GeometryGlyphs";
+  font-weight: bold;
+  src:
+    local("STIX Two Math"),
+    local("STIXTwoMath-Regular"),
+    local("Arial Unicode MS"),
+    local("ArialUnicodeMS"),
+    local("Cambria Math"),
+    local("Segoe UI Symbol"),
+    local("DejaVu Sans");
+  unicode-range: U+2225, U+2226;
+}
+
 :root {
   font-family:
     "GeometryGlyphs",

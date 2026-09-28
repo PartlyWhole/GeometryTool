@@ -35,10 +35,11 @@ import { type SolveResult } from "./solver";
 import { Practice } from "./practice/Practice";
 import { Concepts } from "./practice/Concepts";
 import { Flashcards } from "./practice/Flashcards";
-import { BuildStamp, PageNav, type Page } from "./practice/ui";
+import { BuildStamp, ModuleSwitch, PageNav, type Module, type Page } from "./practice/ui";
 import "./style.css";
 import "./practice/practice.css";
 const KEY = "geometry-whiteboard-v1";
+const MODULE_KEY = "geometry-module";
 let recovery = "";
 function initial() {
   try {
@@ -113,6 +114,13 @@ function App() {
     [selection, setSelection] = useState<Selection>(emptySelection),
     [tool, setTool] = useState<Tool>("select"),
     [page, setPage] = useState<Page>("board"),
+    [module, setModuleState] = useState<Module>(() => {
+      try {
+        return localStorage.getItem(MODULE_KEY) === "2" ? 2 : 3;
+      } catch {
+        return 3;
+      }
+    }),
     [cam, setCam] = useState<Camera>({ x: 0, y: 0, zoom: 1 }),
     [grid, setGrid] = useState(false),
     [chain, setChain] = useState(false),
@@ -636,15 +644,26 @@ function App() {
       : selection.segments.map((s) => segmentName(board, s)).join(" + ");
     setEquation((v) => v + text);
   };
+  const setModule = (m: Module) => {
+    setModuleState(m);
+    try {
+      localStorage.setItem(MODULE_KEY, String(m));
+    } catch {
+      // A private window has no storage; the choice just will not persist.
+    }
+  };
   if (page !== "board")
     return (
       <div className="app-page">
         <div className="app-page-nav">
           <PageNav value={page} onChange={setPage} />
+          <ModuleSwitch value={module} onChange={setModule} />
         </div>
-        {page === "concepts" && <Concepts />}
-        {page === "practice" && <Practice />}
-        {page === "cards" && <Flashcards />}
+        {/* Keyed by module: switching starts each page afresh on the other
+            module's material rather than carrying positions across. */}
+        {page === "concepts" && <Concepts key={module} module={module} />}
+        {page === "practice" && <Practice key={module} module={module} />}
+        {page === "cards" && <Flashcards key={module} module={module} />}
         {page !== "concepts" && <BuildStamp />}
       </div>
     );

@@ -20,7 +20,8 @@ import { figureObjects } from "./inventory";
 export type FormId =
   | "eq" | "cong" | "supp" | "comp" | "vertical" | "linearPair"
   | "adjacent" | "perp" | "parallel" | "midpoint" | "bisects"
-  | "between" | "collinear" | "interior" | "angleClass";
+  | "between" | "collinear" | "interior" | "angleClass"
+  | "corresponding" | "altInterior" | "consInterior" | "altExterior" | "consExterior";
 
 type SlotSpec =
   | { kind: "expr"; label: string }
@@ -31,9 +32,11 @@ type SlotSpec =
 export const FORMS: {
   id: FormId;
   label: string;
-  group: "equation" | "congruence" | "angle pair" | "position";
+  group: "equation" | "congruence" | "angle pair" | "transversal pair" | "position";
   slots: SlotSpec[];
   preview: string;
+  /** Offered only in this module's exercises. */
+  module?: 3;
 }[] = [
   { id: "eq", label: "=", group: "equation", preview: "_ = _",
     slots: [{ kind: "expr", label: "left side" }, { kind: "expr", label: "right side" }] },
@@ -72,6 +75,25 @@ export const FORMS: {
       { kind: "obj", label: "angle", accept: ["ang"] },
       { kind: "class", label: "kind" },
     ] },
+  ...(
+    [
+      ["corresponding", "corresponding"],
+      ["altInterior", "alt. interior"],
+      ["consInterior", "cons. interior"],
+      ["altExterior", "alt. exterior"],
+      ["consExterior", "cons. exterior"],
+    ] as const
+  ).map(([id, label]) => ({
+    id,
+    label,
+    group: "transversal pair" as const,
+    preview: "_ and _ are " + label + " angles",
+    module: 3 as const,
+    slots: [
+      { kind: "obj" as const, label: "first angle", accept: ["ang" as const] },
+      { kind: "obj" as const, label: "second angle", accept: ["ang" as const] },
+    ],
+  })),
   { id: "midpoint", label: "midpoint", group: "position", preview: "_ is the midpoint of _",
     slots: [
       { kind: "pt", label: "point" },
@@ -187,7 +209,9 @@ export function buildStatement(d: Draft): BuildResult {
       return { ok: true, statement: { k: "cong", l: a, r: b } };
     }
     case "supp": case "comp": case "vertical":
-    case "linearPair": case "adjacent": {
+    case "linearPair": case "adjacent":
+    case "corresponding": case "altInterior": case "consInterior":
+    case "altExterior": case "consExterior": {
       const a = asAng(obj(0)), b = asAng(obj(1));
       if (!a) return missing(0);
       if (!b) return missing(1);
@@ -260,6 +284,8 @@ type Props = {
   /** Variables offered in the expression palette. */
   variables?: string[];
   compact?: boolean;
+  /** Module 3 adds the transversal pair forms; Module 2 never sees them. */
+  module?: 2 | 3;
 };
 
 export function StatementBuilder(props: Props) {
@@ -269,9 +295,11 @@ export function StatementBuilder(props: Props) {
     () => figureObjects(props.board, props.extraObjects),
     [props.board, props.extraObjects],
   );
-  const forms = props.allowForms
-    ? FORMS.filter((f) => props.allowForms!.includes(f.id))
-    : FORMS;
+  const forms = (
+    props.allowForms
+      ? FORMS.filter((f) => props.allowForms!.includes(f.id))
+      : FORMS
+  ).filter((f) => !f.module || props.module === 3);
   const groups = [...new Set(forms.map((f) => f.group))];
 
   const setSlot = (i: number, v: SlotValue) =>
@@ -397,7 +425,9 @@ function joiner(form: FormId, i: number) {
     case "perp": return "⊥";
     case "parallel": return "∥";
     case "supp": case "comp": case "vertical":
-    case "linearPair": case "adjacent": return "and";
+    case "linearPair": case "adjacent":
+    case "corresponding": case "altInterior": case "consInterior":
+    case "altExterior": case "consExterior": return "and";
     case "midpoint": return "is the midpoint of";
     case "bisects": return "bisects";
     case "between": return i === 1 ? "is between" : "and";

@@ -6,6 +6,12 @@ export type Point = XY & {
   labelOffset?: XY;
   crossing?: [string, string];
   on?: { edge: string; t: number; midpoint?: boolean };
+  /**
+   * A construction point the practice figures draw neither dot nor letter
+   * for. Module 3 names lines and numbers angles, and never letters a point,
+   * but the renderer still needs points to put the lines through.
+   */
+  quiet?: boolean;
 };
 export type Edge = {
   id: string;
@@ -13,6 +19,8 @@ export type Edge = {
   b: string;
   kind: "segment" | "ray" | "line" | "circle";
   hidden?: boolean;
+  /** A single-letter name for a line, drawn near its end: m, n, t. */
+  label?: string;
 };
 export type SegmentRef = { edge: string; a?: string; b?: string };
 export type JunctionRef =

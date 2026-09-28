@@ -53,9 +53,18 @@ const CONFUSIONS: Record<string, string[]> = {
   "def-right-angle": ["right-angle-congruence", "def-perpendicular"],
   "def-linear-pair": ["linear-pair-theorem", "def-adjacent"],
   "linear-pair-theorem": ["def-linear-pair", "def-supplementary"],
-  "vertical-angles-theorem": ["def-vertical", "def-cong-ang"],
+  "vertical-angles-theorem": ["def-vertical", "def-cong-ang", "corresponding-angles-postulate"],
   "angle-addition": ["segment-addition", "def-adjacent"],
   "segment-addition": ["angle-addition", "def-between"],
+  // Module 3: the rules differ in the position they need and in whether
+  // they conclude a congruence or a supplement, so each is swapped for the
+  // one that differs in exactly one of those.
+  "corresponding-angles-postulate": ["alt-interior-angles-theorem", "alt-exterior-angles-theorem", "vertical-angles-theorem"],
+  "alt-interior-angles-theorem": ["cons-interior-angles-theorem", "alt-exterior-angles-theorem", "corresponding-angles-postulate"],
+  "alt-exterior-angles-theorem": ["cons-exterior-angles-theorem", "alt-interior-angles-theorem", "corresponding-angles-postulate"],
+  "cons-interior-angles-theorem": ["alt-interior-angles-theorem", "cons-exterior-angles-theorem", "linear-pair-theorem"],
+  "cons-exterior-angles-theorem": ["alt-exterior-angles-theorem", "cons-interior-angles-theorem", "linear-pair-theorem"],
+  "def-vertical": ["def-linear-pair", "vertical-angles-theorem"],
 };
 
 /**
@@ -97,6 +106,7 @@ function fromProof(p: ProofProblem, r: () => number): ReasonCheckItem | undefine
     // Spoil only where the swap genuinely fails.
     for (const wrong of candidates) {
       if (p.forbid?.includes(wrong)) continue;
+      if (reasonById(wrong)?.module && !p.module) continue;
       const check = validateLine(p, lines, {
         statement: s.statement,
         reasonId: wrong,
@@ -130,7 +140,11 @@ function fromProof(p: ProofProblem, r: () => number): ReasonCheckItem | undefine
   };
 }
 
-export function reasonCheckItems(seed: number, count = 6): ReasonCheckItem[] {
+export function reasonCheckItems(
+  seed: number,
+  count = 6,
+  proofs: ProofProblem[] = PROOFS,
+): ReasonCheckItem[] {
   const r = rng(seed);
   const out: ReasonCheckItem[] = [];
   // Shuffle before taking `count`. Walking the pool in order and stopping at
@@ -138,7 +152,7 @@ export function reasonCheckItems(seed: number, count = 6): ReasonCheckItem[] {
   // eight asked for, the tenth turned up in one session in four hundred.
   const pool = shuffle(
     r,
-    PROOFS.filter((p) => !SKIP.includes(p.id) && (p.solution?.length ?? 0) >= 4),
+    proofs.filter((p) => !SKIP.includes(p.id) && (p.solution?.length ?? 0) >= 4),
   );
   for (let i = 0; i < pool.length && out.length < count; i++) {
     const item = fromProof(pool[i], r);

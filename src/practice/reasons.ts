@@ -32,7 +32,8 @@ import {
   toPoly,
 } from "./terms";
 import { holds, isBetween, isInterior, marked } from "./oracle";
-import { statementText } from "./notation";
+import { PAIR_NAME, statementText } from "./notation";
+import { type Placement, placement, resolveLine } from "./transversal";
 
 export type ReasonKind =
   | "given"
@@ -56,6 +57,11 @@ export type Reason = {
   short: string;
   /** How many earlier lines this reason normally cites. */
   cites: [number, number];
+  /**
+   * The module that introduces it. Module 3 builds on Module 2, so its proofs
+   * may cite everything; a Module 2 proof is offered only Module 2 reasons.
+   */
+  module?: 3;
   check(conclusion: Statement, premises: Statement[], ctx: Ctx): Check;
 };
 
@@ -817,6 +823,146 @@ R({
 });
 
 // ---------------------------------------------------------------------------
+// Module 3: parallel lines cut by a transversal
+//
+// Each reads the two angles' positions off the figure — which is what the
+// reference does; no proof there writes "∠1 and ∠5 are corresponding" as a
+// line of its own — and insists on a cited line saying the two lines they
+// sit on are parallel. That second demand is the lesson: the position names
+// hold for any two lines, and only parallel lines make the pairs congruent
+// or supplementary.
+// ---------------------------------------------------------------------------
+
+/** Which theorem a pair in this position would call for. */
+const THEOREM_FOR: Record<Placement["kind"], string | undefined> = {
+  corresponding: "the Corresponding Angles Postulate",
+  altInterior: "the Alternate Interior Angles Theorem",
+  consInterior: "the Consecutive Interior Angles Theorem",
+  altExterior: "the Alternate Exterior Angles Theorem",
+  consExterior: "the Consecutive Exterior Angles Theorem",
+  none: undefined,
+};
+
+function transversalRule(
+  kind: Exclude<Placement["kind"], "none">,
+  concludes: "congruent" | "supplementary",
+): Reason["check"] {
+  return (c, p, ctx) => {
+    const pair: AngId[] | undefined =
+      concludes === "supplementary"
+        ? c.k === "supp"
+          ? [c.a, c.b]
+          : isEq(c)
+            ? distinctObjs(collectMeas(c))
+            : undefined
+        : anglePair(c) ?? (isEq(c) ? distinctObjs(collectMeas(c)) : undefined);
+    if (!pair || pair.length !== 2)
+      return no("Name the two angles the rule is about.");
+    const [a, b] = pair;
+    if (!ctx.board)
+      return no("This rule reads where the two angles sit from the figure.");
+    const where = placement(ctx.board, a, b);
+    if (!where)
+      return no(
+        "∠" + a.name + " and ∠" + b.name +
+          " are not at two different crossings of one transversal.",
+      );
+    if (where.kind !== kind) {
+      const fits = THEOREM_FOR[where.kind];
+      return no(
+        "∠" + a.name + " and ∠" + b.name + " are " +
+          (where.kind === "none"
+            ? "not any of the five named pairs"
+            : PAIR_NAME[where.kind] + ", so the rule to cite is " + fits) +
+          ", not " + PAIR_NAME[kind] + ".",
+      );
+    }
+    // The parallel line must be cited, and must be about these two lines.
+    const want = [...where.lines].sort().join("|");
+    const pars = p.filter((s) => s.k === "parallel") as Extract<
+      Statement,
+      { k: "parallel" }
+    >[];
+    const lineOf = (o: ObjId) =>
+      o.k === "line"
+        ? resolveLine(ctx.board!, o)
+        : undefined;
+    const matches = pars.some(
+      (s) => [lineOf(s.a), lineOf(s.b)].sort().join("|") === want,
+    );
+    if (!matches)
+      return no(
+        pars.length
+          ? "The parallel lines cited are not the two lines ∠" + a.name +
+              " and ∠" + b.name + " sit on."
+          : PAIR_NAME[kind].charAt(0).toUpperCase() + PAIR_NAME[kind].slice(1) +
+              " are " + concludes + " only when the two lines are parallel. Cite the line that says so.",
+      );
+    if (concludes === "congruent") {
+      if (congOrMeasure(c, a, b)) return OK;
+      return no("The rule concludes ∠" + a.name + " ≅ ∠" + b.name + ".");
+    }
+    if (c.k === "supp") return OK;
+    const eq180: Statement = { k: "eq", l: sum(m(a), m(b)), r: n(180) };
+    if (sameStatement(c, eq180) || isFlip(c, eq180)) return OK;
+    return no(
+      "The rule concludes that they are supplementary, or that m∠" + a.name +
+        " + m∠" + b.name + " = 180.",
+    );
+  };
+}
+
+R({
+  id: "corresponding-angles-postulate",
+  name: "Corresponding Angles Postulate",
+  kind: "postulate",
+  module: 3,
+  short: "If two parallel lines are cut by a transversal, corresponding angles are congruent.",
+  cites: [1, 1],
+  check: transversalRule("corresponding", "congruent"),
+});
+
+R({
+  id: "alt-interior-angles-theorem",
+  name: "Alternate Interior Angles Theorem",
+  kind: "theorem",
+  module: 3,
+  short: "If two parallel lines are cut by a transversal, alternate interior angles are congruent.",
+  cites: [1, 1],
+  check: transversalRule("altInterior", "congruent"),
+});
+
+R({
+  id: "cons-interior-angles-theorem",
+  name: "Consecutive Interior Angles Theorem",
+  kind: "theorem",
+  module: 3,
+  short: "If two parallel lines are cut by a transversal, consecutive interior angles are supplementary.",
+  cites: [1, 1],
+  check: transversalRule("consInterior", "supplementary"),
+});
+
+R({
+  id: "alt-exterior-angles-theorem",
+  name: "Alternate Exterior Angles Theorem",
+  kind: "theorem",
+  module: 3,
+  short: "If two parallel lines are cut by a transversal, alternate exterior angles are congruent.",
+  cites: [1, 1],
+  check: transversalRule("altExterior", "congruent"),
+});
+
+R({
+  id: "cons-exterior-angles-theorem",
+  name: "Consecutive Exterior Angles Theorem",
+  kind: "theorem",
+  module: 3,
+  short: "If two parallel lines are cut by a transversal, consecutive exterior angles are supplementary.",
+  cites: [1, 1],
+  check: transversalRule("consExterior", "supplementary"),
+});
+
+// ---------------------------------------------------------------------------
 // Properties of equality
 // ---------------------------------------------------------------------------
 
@@ -1067,6 +1213,9 @@ R({
 export const REASONS = ALL;
 export const reasonById = (id: string) => ALL.find((r) => r.id === id);
 export const reasonsByKind = (k: ReasonKind) => ALL.filter((r) => r.kind === k);
+/** The reasons a proof in this module may be offered. */
+export const reasonsFor = (module: 2 | 3) =>
+  module === 3 ? ALL : ALL.filter((r) => !r.module);
 
 export const KIND_LABEL: Record<ReasonKind, string> = {
   given: "Given",

@@ -38,6 +38,7 @@ import {
   objKey,
   splitLabels,
 } from "./terms";
+import { markedParallel, placement, resolveLine } from "./transversal";
 
 /** Drawing units per mathematical unit, matching the whiteboard's display. */
 export const UNIT = 50;
@@ -157,7 +158,16 @@ export function angleNamer(b?: Board): (a: AngId) => AngId {
     const hit = cache.get(key);
     if (hit) return hit;
     const ref = resolveAngle(b, a);
-    const name = ref && threePointName(b, ref);
+    let name = ref && threePointName(b, ref);
+    // A three-point name through construction points is one no student can
+    // see or write. Such a figure names its angles by numeral alone, so the
+    // numeral is the canonical name — and the one a message will quote.
+    if (name && ref && splitLabels(name).some((l) => byLabel(b, l)?.quiet)) {
+      const numbered = b.angles.find(
+        (x) => x.label && angleKey(x, b) === angleKey(ref, b),
+      );
+      name = numbered?.label;
+    }
     const out: AngId = name ? { k: "ang", name } : a;
     cache.set(key, out);
     return out;
@@ -439,11 +449,31 @@ export function marked(b: Board, s: Statement): boolean {
     }
     case "perp":
       return b.constraints.some((c) => c.kind === "perpendicular");
-    case "parallel":
-      return b.constraints.some((c) => c.kind === "parallel");
+    case "parallel": {
+      // These two lines, marked as one parallel class — not merely some
+      // parallel mark somewhere on the figure.
+      if (!b.constraints.some((c) => c.kind === "parallel")) return false;
+      const x = lineEdge(b, s.a),
+        y = lineEdge(b, s.b);
+      return !!x && !!y && markedParallel(b, x, y);
+    }
+    case "corresponding":
+    case "altInterior":
+    case "consInterior":
+    case "altExterior":
+    case "consExterior":
+      // Position is something the figure shows, like a vertical pair.
+      return placement(b, s.a, s.b)?.kind === s.k;
     default:
       return false;
   }
+}
+
+/** The edge an object runs along, when it names a line or a piece of one. */
+function lineEdge(b: Board, o: ObjId): string | undefined {
+  if (o.k === "line") return resolveLine(b, o);
+  if (o.k === "seg") return resolveSeg(b, o)?.edge;
+  return undefined;
 }
 
 /** Does an equation mention an angle measure? Decides which tolerance applies. */
@@ -510,6 +540,12 @@ export function holds(b: Board, s: Statement, tol: Tol = EXACT): boolean {
     }
     case "parallel":
       return parallelByCoords(b, s);
+    case "corresponding":
+    case "altInterior":
+    case "consInterior":
+    case "altExterior":
+    case "consExterior":
+      return placement(b, s.a, s.b)?.kind === s.k;
   }
 }
 

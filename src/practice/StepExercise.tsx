@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import { Figure } from "./Figure";
 import { statementText } from "./notation";
 import { reasonById } from "./reasons";
+import type { ProofProblem } from "./proof";
 import { type StepItem, stepItems } from "./content/stepReason";
 import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
@@ -14,15 +15,16 @@ const listOf = (ns: number[]) =>
     ? String(ns[0] ?? "")
     : ns.slice(0, -1).join(", ") + " and " + ns[ns.length - 1];
 
-export function StepExercise() {
+export function StepExercise(props: { proofs?: ProofProblem[]; tallyKey?: string }) {
+  const tallyKey = props.tallyKey ?? "steps";
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
-  const items = useMemo(() => stepItems(seed, 12), [seed]);
+  const items = useMemo(() => stepItems(seed, 12, props.proofs), [seed, props.proofs]);
   const deck = useDeck<string | null>(items.length, () => null, {
     key: String(seed),
     onEnd: () => setSeed(Math.floor(Math.random() * 1e9)),
   });
   const picked = deck.state;
-  const [tally, setTally] = useState<Tally>(() => loadTally("steps"));
+  const [tally, setTally] = useState<Tally>(() => loadTally(tallyKey));
 
   const item: StepItem | undefined = items[deck.i];
   if (!item) return <p className="muted">No steps.</p>;
@@ -32,7 +34,7 @@ export function StepExercise() {
     deck.setState(choice);
     const t = record(tally, choice === item.answer);
     setTally(t);
-    saveTally("steps", t);
+    saveTally(tallyKey, t);
   };
 
   return (

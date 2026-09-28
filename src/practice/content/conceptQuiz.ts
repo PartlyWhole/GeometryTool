@@ -59,6 +59,9 @@ const SUBJECT: Record<string, Subject> = {
   // Adjacent parts and the whole they make: several angles, not one.
   "angle-addition": "angle-pair",
   proof: "argument",
+  // Module 3: a line, named by what it crosses or fails to meet.
+  transversal: "line",
+  "parallel-lines": "line",
 };
 
 export function subjectOf(c: Concept): Subject {
@@ -87,8 +90,9 @@ function siblings(
   c: Concept,
   n: number,
   lead: "subject" | "topic" = "subject",
+  bank: Concept[] = CONCEPTS,
 ): Concept[] {
-  const rest = CONCEPTS.filter((x) => x.id !== c.id);
+  const rest = bank.filter((x) => x.id !== c.id);
   const subject = subjectOf(c);
   const topic = topicOf(c);
   const sameSubject = (x: Concept) => subjectOf(x) === subject;
@@ -164,6 +168,27 @@ export const FIGURE_SHOWS: Record<string, string[]> = {
     "congruent-complements", "complementary", "adjacent", "right",
     "congruent-angles", "angle-addition", "acute", "perpendicular",
   ],
+
+  // Module 3. Every one of these has a transversal in it, and the theorem
+  // figures also show their pair's name and a pair of parallel lines.
+  transversalJK: [
+    "transversal", "corresponding-angles", "alternate-interior",
+    "consecutive-interior", "alternate-exterior", "consecutive-exterior",
+  ],
+  pairCorresponding: ["corresponding-angles", "transversal"],
+  pairAltInterior: ["alternate-interior", "transversal"],
+  pairConsInterior: ["consecutive-interior", "transversal"],
+  pairAltExterior: ["alternate-exterior", "transversal"],
+  pairConsExterior: ["consecutive-exterior", "transversal"],
+  parallelMN: [
+    "parallel-lines", "transversal", "corresponding-angles", "alternate-interior",
+    "consecutive-interior", "alternate-exterior", "consecutive-exterior",
+  ],
+  thmCorresponding: ["corresponding-angles-postulate", "corresponding-angles", "parallel-lines", "transversal"],
+  thmAltInterior: ["alt-interior-theorem", "alternate-interior", "parallel-lines", "transversal"],
+  thmConsInterior: ["cons-interior-theorem", "consecutive-interior", "parallel-lines", "transversal"],
+  thmAltExterior: ["alt-exterior-theorem", "alternate-exterior", "parallel-lines", "transversal"],
+  thmConsExterior: ["cons-exterior-theorem", "consecutive-exterior", "parallel-lines", "transversal"],
 };
 
 /**
@@ -186,6 +211,18 @@ const FIGURE_PRIMARY: Record<string, string> = {
   markedPair: "congruent-segments",
   straightInDisguise: "straight",
   congruentComplements: "congruent-complements",
+  transversalJK: "transversal",
+  parallelMN: "parallel-lines",
+  pairCorresponding: "corresponding-angles",
+  pairAltInterior: "alternate-interior",
+  pairConsInterior: "consecutive-interior",
+  pairAltExterior: "alternate-exterior",
+  pairConsExterior: "consecutive-exterior",
+  thmCorresponding: "corresponding-angles-postulate",
+  thmAltInterior: "alt-interior-theorem",
+  thmConsInterior: "cons-interior-theorem",
+  thmAltExterior: "alt-exterior-theorem",
+  thmConsExterior: "cons-exterior-theorem",
 };
 
 /**
@@ -375,9 +412,18 @@ const namesKind = (c: Concept, pool: Concept[]) =>
   KIND_NOUN[c.kind] !== "term" &&
   pool.filter((o) => o.kind === c.kind).length >= 3;
 
-export function conceptQuestions(seed: number, count = 12): ConceptQuestion[] {
+/**
+ * `bank` is the module's concepts. Distractors come from the same bank, so a
+ * Module 3 question never offers a Module 2 term as a wrong answer that the
+ * student has not met in this module's terms.
+ */
+export function conceptQuestions(
+  seed: number,
+  count = 12,
+  bank: Concept[] = CONCEPTS,
+): ConceptQuestion[] {
   const r = rng(seed);
-  const pool = shuffle(r, CONCEPTS.filter(usable));
+  const pool = shuffle(r, bank.filter(usable));
   const out: ConceptQuestion[] = [];
   let i = 0;
   while (out.length < count && i < pool.length * 4) {
@@ -390,7 +436,7 @@ export function conceptQuestions(seed: number, count = 12): ConceptQuestion[] {
       "term-to-example",
     ];
     const kind = kinds[Math.floor(r() * kinds.length)];
-    const q = build(r, c, kind);
+    const q = build(r, c, kind, bank);
     if (q && !out.some((o) => o.id === q.id)) out.push(q);
   }
   return out;
@@ -400,12 +446,14 @@ function build(
   r: () => number,
   c: Concept,
   kind: ConceptQuestion["kind"],
+  bank: Concept[],
 ): ConceptQuestion | undefined {
   const candidates = siblings(
     r,
     c,
     12,
     kind === "term-to-example" ? "topic" : "subject",
+    bank,
   );
   const others = candidates.slice(0, 3);
   if (others.length < 3) return;

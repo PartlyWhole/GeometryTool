@@ -1691,7 +1691,10 @@ describe("one-step reason questions", () => {
 describe("concept walkthroughs", () => {
   it("covers every concept exactly once", async () => {
     const { WALKTHROUGHS } = await import("../src/practice/content/walkthroughs");
-    const { CONCEPTS } = await import("../src/practice/content/concepts");
+    const { CONCEPTS: M2 } = await import("../src/practice/content/concepts");
+    const { CONCEPTS3 } = await import("../src/practice/content/concepts3");
+    // One Concepts page serves both modules, so one table of walkthroughs.
+    const CONCEPTS = [...M2, ...CONCEPTS3];
     const ids = WALKTHROUGHS.map((w) => w.conceptId);
     expect(new Set(ids).size).toBe(ids.length);
     const missing = CONCEPTS.filter((c) => !ids.includes(c.id)).map((c) => c.id);

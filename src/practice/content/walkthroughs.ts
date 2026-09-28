@@ -8,6 +8,7 @@
 import type { Role } from "../Figure";
 import type { ObjId, Statement } from "../terms";
 import { add, ang, div, len, meas, mul, num, pt, seg, vr } from "../terms";
+import { WALKTHROUGHS3 } from "./walkthroughs3";
 
 export type WalkStep = {
   /** The sentence for this step. */
@@ -443,4 +444,7 @@ export const WALKTHROUGHS: Walkthrough[] = [
       { text: "Look back at the shape: turn the given into measures, find the piece both sides share, add it to both, rename the sums. Every line carried a reason, and the thing being proved never appeared as one." },
     ],
   },
+
+  // Module 3 lives in its own file; one table serves the Concepts page.
+  ...WALKTHROUGHS3,
 ];

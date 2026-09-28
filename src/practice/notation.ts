@@ -2,10 +2,20 @@
 import {
   type AngId,
   type ObjId,
+  type PairKind,
   type Statement,
   type Term,
   splitLabels,
 } from "./terms";
+
+/** How the reference names each transversal pair, plural, mid-sentence. */
+export const PAIR_NAME: Record<PairKind, string> = {
+  corresponding: "corresponding angles",
+  altInterior: "alternate interior angles",
+  consInterior: "consecutive interior angles",
+  altExterior: "alternate exterior angles",
+  consExterior: "consecutive exterior angles",
+};
 
 export const angLabel = (a: AngId) =>
   splitLabels(a.name).length >= 2 ? a.name : a.name;
@@ -15,7 +25,8 @@ export function objText(o: ObjId): string {
     case "seg":
       return o.a + o.b;
     case "line":
-      return "line " + o.a + o.b;
+      // A named line is written by its name alone: "m ∥ n", not "line m".
+      return o.name ?? "line " + o.a + o.b;
     case "ray":
       return "ray " + o.from + o.through;
     case "pt":
@@ -99,6 +110,12 @@ export function statementText(s: Statement): string {
       return "∠" + s.a.name + " and ∠" + s.b.name + " form a linear pair";
     case "adjacent":
       return "∠" + s.a.name + " and ∠" + s.b.name + " are adjacent angles";
+    case "corresponding":
+    case "altInterior":
+    case "consInterior":
+    case "altExterior":
+    case "consExterior":
+      return "∠" + s.a.name + " and ∠" + s.b.name + " are " + PAIR_NAME[s.k];
     case "perp":
       return objText(s.a) + " ⊥ " + objText(s.b);
     case "parallel":

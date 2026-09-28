@@ -1,6 +1,7 @@
 // Figures from the Module 2 reference, built once and shared by the exercises.
 import type { Board } from "../../model";
 import { fig, polar } from "./figures";
+import { LIBRARY3 } from "./library3";
 
 /** Fig. 14: two lines crossing at X, the four angles numbered. */
 export const crossing = (): Board =>
@@ -504,6 +505,8 @@ export const twoSupplementsPlain = (): Board => {
 
 
 export const LIBRARY: Record<string, () => Board> = {
+  // Module 3 figures sit in their own file, but one table serves every lookup.
+  ...LIBRARY3,
   crossing,
   fan,
   collinear,

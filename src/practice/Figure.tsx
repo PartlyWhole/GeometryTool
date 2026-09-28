@@ -20,6 +20,7 @@ import {
 import { angleDisplayRadii, markingGroups } from "../relationships";
 import { type AngId, type ObjId, type SegId, objKey } from "./terms";
 import { resolveAngle, resolveSeg } from "./oracle";
+import { parallelClasses, resolveLine } from "./transversal";
 
 /** The reference's colour notation: given, prove, shared, construction. */
 export type Role = "given" | "prove" | "shared" | "construction" | "pick";
@@ -191,9 +192,102 @@ export function Figure(props: Props) {
         );
       })}
 
+      {/* Line names — m, n, t — just inside the frame at one end. */}
+      {b.edges.map((e) => {
+        if (!e.label || e.hidden || e.kind === "circle") return null;
+        const a = b.points.find((p) => p.id === e.a),
+          c = b.points.find((p) => p.id === e.b);
+        if (!a || !c) return null;
+        const [, q] = extend(a, c, e.kind, view);
+        const d = distance(a, c) || 1;
+        const u = { x: (c.x - a.x) / d, y: (c.y - a.y) / d };
+        // Off to whichever side is up, or right for an upright line — unless
+        // the line leaves through a corner and that side is off the frame.
+        let n = { x: -u.y, y: u.x };
+        if (Math.abs(n.y) > 0.35 ? n.y > 0 : n.x < 0) n = { x: -n.x, y: -n.y };
+        const at = (k: number, back: number) => ({
+          x: q.x - u.x * back + n.x * 13 * k,
+          y: q.y - u.y * back + n.y * 13 * k + 5,
+        });
+        const inside = (p: { x: number; y: number }) =>
+          p.x > view.x + 10 && p.x < view.x + view.w - 10 &&
+          p.y > view.y + 16 && p.y < view.y + view.h - 6;
+        const spot =
+          [at(1, 20), at(-1, 20), at(1, 36), at(-1, 36)].find(inside) ?? at(1, 20);
+        return (
+          <text key={"ln" + e.id} className="fig-linename" x={spot.x} y={spot.y}>
+            {e.label}
+          </text>
+        );
+      })}
+
+      {/* Parallel marks: one arrowhead per line of the first class, two for
+          the second, pointing the same way along both lines. */}
+      {parallelClasses(b).flatMap((cls, k) =>
+        cls.map((id) => {
+          const e = b.edges.find((x) => x.id === id);
+          const a = e && b.points.find((p) => p.id === e.a),
+            c = e && b.points.find((p) => p.id === e.b);
+          if (!e || !a || !c) return null;
+          const [p, q] = extend(a, c, e.kind, view);
+          const L = distance(p, q) || 1;
+          const u = { x: (q.x - p.x) / L, y: (q.y - p.y) / L };
+          // Where the line is emptiest: far from every point lying on it,
+          // since the crossings there carry the angle numerals.
+          const onIt = b.points.filter(
+            (x) =>
+              x.crossing?.includes(e.id) || x.on?.edge === e.id ||
+              (!x.quiet && (x.id === e.a || x.id === e.b)),
+          );
+          let bestT = 0.3,
+            bestGap = -1;
+          for (let t = 0.14; t <= 0.72; t += 0.02) {
+            const at = { x: p.x + (q.x - p.x) * t, y: p.y + (q.y - p.y) * t };
+            const gap = onIt.length
+              ? Math.min(...onIt.map((x) => distance(x, at)))
+              : 1e9;
+            if (gap > bestGap + 1e-6) (bestGap = gap), (bestT = t);
+          }
+          const at = { x: p.x + (q.x - p.x) * bestT, y: p.y + (q.y - p.y) * bestT };
+          const nrm = { x: -u.y, y: u.x };
+          return (
+            <g key={"par" + id} className="fig-parallel">
+              {Array.from({ length: k + 1 }, (_, i) => {
+                const tip = { x: at.x + u.x * i * 7, y: at.y + u.y * i * 7 };
+                return (
+                  <polyline
+                    key={i}
+                    points={`${tip.x - u.x * 8 + nrm.x * 6},${tip.y - u.y * 8 + nrm.y * 6} ${tip.x},${tip.y} ${tip.x - u.x * 8 - nrm.x * 6},${tip.y - u.y * 8 - nrm.y * 6}`}
+                  />
+                );
+              })}
+            </g>
+          );
+        }),
+      )}
+
       {/* Highlighted segments, drawn between their own endpoints. A highlight
           is often a piece of a longer support — BC inside A—B—C — so it cannot
           be expressed by recolouring the underlying edge. */}
+      {/* A highlighted line runs frame to frame, as the line itself does:
+          picking out the transversal means picking out all of it. */}
+      {(props.highlights ?? []).map((h, i) => {
+        if (h.obj.k !== "line") return null;
+        const id = resolveLine(b, h.obj);
+        const e = id && b.edges.find((x) => x.id === id);
+        const a = e && b.points.find((p) => p.id === e.a),
+          c = e && b.points.find((p) => p.id === e.b);
+        if (!e || !a || !c) return null;
+        const [p, q] = extend(a, c, e.kind, view);
+        return (
+          <line
+            key={"hline" + i}
+            className={"fig-highlight line role-" + h.role}
+            x1={p.x} y1={p.y} x2={q.x} y2={q.y}
+          />
+        );
+      })}
+
       {(props.highlights ?? []).map((h, i) => {
         if (h.obj.k !== "seg") return null;
         const ref = resolveSeg(b, h.obj);
@@ -283,6 +377,7 @@ export function Figure(props: Props) {
 
       {/* Points */}
       {b.points.map((p) => {
+        if (p.quiet) return null;
         const role = roleOf({ k: "pt", p: p.label });
         const idx = props.chosen?.indexOf(p.label) ?? -1;
         const off = p.labelOffset ?? labelOffset(b, p.label);
@@ -567,31 +662,56 @@ function extend(
   const d = distance(a, b) || 1;
   const ux = (b.x - a.x) / d,
     uy = (b.y - a.y) / d;
-  // A ray starts at its endpoint and runs to the frame; a line runs both ways.
-  const fwd = exitDistance(a, ux, uy, view);
-  const end = { x: a.x + ux * fwd, y: a.y + uy * fwd };
-  if (kind !== "line") return [a, end];
-  const back = exitDistance(a, -ux, -uy, view);
-  return [{ x: a.x - ux * back, y: a.y - uy * back }, end];
+  // A ray starts at its endpoint and runs to the frame; a line runs both
+  // ways. Clipped against the frame rather than walked out from the first
+  // point, which may itself lie outside it — a construction point placed
+  // only to fix a line's direction does.
+  let lo = kind === "line" ? -Infinity : 0,
+    hi = Infinity;
+  const clip = (pos: number, dir: number, min: number, max: number) => {
+    if (Math.abs(dir) < 1e-12) {
+      if (pos < min || pos > max) (lo = 1), (hi = 0);
+      return;
+    }
+    const t1 = (min - pos) / dir,
+      t2 = (max - pos) / dir;
+    lo = Math.max(lo, Math.min(t1, t2));
+    hi = Math.min(hi, Math.max(t1, t2));
+  };
+  clip(a.x, ux, view.x, view.x + view.w);
+  clip(a.y, uy, view.y, view.y + view.h);
+  if (!(hi > lo)) return [a, a];
+  return [
+    { x: a.x + ux * lo, y: a.y + uy * lo },
+    { x: a.x + ux * hi, y: a.y + uy * hi },
+  ];
 }
 
 export type View = { x: number; y: number; w: number; h: number };
 
 function bounds(b: Board, aspect = 1.7): View {
   let x0 = -100, x1 = 100, y0 = -100, y1 = 100;
-  if (b.points.length) {
-    const xs = b.points.map((p) => p.x),
-      ys = b.points.map((p) => p.y);
+  // A figure drawn through construction points is framed on what is shown —
+  // its crossings — not on the hidden points, which only fix directions and
+  // spread out when the figure is turned. Lines run to the frame regardless.
+  const construction = b.points.some((p) => p.quiet);
+  const framed = construction
+    ? b.points.filter((p) => !p.quiet || p.crossing)
+    : b.points;
+  const pad = construction ? 100 : PAD;
+  if (framed.length) {
+    const xs = framed.map((p) => p.x),
+      ys = framed.map((p) => p.y);
     x0 = Math.min(...xs);
     x1 = Math.max(...xs);
     y0 = Math.min(...ys);
     y1 = Math.max(...ys);
   }
   // Padding leaves room for point letters, which sit outside the geometry.
-  let x = x0 - PAD,
-    y = y0 - PAD,
-    w = Math.max(x1 - x0, 60) + PAD * 2,
-    h = Math.max(y1 - y0, 60) + PAD * 2;
+  let x = x0 - pad,
+    y = y0 - pad,
+    w = Math.max(x1 - x0, 60) + pad * 2,
+    h = Math.max(y1 - y0, 60) + pad * 2;
   // Grow the short side so the drawing is centred without the rays running
   // past the frame.
   const a = w / h;
@@ -607,22 +727,3 @@ function bounds(b: Board, aspect = 1.7): View {
   return { x, y, w, h };
 }
 
-/** How far a ray from `a` in direction `u` travels before leaving the frame. */
-function exitDistance(
-  a: { x: number; y: number },
-  ux: number,
-  uy: number,
-  v: View,
-) {
-  let t = Infinity;
-  const hit = (num: number, den: number) => {
-    if (Math.abs(den) < 1e-9) return;
-    const s = num / den;
-    if (s > 1e-6) t = Math.min(t, s);
-  };
-  hit(v.x - a.x, ux);
-  hit(v.x + v.w - a.x, ux);
-  hit(v.y - a.y, uy);
-  hit(v.y + v.h - a.y, uy);
-  return Number.isFinite(t) ? t : 0;
-}

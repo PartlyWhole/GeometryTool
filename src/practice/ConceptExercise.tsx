@@ -2,20 +2,22 @@
 import React, { useMemo, useState } from "react";
 import { Figure } from "./Figure";
 import { conceptQuestions } from "./content/conceptQuiz";
+import type { Concept } from "./content/concepts";
 import { LIBRARY } from "./content/library";
 import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
 import { ItemNav, Scoreboard, Verdict } from "./ui";
 
-export function ConceptExercise() {
+export function ConceptExercise(props: { bank?: Concept[]; tallyKey?: string }) {
+  const tallyKey = props.tallyKey ?? "concepts";
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
-  const items = useMemo(() => conceptQuestions(seed, 14), [seed]);
+  const items = useMemo(() => conceptQuestions(seed, 14, props.bank), [seed, props.bank]);
   const deck = useDeck<number | null>(items.length, () => null, {
     key: String(seed),
     onEnd: () => setSeed(Math.floor(Math.random() * 1e9)),
   });
   const picked = deck.state;
-  const [tally, setTally] = useState<Tally>(() => loadTally("concepts"));
+  const [tally, setTally] = useState<Tally>(() => loadTally(tallyKey));
 
   const q = items[deck.i];
   if (!q) return <p className="muted">No questions generated.</p>;
@@ -25,7 +27,7 @@ export function ConceptExercise() {
     deck.setState(n);
     const t = record(tally, n === q.correct);
     setTally(t);
-    saveTally("concepts", t);
+    saveTally(tallyKey, t);
   };
 
   const make = q.figure ? LIBRARY[q.figure] : undefined;

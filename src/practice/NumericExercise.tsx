@@ -29,11 +29,18 @@ const blankWork = (): Work => ({
   hintsShown: 0,
 });
 
-export function NumericExercise() {
+export function NumericExercise(props: {
+  source?: (seed: number) => NumericItem[];
+  tallyKey?: string;
+}) {
+  const tallyKey = props.tallyKey ?? "numeric";
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const items = useMemo(
-    () => [...NUMERIC_ITEMS, ...generatedNumeric(seed, 8)],
-    [seed],
+    () =>
+      props.source
+        ? props.source(seed)
+        : [...NUMERIC_ITEMS, ...generatedNumeric(seed, 8)],
+    [seed, props.source],
   );
   const deck = useDeck<Work>(items.length, blankWork, {
     key: String(seed),
@@ -42,7 +49,7 @@ export function NumericExercise() {
   const { entry, result, trapHit, hintsShown } = deck.state;
   const set = (patch: Partial<Work>) =>
     deck.setState((w) => ({ ...w, ...patch }));
-  const [tally, setTally] = useState<Tally>(() => loadTally("numeric"));
+  const [tally, setTally] = useState<Tally>(() => loadTally(tallyKey));
 
   const item: NumericItem | undefined = items[deck.i];
   if (!item) return <p className="muted">No questions.</p>;
@@ -56,7 +63,7 @@ export function NumericExercise() {
       set({ result: "right" });
       const t = record(tally, hintsShown === 0);
       setTally(t);
-      saveTally("numeric", t);
+      saveTally(tallyKey, t);
       return;
     }
     // Entering x when the question asked for a measure is a specific mistake,
@@ -65,7 +72,7 @@ export function NumericExercise() {
     set({ trapHit: hit ?? null, result: hit ? "trap" : "wrong" });
     const t = record(tally, false);
     setTally(t);
-    saveTally("numeric", t);
+    saveTally(tallyKey, t);
   };
 
   return (

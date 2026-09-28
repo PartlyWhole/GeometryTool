@@ -23,7 +23,10 @@ const EMPTY: Inventory = { points: [], segments: [], angles: [], rays: [], lines
 
 export function figureObjects(board?: Board, extra: ObjId[] = []): Inventory {
   if (!board) return withExtra(EMPTY, extra);
-  const points = board.points.map((p) => p.label).sort();
+  // A construction point is never shown, so nothing named through it can be
+  // offered: a Module 3 figure is named by its lines and numbered angles.
+  const quiet = new Set(board.points.filter((p) => p.quiet).map((p) => p.label));
+  const points = board.points.filter((p) => !p.quiet).map((p) => p.label).sort();
   const segments: SegId[] = [];
   const seenSeg = new Set<string>();
 
@@ -45,6 +48,7 @@ export function figureObjects(board?: Board, extra: ObjId[] = []): Inventory {
     for (let i = 0; i < on.length; i++)
       for (let j = i + 1; j < on.length; j++) {
         const s: SegId = { k: "seg", a: on[i].p.label, b: on[j].p.label };
+        if (quiet.has(s.a) || quiet.has(s.b)) continue;
         const k = objKey(s);
         if (!seenSeg.has(k)) (seenSeg.add(k), segments.push(s));
       }
@@ -65,12 +69,12 @@ export function figureObjects(board?: Board, extra: ObjId[] = []): Inventory {
 
   for (const j of topology(board)) {
     const here = board.points.find((p) => distance(p, j.position) < 1e-6);
-    if (!here) continue;
+    if (!here || here.quiet) continue;
     const armLabel = (end: string) =>
       board.points.find((p) => p.id === end)?.label;
     const arms = j.directions
       .map((d) => armLabel(d.ref.end))
-      .filter((x): x is string => !!x && x !== here.label);
+      .filter((x): x is string => !!x && x !== here.label && !quiet.has(x));
     for (const arm of arms) {
       const r: RayId = { k: "ray", from: here.label, through: arm };
       if (!seenRay.has(objKey(r))) (seenRay.add(objKey(r)), rays.push(r));
@@ -91,7 +95,9 @@ export function figureObjects(board?: Board, extra: ObjId[] = []): Inventory {
     const a = board.points.find((p) => p.id === e.a),
       b = board.points.find((p) => p.id === e.b);
     if (!a || !b) continue;
-    const l: LineId = { k: "line", a: a.label, b: b.label };
+    const l: LineId = e.label
+      ? { k: "line", a: a.label, b: b.label, name: e.label }
+      : { k: "line", a: a.label, b: b.label };
     if (!seenLine.has(objKey(l))) (seenLine.add(objKey(l)), lines.push(l));
   }
 

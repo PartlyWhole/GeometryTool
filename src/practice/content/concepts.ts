@@ -42,6 +42,11 @@ export type Concept = {
   nonExamples?: Example[];
   /** A trap the reference warns about. */
   watch?: string;
+  /** For concepts outside the Module 2 tables below, which declare their own. */
+  topic?: Topic;
+  article?: "a" | "an";
+  /** Set on concepts from later modules; Module 2's own carry none. */
+  module?: 3;
 };
 
 export const CONCEPTS: Concept[] = [
@@ -526,7 +531,15 @@ export const CONCEPTS: Concept[] = [
  * offering "Right angle" against "Congruent segments" tests nothing, because
  * no one weighing the two is thinking about geometry.
  */
-export type Topic = "space" | "segment" | "angle" | "algebra" | "logic";
+export type Topic =
+  | "space"
+  | "segment"
+  | "angle"
+  | "algebra"
+  | "logic"
+  // Module 3: the names for angle pairs, and what parallel lines make of them.
+  | "pairs"
+  | "parallel";
 
 export const TOPIC: Record<string, Topic> = {
   "point-and-line": "space",
@@ -570,7 +583,7 @@ export const TOPIC: Record<string, Topic> = {
   proof: "logic",
 };
 
-export const topicOf = (c: Concept): Topic => TOPIC[c.id] ?? "space";
+export const topicOf = (c: Concept): Topic => c.topic ?? TOPIC[c.id] ?? "space";
 
 /**
  * The article a term takes mid-sentence. Plurals, adjectives and abstract
@@ -594,7 +607,7 @@ export function termPhrase(c: Concept): string {
   const named = /\b(Theorem|Postulate|Property|Law)\b/.test(c.term);
   if (named) return "the " + c.term;
   const lower = c.term.charAt(0).toLowerCase() + c.term.slice(1);
-  const article = INDEFINITE[c.id];
+  const article = c.article ?? INDEFINITE[c.id];
   return article ? article + " " + lower : lower;
 }
 

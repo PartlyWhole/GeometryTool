@@ -9,7 +9,12 @@ export type SegId = { k: "seg"; a: string; b: string };
 export type AngId = { k: "ang"; name: string };
 export type PtId = { k: "pt"; p: string };
 export type RayId = { k: "ray"; from: string; through: string };
-export type LineId = { k: "line"; a: string; b: string };
+/**
+ * A line through two of its points. Module 3 names lines by a single letter
+ * the way the reference does — m, n, t — and a named line is identified by
+ * that name, since any two of its points would do.
+ */
+export type LineId = { k: "line"; a: string; b: string; name?: string };
 export type ObjId = SegId | AngId | PtId | RayId | LineId;
 
 export const seg = (a: string, b: string): SegId => ({ k: "seg", a, b });
@@ -20,7 +25,8 @@ export const ray = (from: string, through: string): RayId => ({
   from,
   through,
 });
-export const line = (a: string, b: string): LineId => ({ k: "line", a, b });
+export const line = (a: string, b: string, name?: string): LineId =>
+  name ? { k: "line", a, b, name } : { k: "line", a, b };
 
 // A segment or line may be named in either order; a ray may not, because its
 // first letter is the endpoint (reference Fig. 6).
@@ -29,7 +35,7 @@ export function objKey(o: ObjId): string {
     case "seg":
       return "seg:" + [o.a, o.b].sort().join("");
     case "line":
-      return "line:" + [o.a, o.b].sort().join("");
+      return "line:" + (o.name ?? [o.a, o.b].sort().join(""));
     case "ray":
       return "ray:" + o.from + o.through;
     case "pt":
@@ -75,6 +81,23 @@ export const div = (n: Term, d: Term): Term => ({ k: "div", n, d });
 
 export type AngleClass = "acute" | "right" | "obtuse" | "straight";
 
+/**
+ * The five names for two angles at different crossings of one transversal
+ * (Module 3). Each is a statement about position only — true of any two
+ * lines, parallel or not — which is exactly why none of them is enough on
+ * its own to make two angles congruent.
+ */
+export const PAIR_KINDS = [
+  "corresponding",
+  "altInterior",
+  "consInterior",
+  "altExterior",
+  "consExterior",
+] as const;
+export type PairKind = (typeof PAIR_KINDS)[number];
+export const isPairKind = (k: string): k is PairKind =>
+  (PAIR_KINDS as readonly string[]).includes(k);
+
 export type Statement =
   | { k: "eq"; l: Term; r: Term }
   | { k: "cong"; l: ObjId; r: ObjId }
@@ -83,6 +106,7 @@ export type Statement =
   | { k: "vertical"; a: AngId; b: AngId }
   | { k: "linearPair"; a: AngId; b: AngId }
   | { k: "adjacent"; a: AngId; b: AngId }
+  | { k: PairKind; a: AngId; b: AngId }
   | { k: "perp"; a: ObjId; b: ObjId }
   | { k: "parallel"; a: ObjId; b: ObjId }
   | { k: "midpoint"; p: string; seg: SegId }
@@ -283,6 +307,11 @@ export function statementKey(s: Statement): string {
     case "vertical":
     case "linearPair":
     case "adjacent":
+    case "corresponding":
+    case "altInterior":
+    case "consInterior":
+    case "altExterior":
+    case "consExterior":
       return s.k + ":" + [objKey(s.a), objKey(s.b)].sort().join("~");
     case "perp":
     case "parallel":
@@ -373,6 +402,11 @@ export function mapAngles(s: Statement, f: (a: AngId) => AngId): Statement {
     case "vertical":
     case "linearPair":
     case "adjacent":
+    case "corresponding":
+    case "altInterior":
+    case "consInterior":
+    case "altExterior":
+    case "consExterior":
       return { ...s, a: f(s.a), b: f(s.b) };
     case "perp":
     case "parallel":
@@ -427,6 +461,11 @@ export function statementObjects(s: Statement): ObjId[] {
     case "vertical":
     case "linearPair":
     case "adjacent":
+    case "corresponding":
+    case "altInterior":
+    case "consInterior":
+    case "altExterior":
+    case "consExterior":
       out.push(s.a, s.b);
       break;
     case "midpoint":

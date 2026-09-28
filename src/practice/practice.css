@@ -46,6 +46,22 @@
     backdrop-filter: blur(10px);
   }
 }
+.app-page-nav { gap: 14px; align-items: center; flex-wrap: wrap; }
+.moduleswitch {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+.app-page .moduleswitch button {
+  min-height: 30px;
+  padding: 5px 11px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.app-page .moduleswitch button.active { color: var(--accent); }
 .page {
   max-width: 1180px;
   margin: 0 auto;
@@ -217,6 +233,8 @@
 .fig-ticks line,
 .fig-label,
 .fig-anglename,
+.fig-linename,
+.fig-parallel,
 .fig-order {
   pointer-events: none;
 }
@@ -242,6 +260,8 @@
   fill: none;
   pointer-events: none;
 }
+/* A whole line is a lot of ink; drawn at full strength it hides the angles. */
+.fig-highlight.line { stroke-width: 4; opacity: 0.5; }
 .fig-edge-hit:hover + .fig-edge {
   stroke: var(--accent);
 }
@@ -280,6 +300,22 @@
   text-anchor: middle;
   pointer-events: none;
   user-select: none;
+}
+/* A line's name is a variable in the reference, set like a point letter. */
+.fig-linename {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  font-style: italic;
+  font-size: 19px;
+  fill: #2b3433;
+  text-anchor: middle;
+  user-select: none;
+}
+.fig-parallel polyline {
+  fill: none;
+  stroke: #46514f;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .fig-anglename {
   font-size: 13px;
@@ -1142,3 +1178,54 @@ code.answer.empty { color: var(--muted); font-size: 14px; }
 .concept-step.past { color: var(--muted); }
 .concept-step.past .concept-n { background: var(--ok-soft); color: var(--ok); }
 .concept-step.ahead { color: #a9afad; }
+
+/* ------------------------------------------------------------ flow proof */
+
+/* The reference's flow proof: boxes joined by arrows, the reason written on
+   the line under each box. Stacked, so it fits the side column. */
+.flow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  max-width: 340px;
+}
+.flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.flow-arrow {
+  font-size: 22px;
+  line-height: 1;
+  color: #46514f;
+  margin: 6px 0 4px;
+}
+.flow-box {
+  border: 2px solid #46514f;
+  border-radius: 8px;
+  padding: 8px 18px;
+  background: var(--card);
+  font-size: 16px;
+  min-width: 160px;
+  text-align: center;
+}
+.flow-step.right .flow-box { border-color: var(--ok); background: var(--ok-soft); }
+.flow-step.wrong .flow-box { border-color: var(--bad); background: var(--bad-soft); }
+.flow-reason { width: 100%; display: flex; justify-content: center; margin-top: 6px; }
+.flow-reason select { width: 100%; max-width: 300px; padding: 6px 9px; font-size: 13.5px; }
+.flow-step.wrong .flow-reason select { border-color: var(--bad); }
+.flow-step.right .flow-reason select { border-color: var(--ok); }
+.flow-note {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #8f2f28;
+  text-align: center;
+}
+
+/* A figure on a card: wide cards would otherwise stretch a pair of lines
+   across the whole width and shrink the crossings to nothing. */
+.card .figure { max-width: 500px; margin: 0 auto; }

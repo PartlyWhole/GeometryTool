@@ -11,7 +11,7 @@ import {
 } from "./StatementBuilder";
 import { PickableFigure } from "./PickableFigure";
 import { statementText } from "./notation";
-import { KIND_LABEL, REASONS, type ReasonKind, reasonById } from "./reasons";
+import { KIND_LABEL, type ReasonKind, reasonById, reasonsFor } from "./reasons";
 import {
   type ProofLine,
   type ProofProblem,
@@ -27,6 +27,8 @@ import { type Tally, loadTally, record, saveTally } from "./progress";
 import { Hints, ItemNav, Scoreboard, Tabs, Verdict } from "./ui";
 import { ReasonCheckMode } from "./SelectAllExercise";
 import { StepExercise } from "./StepExercise";
+import { FlowExercise } from "./FlowExercise";
+import { PROOFS3 } from "./content/items3";
 
 const KIND_ORDER: ReasonKind[] = [
   "given",
@@ -37,8 +39,9 @@ const KIND_ORDER: ReasonKind[] = [
   "algebra",
 ];
 
-export function ProofExercise() {
-  const [tab, setTab] = useState<"step" | "reasons" | "build">("step");
+export function ProofExercise(props: { module?: 2 | 3 }) {
+  const m3 = props.module === 3;
+  const [tab, setTab] = useState<"step" | "reasons" | "flow" | "build">("step");
   return (
     <>
       <div className="proof-tabs">
@@ -49,13 +52,19 @@ export function ProofExercise() {
           options={[
             { id: "step", label: "One step", hint: "A single line: what justifies it?" },
             { id: "reasons", label: "Check the reasons", hint: "A finished proof, with some reasons wrong" },
+            ...(m3
+              ? [{ id: "flow" as const, label: "Flow proof", hint: "Boxes and arrows: fill in each reason" }]
+              : []),
             { id: "build", label: "Build a proof", hint: "Write every line and justify it" },
           ]}
         />
       </div>
-      {tab === "step" && <StepExercise />}
-      {tab === "reasons" && <ReasonCheckMode />}
-      {tab === "build" && <ProofBuilder />}
+      {tab === "step" &&
+        (m3 ? <StepExercise proofs={PROOFS3} tallyKey="steps-m3" /> : <StepExercise />)}
+      {tab === "reasons" &&
+        (m3 ? <ReasonCheckMode proofs={PROOFS3} tallyKey="reasoncheck-m3" /> : <ReasonCheckMode />)}
+      {tab === "flow" && m3 && <FlowExercise />}
+      {tab === "build" && <ProofBuilder module={m3 ? 3 : 2} />}
     </>
   );
 }
@@ -88,11 +97,12 @@ const blankWork = (): Work => ({
   scored: false,
 });
 
-function ProofBuilder() {
+function ProofBuilder(props: { module: 2 | 3 }) {
   const [genSeed, setGenSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const problems = useMemo(
-    () => [...PROOFS, ...generatedProofs(genSeed, 4)],
-    [genSeed],
+    () =>
+      props.module === 3 ? PROOFS3 : [...PROOFS, ...generatedProofs(genSeed, 4)],
+    [genSeed, props.module],
   );
   const deck = useDeck<Work>(problems.length, blankWork, {
     key: String(genSeed),
@@ -102,6 +112,7 @@ function ProofBuilder() {
     <ProofBoard
       problem={problem}
       problems={problems}
+      module={props.module}
       index={deck.i}
       work={deck.state}
       setWork={deck.setState}
@@ -123,9 +134,13 @@ function ProofBuilder() {
           )}
         />
       }
-      onMore={() => {
-        setGenSeed(Math.floor(Math.random() * 1e9));
-      }}
+      onMore={
+        props.module === 3
+          ? undefined
+          : () => {
+              setGenSeed(Math.floor(Math.random() * 1e9));
+            }
+      }
     />
   );
 }
@@ -133,11 +148,12 @@ function ProofBuilder() {
 function ProofBoard(props: {
   problem: ProofProblem;
   problems: ProofProblem[];
+  module: 2 | 3;
   index: number;
   work: Work;
   setWork: (next: Work | ((prev: Work) => Work)) => void;
   onPick: (i: number) => void;
-  onMore: () => void;
+  onMore?: () => void;
   nav: React.ReactNode;
 }) {
   const { problem } = props;
@@ -214,7 +230,7 @@ function ProofBoard(props: {
   // student simply did not find what they were reaching for. Offered and then
   // refused, the validator gets to say why citing the thing you are proving is
   // circular, which is the lesson those problems exist for.
-  const allowed = REASONS;
+  const allowed = reasonsFor(props.module);
 
   return (
     <div className="exercise proof">
@@ -242,9 +258,11 @@ function ProofBoard(props: {
               ))}
             </select>
           </label>
-          <button onClick={props.onMore} title="Generate fresh solve-for-x proofs">
-            New generated set
-          </button>
+          {props.onMore && (
+            <button onClick={props.onMore} title="Generate fresh solve-for-x proofs">
+              New generated set
+            </button>
+          )}
         </div>
       </header>
 
@@ -388,6 +406,7 @@ function ProofBoard(props: {
                 value={draft}
                 onChange={(d) => set({ draft: d, error: null })}
                 variables={["x", "y"]}
+                module={props.module}
               />
 
               <div className="composer-reason">

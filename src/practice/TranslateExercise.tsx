@@ -19,10 +19,12 @@ import { type ObjId, matchesAccepted, objKey, statementObjects } from "./terms";
 import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
 import { ItemNav, Scoreboard, Tabs, Verdict } from "./ui";
+import { CLAIM_ITEMS3, READ_ITEMS3 } from "./content/items3";
 
 type Dir = "read" | "construct" | "claims";
 
-export function TranslateExercise() {
+export function TranslateExercise(props: { module?: 2 | 3 }) {
+  const m3 = props.module === 3;
   const [dir, setDir] = useState<Dir>("read");
   return (
     <div className="exercise">
@@ -43,14 +45,18 @@ export function TranslateExercise() {
           onChange={setDir}
           options={[
             { id: "read", label: "Figure → equation" },
-            { id: "construct", label: "Description → figure" },
+            // Module 3 has no dragging task: its figures are fixed pairs of
+            // lines, and what matters is reading them, not arranging them.
+            ...(m3 ? [] : [{ id: "construct" as const, label: "Description → figure" }]),
             { id: "claims", label: "What is true?" },
           ]}
         />
       </header>
-      {dir === "read" && <ReadMode />}
-      {dir === "construct" && <ConstructMode />}
-      {dir === "claims" && <ClaimMode />}
+      {dir === "read" &&
+        (m3 ? <ReadMode items={READ_ITEMS3} module={3} tallyKey="translate-read-m3" /> : <ReadMode />)}
+      {dir === "construct" && !m3 && <ConstructMode />}
+      {dir === "claims" &&
+        (m3 ? <ClaimMode items={CLAIM_ITEMS3} tallyKey="claims-m3" /> : <ClaimMode />)}
     </div>
   );
 }
@@ -58,17 +64,21 @@ export function TranslateExercise() {
 /** A half-written statement and the verdict on it, for one figure. */
 type ReadWork = { draft: Draft; result: boolean | null };
 
-function ReadMode() {
-  const deck = useDeck<ReadWork>(READ_ITEMS.length, () => ({
-    draft: newDraft("eq"),
+function ReadMode(props: { items?: ReadItem[]; module?: 2 | 3; tallyKey?: string }) {
+  const items = props.items ?? READ_ITEMS;
+  const tallyKey = props.tallyKey ?? "translate-read";
+  // A draft starts in the first form the item allows, so an item that wants
+  // a pair name does not open on an equation it will never accept.
+  const deck = useDeck<ReadWork>(items.length, (n) => ({
+    draft: newDraft(items[n].allowForms?.[0] ?? "eq"),
     result: null,
   }));
-  const item: ReadItem = READ_ITEMS[deck.i];
+  const item: ReadItem = items[deck.i];
   const { draft, result } = deck.state;
   const setDraft = (d: Draft) => deck.setState((w) => ({ ...w, draft: d }));
   const setResult = (r: boolean | null) =>
     deck.setState((w) => ({ ...w, result: r }));
-  const [tally, setTally] = useState<Tally>(() => loadTally("translate-read"));
+  const [tally, setTally] = useState<Tally>(() => loadTally(tallyKey));
 
   const built = buildStatement(draft);
   const preview = built.ok ? statementText(built.statement) : undefined;
@@ -85,7 +95,7 @@ function ReadMode() {
     setResult(ok);
     const t = record(tally, ok);
     setTally(t);
-    saveTally("translate-read", t);
+    saveTally(tallyKey, t);
   };
 
   return (
@@ -126,6 +136,7 @@ function ReadMode() {
             value={draft}
             onChange={setDraft}
             allowForms={item.allowForms}
+            module={props.module}
           />
           {!built.ok && draft.slots.some((s) => s.kind !== "expr" || s.toks.length) && (
             <p className="muted small">{built.why}</p>

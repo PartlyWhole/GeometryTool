@@ -18,6 +18,8 @@ import {
   sentenceOf,
 } from "./logic";
 import { rng } from "./generators";
+import type { Board } from "../../model";
+import type { Highlight } from "../Figure";
 
 export type LogicCard = {
   id: string;
@@ -33,6 +35,9 @@ export type LogicCard = {
    * answers at once buries the one the student needs.
    */
   whyPerChoice?: Record<number, string>;
+  /** Module 3 cards carry a figure, with the angles in question picked out. */
+  figure?: Board;
+  highlights?: Highlight[];
 };
 
 const FORMS: FormKind[] = ["conditional", "converse", "inverse", "contrapositive"];

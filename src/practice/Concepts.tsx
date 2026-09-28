@@ -8,11 +8,20 @@ import React, { useMemo, useState } from "react";
 import { Figure, type Highlight } from "./Figure";
 import { statementText } from "./notation";
 import { CONCEPTS, type Concept } from "./content/concepts";
+import { CONCEPTS3 } from "./content/concepts3";
 import { LIBRARY } from "./content/library";
 import { WALKTHROUGHS } from "./content/walkthroughs";
-import { BuildStamp } from "./ui";
+import { BuildStamp, type Module } from "./ui";
 
-const SECTIONS: { label: string; match: (c: Concept) => boolean }[] = [
+type Section = { label: string; match: (c: Concept) => boolean };
+
+const SECTIONS3: Section[] = [
+  { label: "Transversals", match: (c) => c.section === "Transversals" },
+  { label: "Parallel lines", match: (c) => c.section === "Parallel lines" },
+  { label: "Proof", match: (c) => c.section === "Proof" },
+];
+
+const SECTIONS: Section[] = [
   { label: "Points and lines", match: (c) => c.section === "§5" },
   { label: "Segments", match: (c) => c.section === "§6" },
   { label: "Angles", match: (c) => c.section === "§8" },
@@ -21,12 +30,14 @@ const SECTIONS: { label: string; match: (c: Concept) => boolean }[] = [
   { label: "Reasoning and proof", match: (c) => c.section === "§2" || c.section === "§3" },
 ];
 
-export function Concepts() {
-  const [id, setId] = useState(CONCEPTS[0].id);
+export function Concepts(props: { module?: Module }) {
+  const bank = props.module === 3 ? CONCEPTS3 : CONCEPTS;
+  const sections = props.module === 3 ? SECTIONS3 : SECTIONS;
+  const [id, setId] = useState(bank[0].id);
   const [step, setStep] = useState(0);
   const [seen, setSeen] = useState<Set<string>>(new Set());
 
-  const concept = CONCEPTS.find((c) => c.id === id)!;
+  const concept = bank.find((c) => c.id === id)!;
   const walk = WALKTHROUGHS.find((w) => w.conceptId === id);
 
   const choose = (next: string) => {
@@ -67,16 +78,18 @@ export function Concepts() {
         <div>
           <h1>Concepts</h1>
           <p className="muted">
-            Every idea in the module, laid out a step at a time. Work through a
-            concept here, then drill it in Practice.
+            {props.module === 3
+              ? "Two lines cut by a transversal: the names for the angle pairs, and what parallel lines make of them."
+              : "Every idea in the module, laid out a step at a time."}{" "}
+            Work through a concept here, then drill it in Practice.
           </p>
         </div>
       </header>
 
       <div className="concepts-body">
         <nav className="concept-list" aria-label="Concepts">
-          {SECTIONS.map((section) => {
-            const members = CONCEPTS.filter(section.match);
+          {sections.map((section) => {
+            const members = bank.filter(section.match);
             if (!members.length) return null;
             return (
               <div key={section.label} className="concept-group">

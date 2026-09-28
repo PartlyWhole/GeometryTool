@@ -6,7 +6,8 @@
 import React, { useMemo, useState } from "react";
 import { Figure } from "./Figure";
 import { statementText } from "./notation";
-import { CLAIM_ITEMS } from "./content/claims";
+import { CLAIM_ITEMS, type ClaimItem } from "./content/claims";
+import type { ProofProblem } from "./proof";
 import { reasonCheckItems, reasonName } from "./content/reasonCheck";
 import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
@@ -64,11 +65,13 @@ type Work = { picked: Set<number>; done: boolean };
 const blankWork = (): Work => ({ picked: new Set<number>(), done: false });
 
 /** Q12A: which statements does the figure assert? */
-export function ClaimMode() {
-  const deck = useDeck<Work>(CLAIM_ITEMS.length, blankWork);
-  const item = CLAIM_ITEMS[deck.i];
+export function ClaimMode(props: { items?: ClaimItem[]; tallyKey?: string }) {
+  const items = props.items ?? CLAIM_ITEMS;
+  const tallyKey = props.tallyKey ?? "claims";
+  const deck = useDeck<Work>(items.length, blankWork);
+  const item = items[deck.i];
   const { picked, done } = deck.state;
-  const [tally, setTally] = useState<Tally>(() => loadTally("claims"));
+  const [tally, setTally] = useState<Tally>(() => loadTally(tallyKey));
 
   const rows: Row[] = item.claims.map((c) => ({
     label: statementText(c.statement),
@@ -83,7 +86,7 @@ export function ClaimMode() {
     deck.setState((w) => ({ ...w, done: true }));
     const t = record(tally, ok);
     setTally(t);
-    saveTally("claims", t);
+    saveTally(tallyKey, t);
   };
 
   return (
@@ -100,7 +103,7 @@ export function ClaimMode() {
             ? null
             : sameSet(
                 w.picked,
-                CLAIM_ITEMS[n].claims.map((c) => ({
+                items[n].claims.map((c) => ({
                   label: "",
                   correct: c.holds,
                 })),
@@ -149,15 +152,16 @@ export function ClaimMode() {
 }
 
 /** Q6: which lines of this proof carry the right reason? */
-export function ReasonCheckMode() {
+export function ReasonCheckMode(props: { proofs?: ProofProblem[]; tallyKey?: string }) {
+  const tallyKey = props.tallyKey ?? "reasoncheck";
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
-  const items = useMemo(() => reasonCheckItems(seed, 8), [seed]);
+  const items = useMemo(() => reasonCheckItems(seed, 8, props.proofs), [seed, props.proofs]);
   const deck = useDeck<Work>(items.length, blankWork, {
     key: String(seed),
     onEnd: () => setSeed(Math.floor(Math.random() * 1e9)),
   });
   const { picked, done } = deck.state;
-  const [tally, setTally] = useState<Tally>(() => loadTally("reasoncheck"));
+  const [tally, setTally] = useState<Tally>(() => loadTally(tallyKey));
 
   const item = items[deck.i];
   if (!item) return <p className="muted">No items.</p>;
@@ -176,7 +180,7 @@ export function ReasonCheckMode() {
     deck.setState((w) => ({ ...w, done: true }));
     const t = record(tally, ok);
     setTally(t);
-    saveTally("reasoncheck", t);
+    saveTally(tallyKey, t);
   };
 
   return (

@@ -192,6 +192,32 @@ export function BuildStamp() {
 
 export type Page = "board" | "concepts" | "practice" | "cards";
 
+/** Which module's material the Concepts, Practice and Cards pages show. */
+export type Module = 2 | 3;
+
+export function ModuleSwitch(props: { value: Module; onChange: (m: Module) => void }) {
+  const items: { id: Module; label: string; hint: string }[] = [
+    { id: 2, label: "Module 2", hint: "Points, segments, angles, reasoning and proof" },
+    { id: 3, label: "Module 3", hint: "Parallel lines cut by a transversal" },
+  ];
+  return (
+    <div className="moduleswitch" role="radiogroup" aria-label="Module">
+      {items.map((it) => (
+        <button
+          key={it.id}
+          role="radio"
+          aria-checked={props.value === it.id}
+          className={props.value === it.id ? "active" : ""}
+          title={it.hint}
+          onClick={() => props.onChange(it.id)}
+        >
+          {it.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function PageNav(props: {
   value: Page;
   onChange: (p: Page) => void;

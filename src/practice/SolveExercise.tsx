@@ -3,8 +3,10 @@ import React, { useState } from "react";
 import { NumericExercise } from "./NumericExercise";
 import { MultiPartExercise } from "./MultiPartExercise";
 import { Tabs } from "./ui";
+import { multipart3, numeric3 } from "./content/items3";
 
-export function SolveExercise() {
+export function SolveExercise(props: { module?: 2 | 3 }) {
+  const m3 = props.module === 3;
   const [tab, setTab] = useState<"single" | "parts">("single");
   return (
     <>
@@ -19,7 +21,13 @@ export function SolveExercise() {
           ]}
         />
       </div>
-      {tab === "single" ? <NumericExercise /> : <MultiPartExercise />}
+      {tab === "single" ? (
+        m3 ? <NumericExercise source={numeric3} tallyKey="numeric-m3" /> : <NumericExercise />
+      ) : m3 ? (
+        <MultiPartExercise source={multipart3} tallyKey="multipart-m3" />
+      ) : (
+        <MultiPartExercise />
+      )}
     </>
   );
 }

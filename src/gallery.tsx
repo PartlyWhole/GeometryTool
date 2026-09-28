@@ -2,6 +2,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { LIBRARY } from "./practice/content/library";
+import { LIBRARY3 } from "./practice/content/library3";
 import { Figure } from "./practice/Figure";
 import "./style.css";
 import "./practice/practice.css";
@@ -12,7 +13,9 @@ function Gallery() {
       <div className="page" style={{ maxWidth: 1500 }}>
         <h1>Figure gallery</h1>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
-          {Object.entries(LIBRARY).map(([name, make]) => (
+          {Object.entries(
+            new URLSearchParams(location.search).get("m") === "3" ? LIBRARY3 : LIBRARY,
+          ).map(([name, make]) => (
             <div key={name}>
               <h3 style={{ margin: "0 0 6px", fontSize: 13 }}>{name}</h3>
               <Figure board={make()} height={250} ariaLabel={name} />

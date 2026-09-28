@@ -99,7 +99,11 @@ export function PickableFigure(props: Props) {
           </>
         ) : (
           <span className="muted small">
-            {hint(props.wants)}
+            {/* A figure with no lettered points is named by its numbered
+                angles and lettered lines alone. */}
+            {props.board.points.every((p) => p.quiet)
+              ? "Click inside a numbered angle to use it, or pick from the list. Lines are in the list by their letters."
+              : hint(props.wants)}
           </span>
         )}
       </div>

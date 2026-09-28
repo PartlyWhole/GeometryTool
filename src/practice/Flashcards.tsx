@@ -3,51 +3,76 @@
 import React, { useMemo, useState } from "react";
 import { Figure } from "./Figure";
 import { CONCEPTS, type Concept } from "./content/concepts";
+import { CONCEPTS3 } from "./content/concepts3";
+import { cards3 } from "./content/cards3";
 import { LIBRARY } from "./content/library";
 import { type LogicCard, logicCards } from "./content/logicCards";
 import { dots, useDeck } from "./deck";
 import { type Tally, loadTally, record, saveTally } from "./progress";
-import { ItemNav, Scoreboard, Tabs, Verdict } from "./ui";
+import { ItemNav, type Module, Scoreboard, Tabs, Verdict } from "./ui";
 
 type Deck = "logic" | "definitions";
 
-export function Flashcards() {
+export function Flashcards(props: { module?: Module }) {
+  const m3 = props.module === 3;
   const [deck, setDeck] = useState<Deck>("logic");
   return (
     <div className="page flashcards">
       <header className="page-head">
         <div>
-          <h1>Flashcards</h1>
+          <h1>Flashcards{m3 ? " · Module 3" : ""}</h1>
           <p className="muted">
-            {deck === "logic"
-              ? "Conditional statements, equivalence, negation and the two laws of deduction."
-              : "Properties, postulates and definitions — with the figure that makes each obvious."}
+            {m3
+              ? deck === "logic"
+                ? "Name the pair, say what follows, and the reasons in the flow proof."
+                : "The five pair names, parallel lines, the postulate and the four theorems."
+              : deck === "logic"
+                ? "Conditional statements, equivalence, negation and the two laws of deduction."
+                : "Properties, postulates and definitions — with the figure that makes each obvious."}
           </p>
         </div>
         <Tabs
           label="Deck"
           value={deck}
           onChange={setDeck}
-          options={[
-            { id: "logic", label: "Logic and statements" },
-            { id: "definitions", label: "Definitions and postulates" },
-          ]}
+          options={
+            m3
+              ? [
+                  { id: "logic", label: "Angle pairs and rules" },
+                  { id: "definitions", label: "Definitions and theorems" },
+                ]
+              : [
+                  { id: "logic", label: "Logic and statements" },
+                  { id: "definitions", label: "Definitions and postulates" },
+                ]
+          }
         />
       </header>
-      {deck === "logic" ? <LogicDeck /> : <DefinitionDeck />}
+      {deck === "logic" ? (
+        m3 ? <LogicDeck source={cards3} tallyKey="cards-m3" /> : <LogicDeck />
+      ) : (
+        <DefinitionDeck bank={m3 ? CONCEPTS3 : CONCEPTS} />
+      )}
     </div>
   );
 }
 
-function LogicDeck() {
+function LogicDeck(props: {
+  source?: (seed: number, count: number) => LogicCard[];
+  tallyKey?: string;
+}) {
+  const tallyKey = props.tallyKey ?? "logic";
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
-  const cards = useMemo(() => logicCards(seed, 16), [seed]);
+  const cards = useMemo(
+    () => (props.source ?? logicCards)(seed, 16),
+    [seed, props.source],
+  );
   const deck = useDeck<number | null>(cards.length, () => null, {
     key: String(seed),
     onEnd: () => setSeed(Math.floor(Math.random() * 1e9)),
   });
   const picked = deck.state;
-  const [tally, setTally] = useState<Tally>(() => loadTally("logic"));
+  const [tally, setTally] = useState<Tally>(() => loadTally(tallyKey));
 
   const card: LogicCard | undefined = cards[deck.i];
   if (!card) return <p className="muted">No cards.</p>;
@@ -57,7 +82,7 @@ function LogicDeck() {
     deck.setState(n);
     const t = record(tally, n === card.correct);
     setTally(t);
-    saveTally("logic", t);
+    saveTally(tallyKey, t);
   };
 
   return (
@@ -84,6 +109,14 @@ function LogicDeck() {
               <p key={n}>{line}</p>
             ))}
           </div>
+        )}
+        {card.figure && (
+          <Figure
+            board={card.figure}
+            height={230}
+            highlights={card.highlights}
+            ariaLabel={card.prompt}
+          />
         )}
         <h2 className="card-prompt">{card.prompt}</h2>
         <div className="choices tall">
@@ -130,12 +163,12 @@ const KINDS = [
   { id: "reasoning", label: "Reasoning" },
 ] as const;
 
-function DefinitionDeck() {
+function DefinitionDeck(props: { bank: Concept[] }) {
   const [kind, setKind] = useState<(typeof KINDS)[number]["id"]>("all");
   const [side, setSide] = useState<"term" | "definition">("term");
   const pool = useMemo(
-    () => CONCEPTS.filter((c) => kind === "all" || c.kind === kind),
-    [kind],
+    () => props.bank.filter((c) => kind === "all" || c.kind === kind),
+    [kind, props.bank],
   );
   const [order, setOrder] = useState<number[]>(() => pool.map((_, i) => i));
   const [round, setRound] = useState(0);
@@ -190,7 +223,10 @@ function DefinitionDeck() {
     <div className="deck">
       <div className="deck-bar wrap">
         <div className="filterrow">
-          {KINDS.map((k) => (
+          {/* Only the kinds this module has: Module 3 has no properties. */}
+          {KINDS.filter(
+            (k) => k.id === "all" || props.bank.some((c) => c.kind === k.id),
+          ).map((k) => (
             <button
               key={k.id}
               className={kind === k.id ? "chip active" : "chip"}

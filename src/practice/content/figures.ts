@@ -75,7 +75,12 @@ export class Fig {
   }
 
   /** The crossing point of two existing edges, named. */
-  cross(label: string, e1: [string, string], e2: [string, string]) {
+  cross(
+    label: string,
+    e1: [string, string],
+    e2: [string, string],
+    opts: Partial<Point> = {},
+  ) {
     const a = this.edgeBetween(...e1),
       b = this.edgeBetween(...e2);
     const pos = intersect(this.b, a, b);
@@ -85,7 +90,31 @@ export class Fig {
       x: pos.x,
       y: pos.y,
       crossing: [a.id, b.id],
+      ...opts,
     });
+    return this;
+  }
+
+  /** A construction point: placed, but never drawn or lettered. */
+  quiet(label: string, x: number, y: number) {
+    return this.at(label, x, y, { quiet: true });
+  }
+
+  /** Give the line through two points its single-letter name, m or t. */
+  name(a: string, c: string, letter: string) {
+    this.edgeBetween(a, c).label = letter;
+    return this;
+  }
+
+  /**
+   * Arrowhead marks: the figure asserts these lines are parallel. Like ticks
+   * and arcs, the mark is what licenses the fact — two lines drawn parallel
+   * but not marked prove nothing.
+   */
+  parallel(e1: [string, string], e2: [string, string]) {
+    const a = this.edgeBetween(...e1),
+      b = this.edgeBetween(...e2);
+    this.b.constraints.push({ id: uid(), kind: "parallel", edges: [a.id, b.id] });
     return this;
   }
 

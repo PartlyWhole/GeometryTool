@@ -43,17 +43,24 @@ const blankWork = (): Work => ({
   cleanRun: true,
 });
 
-export function MultiPartExercise() {
+export function MultiPartExercise(props: {
+  source?: (seed: number) => MultiPartItem[];
+  tallyKey?: string;
+}) {
+  const tallyKey = props.tallyKey ?? "multipart";
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const items = useMemo(
-    () => [...MULTIPART_ITEMS, ...generatedMultiPart(seed, 4)],
-    [seed],
+    () =>
+      props.source
+        ? props.source(seed)
+        : [...MULTIPART_ITEMS, ...generatedMultiPart(seed, 4)],
+    [seed, props.source],
   );
   const deck = useDeck<Work>(items.length, blankWork, {
     key: String(seed),
     onEnd: () => setSeed(Math.floor(Math.random() * 1e9)),
   });
-  const [tally, setTally] = useState<Tally>(() => loadTally("multipart"));
+  const [tally, setTally] = useState<Tally>(() => loadTally(tallyKey));
   const item = items[deck.i];
 
   if (!item) return <p className="muted">No questions.</p>;
@@ -68,7 +75,7 @@ export function MultiPartExercise() {
         onScore={(ok) => {
           const t = record(tally, ok);
           setTally(t);
-          saveTally("multipart", t);
+          saveTally(tallyKey, t);
         }}
         onNext={deck.forward}
         nav={

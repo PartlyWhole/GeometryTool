@@ -61,11 +61,18 @@ const CONFUSIONS: Record<string, string[]> = {
   "def-right-angle": ["right-angle-congruence", "def-perpendicular", "def-complementary"],
   "def-linear-pair": ["linear-pair-theorem", "def-adjacent", "def-supplementary"],
   "linear-pair-theorem": ["def-linear-pair", "def-supplementary", "vertical-angles-theorem"],
-  "vertical-angles-theorem": ["def-vertical", "def-cong-ang", "congruent-supplements"],
+  "vertical-angles-theorem": ["def-vertical", "def-cong-ang", "congruent-supplements", "corresponding-angles-postulate"],
   "angle-addition": ["segment-addition", "def-adjacent", "angles-around-point"],
   "segment-addition": ["angle-addition", "def-between", "def-midpoint"],
   "congruent-supplements": ["congruent-complements", "vertical-angles-theorem"],
   "right-angle-congruence": ["def-right-angle", "def-cong-ang"],
+  // Module 3.
+  "corresponding-angles-postulate": ["alt-interior-angles-theorem", "alt-exterior-angles-theorem", "vertical-angles-theorem", "cons-interior-angles-theorem"],
+  "alt-interior-angles-theorem": ["cons-interior-angles-theorem", "alt-exterior-angles-theorem", "corresponding-angles-postulate", "vertical-angles-theorem"],
+  "alt-exterior-angles-theorem": ["cons-exterior-angles-theorem", "alt-interior-angles-theorem", "corresponding-angles-postulate", "vertical-angles-theorem"],
+  "cons-interior-angles-theorem": ["alt-interior-angles-theorem", "cons-exterior-angles-theorem", "linear-pair-theorem", "corresponding-angles-postulate"],
+  "cons-exterior-angles-theorem": ["alt-exterior-angles-theorem", "cons-interior-angles-theorem", "linear-pair-theorem", "corresponding-angles-postulate"],
+  "def-vertical": ["def-linear-pair", "vertical-angles-theorem", "def-adjacent"],
 };
 
 const shuffle = <T,>(r: () => number, xs: T[]) => {
@@ -92,11 +99,15 @@ const arityFits = (id: string, n: number) => {
 };
 
 /** Every step of every proof, as its own question. */
-export function stepItems(seed: number, count = 10): StepItem[] {
+export function stepItems(
+  seed: number,
+  count = 10,
+  proofs: ProofProblem[] = PROOFS,
+): StepItem[] {
   const r = rng(seed);
   const out: StepItem[] = [];
 
-  for (const p of shuffle(r, PROOFS)) {
+  for (const p of shuffle(r, proofs)) {
     const steps = p.solution;
     if (!steps) continue;
     const lines: ProofLine[] = [];
@@ -112,6 +123,8 @@ export function stepItems(seed: number, count = 10): StepItem[] {
         const wrong: { name: string; why: string; fits: boolean }[] = [];
         for (const candidate of CONFUSIONS[s.reasonId] ?? []) {
           if (p.forbid?.includes(candidate)) continue;
+          // A Module 2 student is never offered a rule from a later module.
+          if (reasonById(candidate)?.module && !p.module) continue;
           const check = validateLine(p, lines, {
             statement: s.statement,
             reasonId: candidate,

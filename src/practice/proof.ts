@@ -45,6 +45,8 @@ export type ProofProblem = {
   objects?: ObjId[];
   /** A worked solution, cited by 1-based line number. */
   solution?: SolutionStep[];
+  /** Set on Module 3 proofs, whose drills may offer Module 3 reasons. */
+  module?: 3;
 };
 
 export type SolutionStep = {
