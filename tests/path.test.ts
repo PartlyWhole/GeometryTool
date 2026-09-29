@@ -8,7 +8,7 @@ import { CONCEPTS3 } from "../src/practice/content/concepts3";
 import { storyOrder } from "../src/practice/content/story";
 import type { Question } from "../src/practice/path/questions";
 import { derivation, FLOW_REASONS_EARLY } from "../src/practice/path/makers";
-import { lessonOpen, checkpointOpen, unitComplete } from "../src/practice/path/progress";
+import { lessonOpen, checkpointOpen, unitComplete, unlockThrough, relock } from "../src/practice/path/progress";
 import { replaySolution } from "../src/practice/proof";
 import { reasonById } from "../src/practice/reasons";
 import { TABLE_REASON_NAMES } from "../src/practice/content/items3";
@@ -109,6 +109,20 @@ describe("the path", () => {
     const p5 = { ...p, passed: { ...passed, u4: true }, done: { ...p.done, "5.1": 1, "5.2": 1, "5.3": 1, "5.4": 1, "5.5": 1, "5.6": 1, "5.7": 1 } };
     expect(lessonOpen(p5, UNITS, u5, u5.lessons.findIndex((l) => l.id === "5.8"))).toBe(true);
     expect(checkpointOpen(p5, UNITS, u5)).toBe(true);
+  });
+
+  it("skips ahead: opens a place and all before it, without counting it learned", () => {
+    const empty = { done: {}, passed: {}, xp: 0, streak: { days: 0, last: "" }, skill: {} };
+    const u5 = UNITS.find((u) => u.id === "u5")!;
+    const at = u5.lessons.findIndex((l) => l.id === "5.3");
+    const p = unlockThrough(empty, UNITS, "5.3");
+    expect(lessonOpen(p, UNITS, u5, at)).toBe(true);
+    expect(lessonOpen(p, UNITS, UNITS[0], 1), "earlier lessons open too").toBe(true);
+    expect(checkpointOpen(p, UNITS, UNITS[1]), "and earlier checkpoints").toBe(true);
+    expect(lessonOpen(p, UNITS, u5, at + 1), "but not the next one").toBe(false);
+    expect(lessonOpen({ ...p, done: { "5.3": 1 } }, UNITS, u5, at + 1), "until the skipped-to lesson is done").toBe(true);
+    expect(learnedConcepts(UNITS, p).size, "nothing learned by skipping").toBe(0);
+    expect(lessonOpen(relock(p), UNITS, u5, at)).toBe(false);
   });
 
   it("asks each kind of exercise once in a lesson, and leaves repetition to review", () => {

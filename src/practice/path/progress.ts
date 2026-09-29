@@ -16,6 +16,12 @@ export type Progress = {
   streak: { days: number; last: string };
   /** Per concept: strength 0–5, and the day it next wants review. */
   skill: Record<string, { s: number; due: string }>;
+  /**
+   * Lessons and checkpoints ("cp-u4") opened by skipping ahead rather than
+   * by finishing what comes before. Opened, not done: what they teach is not
+   * counted as learned until the lesson is played.
+   */
+  unlocked?: Record<string, boolean>;
 };
 
 const empty = (): Progress => ({ done: {}, passed: {}, xp: 0, streak: { days: 0, last: "" }, skill: {} });
@@ -121,20 +127,39 @@ export function unitComplete(p: Progress, u: Unit) {
   return u.checkpoint ? !!p.passed[u.id] : u.lessons.every((l) => l.optional || p.done[l.id]);
 }
 
+const unlocked = (p: Progress, key: string) => !!p.unlocked?.[key];
+
 export function unitOpen(p: Progress, units: Unit[], u: Unit) {
   const i = units.indexOf(u);
-  return u.ready && (i === 0 || unitComplete(p, units[i - 1]));
+  const skipped = u.lessons.some((l) => unlocked(p, l.id)) || unlocked(p, "cp-" + u.id);
+  return u.ready && (i === 0 || skipped || unitComplete(p, units[i - 1]));
 }
 
-/** Open once the lesson before is done — passing over optional "Prove it" lessons. */
+/** Open once the lesson before is done — passing over optional "Prove it" lessons — or once skipped to. */
 export function lessonOpen(p: Progress, units: Unit[], u: Unit, index: number) {
+  if (u.ready && unlocked(p, u.lessons[index].id)) return true;
   const before = u.lessons.slice(0, index).filter((l) => !l.optional);
   return unitOpen(p, units, u) && (before.length === 0 || !!p.done[before[before.length - 1].id]);
 }
 
 export function checkpointOpen(p: Progress, units: Unit[], u: Unit) {
-  return unitOpen(p, units, u) && u.lessons.every((l) => l.optional || p.done[l.id]);
+  return unitOpen(p, units, u) && (unlocked(p, "cp-" + u.id) || u.lessons.every((l) => l.optional || p.done[l.id]));
 }
+
+/** Every place on the path in order: each unit's lessons, then its checkpoint. */
+export function pathKeys(units: Unit[]): string[] {
+  return units.filter((u) => u.ready).flatMap((u) => [...u.lessons.map((l) => l.id), ...(u.checkpoint ? ["cp-" + u.id] : [])]);
+}
+
+/** Skip ahead: open this place and everything before it on the path. */
+export function unlockThrough(p: Progress, units: Unit[], key: string): Progress {
+  const keys = pathKeys(units);
+  const upto = keys.slice(0, keys.indexOf(key) + 1);
+  return { ...p, unlocked: { ...p.unlocked, ...Object.fromEntries(upto.map((k) => [k, true])) } };
+}
+
+/** Close again what skipping opened. Anything done stays done. */
+export const relock = (p: Progress): Progress => ({ ...p, unlocked: {} });
 
 /** The streak as it stands today: broken if the last lesson was before yesterday. */
 export function currentStreak(p: Progress) {

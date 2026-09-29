@@ -1,6 +1,6 @@
 // The path: Module 3's units as a winding column of lessons, each unlocked
 // by the one before, with a checkpoint closing each unit.
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { type Lesson, type Unit, UNITS } from "./path";
 import {
   type Progress,
@@ -16,6 +16,9 @@ import {
   loadChosen,
   practiceAnswer,
   saveChosen,
+  pathKeys,
+  relock,
+  unlockThrough,
   unitComplete,
   unitOpen,
 } from "./progress";
@@ -41,6 +44,11 @@ const OFFSETS = [0, 46, 70, 46, 0, -46, -70, -46];
 export function PathPage() {
   const [p, setP] = useState<Progress>(loadProgress);
   const [running, setRunning] = useState<Running | null>(null);
+  const [skipAsk, setSkipAsk] = useState<string | null>(null);
+  const [tip, setTip] = useState<string | null>(null);
+  const [askAll, setAskAll] = useState(false);
+  const timer = useRef<number | undefined>(undefined);
+  const held = useRef(false);
   const seed = () => rng(Math.floor(Math.random() * 1e9));
 
   const update = (next: Progress) => {
@@ -114,6 +122,68 @@ export function PathPage() {
 
   // The first unit not yet complete is where the student is.
   const current = UNITS.find((u) => !unitComplete(p, u));
+  const lockedCount = UNITS.filter((u) => u.ready).reduce(
+    (n, u) => n + u.lessons.filter((_, i) => !lessonOpen(p, UNITS, u, i)).length + (u.checkpoint && !checkpointOpen(p, UNITS, u) ? 1 : 0),
+    0,
+  );
+
+  /**
+   * A place on the path: a tap opens it when it is open. On a locked one, a
+   * tap says it is locked, and pressing and holding (or right-clicking)
+   * offers to skip ahead to it.
+   */
+  const hold = (key: string, open: boolean, start: () => void) => ({
+    title: open ? undefined : "Locked. Press and hold to skip ahead.",
+    onClick: () => {
+      if (held.current) {
+        held.current = false;
+        return;
+      }
+      if (open) start();
+      else setTip(key);
+    },
+    onPointerDown: () => {
+      if (open) return;
+      clearTimeout(timer.current);
+      timer.current = window.setTimeout(() => {
+        held.current = true;
+        setTip(null);
+        setSkipAsk(key);
+      }, 550);
+    },
+    onPointerUp: () => clearTimeout(timer.current),
+    onPointerLeave: () => clearTimeout(timer.current),
+    onContextMenu: (e: React.MouseEvent) => {
+      if (open) return;
+      e.preventDefault();
+      clearTimeout(timer.current);
+      setTip(null);
+      setSkipAsk(key);
+    },
+  });
+
+  const skipPrompt = (key: string, name: string) =>
+    skipAsk === key ? (
+      <div className="path-skip" role="dialog" aria-label={"Skip ahead to " + name}>
+        <p>
+          Skip ahead to {name}? It opens this and everything before it. What you skip stays unfinished, and you can go back to it any time.
+        </p>
+        <div className="row">
+          <button
+            className="primary"
+            onClick={() => {
+              update(unlockThrough(p, UNITS, key));
+              setSkipAsk(null);
+            }}
+          >
+            Skip ahead
+          </button>
+          <button onClick={() => setSkipAsk(null)}>Cancel</button>
+        </div>
+      </div>
+    ) : tip === key ? (
+      <span className="path-tip" role="status">Locked — finish the lesson before it first.</span>
+    ) : null;
   const learned = learnedConcepts(UNITS, p);
   const due = [...learned].filter((c) => isDue(p, c)).length;
   let k = 0;
@@ -178,8 +248,8 @@ export function PathPage() {
                   <li key={l.id} style={{ transform: `translateX(${off}px)` }}>
                     <button
                       className={"path-node" + (done ? " done" : avail ? " open" : " locked") + (here ? " here" : "") + (l.optional ? " optional" : "")}
-                      disabled={!avail}
-                      onClick={() => startLesson(u, l)}
+                      aria-disabled={!avail}
+                      {...hold(l.id, avail, () => startLesson(u, l))}
                       aria-label={l.id + " " + l.title + (done ? ", done" : avail ? "" : ", locked")}
                     >
                       <span aria-hidden="true">{done ? "✓" : avail ? (l.optional ? "✎" : "★") : "🔒"}</span>
@@ -189,32 +259,70 @@ export function PathPage() {
                       {l.optional && <em className="path-optional">Optional</em>}
                       {here && <em className="path-start">Start</em>}
                     </span>
+                    {skipPrompt(l.id, l.id + " " + l.title)}
                   </li>
                 );
               })}
-              {u.checkpoint && (
-                <li style={{ transform: `translateX(${OFFSETS[k++ % OFFSETS.length]}px)` }}>
-                  <button
-                    className={"path-node checkpoint" + (p.passed[u.id] ? " done" : checkpointOpen(p, UNITS, u) ? " open here" : " locked")}
-                    disabled={!checkpointOpen(p, UNITS, u)}
-                    onClick={() => {
-                      // A checkpoint covers any earlier unit without one of its own.
-                      const covered = [...UNITS.filter((x) => u.covers?.includes(x.id)), u];
-                      startCheckpoint(covered, "Unit " + u.n + " checkpoint", covered);
-                    }}
-                    aria-label={"Unit " + u.n + " checkpoint"}
-                  >
-                    <span aria-hidden="true">🏆</span>
-                  </button>
-                  <span className="path-node-label">
-                    <b>Checkpoint</b> {Math.round(PASS_MARK * 100)}% to pass
-                  </span>
-                </li>
-              )}
+              {u.checkpoint && (() => {
+                const key = "cp-" + u.id;
+                const open = checkpointOpen(p, UNITS, u);
+                return (
+                  <li style={{ transform: `translateX(${OFFSETS[k++ % OFFSETS.length]}px)` }}>
+                    <button
+                      className={"path-node checkpoint" + (p.passed[u.id] ? " done" : open ? " open" + (u === current ? " here" : "") : " locked")}
+                      aria-disabled={!open}
+                      {...hold(key, open, () => {
+                        // A checkpoint covers any earlier unit without one of its own.
+                        const covered = [...UNITS.filter((x) => u.covers?.includes(x.id)), u];
+                        startCheckpoint(covered, "Unit " + u.n + " checkpoint", covered);
+                      })}
+                      aria-label={"Unit " + u.n + " checkpoint" + (open ? "" : ", locked")}
+                    >
+                      <span aria-hidden="true">🏆</span>
+                    </button>
+                    <span className="path-node-label">
+                      <b>Checkpoint</b> {Math.round(PASS_MARK * 100)}% to pass
+                    </span>
+                    {skipPrompt(key, "the Unit " + u.n + " checkpoint")}
+                  </li>
+                );
+              })()}
             </ol>
           </section>
         );
       })}
+
+      {/* Out of the way on purpose: the path is meant to be walked in order. */}
+      <footer className="path-foot">
+        {lockedCount > 0 &&
+          (askAll ? (
+            <span>
+              Open all {lockedCount} locked lessons and checkpoints?{" "}
+              <button
+                className="link"
+                onClick={() => {
+                  const keys = pathKeys(UNITS);
+                  update(unlockThrough(p, UNITS, keys[keys.length - 1]));
+                  setAskAll(false);
+                }}
+              >
+                Unlock all
+              </button>{" "}
+              <button className="link" onClick={() => setAskAll(false)}>
+                Cancel
+              </button>
+            </span>
+          ) : (
+            <button className="link" onClick={() => setAskAll(true)}>
+              Unlock every lesson
+            </button>
+          ))}
+        {Object.keys(p.unlocked ?? {}).length > 0 && (
+          <button className="link" onClick={() => update(relock(p))}>
+            Lock skipped lessons again
+          </button>
+        )}
+      </footer>
     </div>
   );
 }

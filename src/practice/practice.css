@@ -1510,3 +1510,16 @@ code.answer.empty { color: var(--muted); font-size: 14px; }
 .app-page .endless-stop { color: var(--accent); }
 .endless-summary { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; align-self: stretch; }
 .endless-summary li { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 14.5px; }
+
+/* Skipping ahead: press and hold a locked place on the path. */
+.app-page .path-node { -webkit-touch-callout: none; user-select: none; touch-action: manipulation; }
+.app-page .path-node.locked { cursor: default; }
+.path-tip { font-size: 12.5px; color: var(--muted); }
+.path-skip {
+  width: min(320px, 88vw); margin-top: 6px; padding: 12px 14px; border-radius: 12px;
+  background: var(--card); border: 1px solid var(--line); box-shadow: 0 8px 24px #2538321f;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.path-skip p { margin: 0; font-size: 14px; line-height: 1.45; }
+.path-foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin: 40px 0 10px; font-size: 13px; color: var(--muted); }
+.app-page .path-foot button.link { color: var(--muted); font-size: 13px; }

@@ -7,6 +7,7 @@
 1. The Pythagorean Theorem and reflection are taught at 7.1, where they are first used.
 2. Unit 3 is one lesson, with no checkpoint; Unit 4's checkpoint covers it.
 3. Lessons are locked until the one before is done, and a unit's banner offers "Test out to here" (a 12-question checkpoint over the skipped units, 80% to pass).
+   Skipping ahead is there too, slightly out of the way. Tapping a locked lesson or checkpoint only says it is locked. Pressing and holding it (or right-clicking) offers "Skip ahead", which opens it and everything before it. A small "Unlock every lesson" link sits at the foot of the path, next to "Lock skipped lessons again". What is skipped stays unfinished, and its ideas are not counted as learned for endless practice until the lesson is played.
 4. Streak and XP, no hearts.
 5. The old pages are in the Library.
 6. The full proof builder is used only in the optional "Prove it" lessons (4.8, 5.8, 6.4). They never lock the path, and their proofs are not drawn for review. Checkpoints were also meant to include a proof. They don't: one full proof in a 12-question check is too heavy on a phone. Checkpoints use flow proofs and one-step proofs instead.
@@ -42,6 +43,7 @@ Built so far, in `src/practice/path/`:
 - every question from every lesson is well formed across 25 seeds; every whole proof replays through the checker, and every flow blank's answer is among the reasons offered;
 - every generated flow proof replays as a two-column proof;
 - optional lessons never lock the next lesson or the checkpoint;
+- skipping ahead opens a place and everything before it, and counts nothing as learned;
 - a lesson never repeats a kind of exercise, and reviews after the first lesson;
 - checkpoints are distinct exercises, twelve at most, with no whole proof;
 - endless practice asks only about learned concepts, never repeats the last exercise, and brings a miss back.
