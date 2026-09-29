@@ -2,7 +2,31 @@
 
 ## Status
 
-**A plan, not built yet.** It proposes replacing Module 3's three separate pages (Concepts, Practice, Cards) with a single path. Each node on the path teaches one idea and then drills it straight away, using the exercises that already exist. Ordering follows the seven stages in [NARRATIVE.md](NARRATIVE.md). The six decisions at the end need answers before building starts.
+**Units 1 and 2 are playable; Units 3–7 are on the path, marked "Coming next".** The path is the home page. Concepts, Practice and Cards live under a Library menu. The six decisions below were settled on the recommended side:
+
+1. The Pythagorean Theorem and reflection are taught at 7.1, where they are first used.
+2. Unit 3 is one lesson, with no checkpoint.
+3. Lessons are locked until the one before is done, and a unit's banner offers "Test out to here" (a 12-question checkpoint over the skipped units, 80% to pass).
+4. Streak and XP, no hearts.
+5. The old pages are in the Library.
+6. The full proof builder is saved for checkpoints and optional "Prove it" lessons (not yet built).
+
+Built so far, in `src/practice/path/`:
+
+- `questions.ts`: one question type for the path (choice, number, tap an angle, tap a line), makers tagged with the concepts they use, and adapters from the existing generators.
+- `path.ts`: units → lessons → the concepts each lesson teaches and its guided and core makers.
+- `session.ts`: a lesson is 2 guided + 5 core + 2 review from earlier lessons, weakest concept first. A miss comes back once as "One more try".
+- `progress.ts`: done lessons, passed units, XP, streak and a strength and review date per concept, kept in the browser (`geometry-path-m3-v1`).
+- `PathPage.tsx`, `LessonPlayer.tsx`, `QuestionView.tsx`.
+
+`tests/path.test.ts` checks four things:
+
+- every Module 3 concept is taught exactly once, in the story's order;
+- no question asks about a concept before its lesson;
+- every playable question is well formed across 25 seeds;
+- a lesson has nine questions and a checkpoint twelve.
+
+Next: recipes for Units 3–7, the "put steps in order" and "is the converse true?" types, and the length and equidistance generators for Unit 7.
 
 ## Why a path
 
@@ -166,7 +190,7 @@ A **checkpoint** is 12–15 mixed questions from the unit and before it. Passing
 4. Review scheduling and checkpoints.
 5. Polish: replay levels, and motivation mechanics if wanted (decision 4).
 
-## Decisions for you
+## Decisions (settled as recommended)
 
 1. **Pythagorean Theorem and reflection: taught just in time at 7.1 (recommended), or in Unit 1** as the progression places them? On a path, a tool learned five units before it is used is mostly forgotten by then.
 2. **Unit 3: keep it as a one-lesson unit (recommended)**, marking "the one thing we assume", or fold it into Unit 4?

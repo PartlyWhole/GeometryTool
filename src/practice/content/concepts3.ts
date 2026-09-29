@@ -84,7 +84,7 @@ export const CONCEPTS3: M3[] = [
     ],
     watch:
       "Lengths are never negative, so from AC² = BC² you may conclude AC = BC. That one step closes the proof of the Perpendicular Bisector Theorem.",
-    ...at("perpendicular", FOUNDATIONS),
+    ...at("perpendicular", DISTANCE),
   },
   {
     id: "reflection",
@@ -99,7 +99,7 @@ export const CONCEPTS3: M3[] = [
       { text: "Fold the paper so A lands on B: any point P on the crease has PA = PB." },
     ],
     watch: "The fold must carry A exactly onto B. A crease that misses B guarantees nothing about distances.",
-    ...at("perpendicular", FOUNDATIONS),
+    ...at("perpendicular", DISTANCE),
   },
 
   // --- Stage 2 · Read the figure ---------------------------------------------

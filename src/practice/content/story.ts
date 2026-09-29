@@ -274,10 +274,8 @@ export const CHAPTERS: Chapter[] = [
       { conceptId: "angles-at-a-crossing", bridge: "Start from one crossing, where you already know everything: know one angle and you know all four." },
       { conceptId: "parallel-lines", bridge: "Now the lines this module is named for: two that never meet. Like ticks and arcs, they have a mark of their own." },
       { conceptId: "perpendicular-lines", bridge: "And the other kind: two lines that meet square. It is the four-angles fact again, at the one value where x and 180° − x agree." },
-      { conceptId: "pythagorean", bridge: "One tool from outside the module: a right angle, turned into a fact about lengths. Nothing needs it until the last chapter, and then everything there does." },
-      { conceptId: "reflection", bridge: "And one picture: fold a segment so its ends meet, and look at the crease. The last chapter proves what the fold already shows." },
     ],
-    close: "One crossing is fully understood, parallel and perpendicular lines have their marks, and the two tools for the end of the module are in place. What is missing is any way to connect one crossing to another.",
+    close: "One crossing is fully understood, and parallel and perpendicular lines have their marks. What is missing is any way to connect one crossing to another.",
   },
   {
     id: "m3-read",
@@ -359,7 +357,11 @@ export const CHAPTERS: Chapter[] = [
     title: "Distance: the perpendicular bisector",
     question: "Which points are exactly as far from one end of a segment as from the other?",
     stops: [
-      { conceptId: "equidistant", bridge: "Name the property first: the same distance from both ends." },
+      // Taught here rather than in Foundations: a tool learned five chapters
+      // before its first use is mostly forgotten by the time it is needed.
+      { conceptId: "pythagorean", bridge: "This chapter is about distance, and distance needs one tool from outside the module: a right angle, turned into a fact about lengths." },
+      { conceptId: "reflection", bridge: "And one picture: fold a segment so its ends meet, and look at the crease. The rest of the chapter proves what the fold already shows." },
+      { conceptId: "equidistant", bridge: "Name the property the crease has: the same distance from both ends." },
       { conceptId: "perp-bisector-theorem", bridge: "The reflection showed the fold line has it. The Pythagorean Theorem proves it." },
       { conceptId: "converse-perp-bisector", bridge: "And the converse — every such point is on that line — proved by adding the one perpendicular the postulate allows." },
       { conceptId: "construct-perp-bisector", bridge: "Now a construction almost writes itself: find two equidistant points, and join them." },

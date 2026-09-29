@@ -74,13 +74,13 @@ The walkthroughs were rewritten so that the chain is real and not just claimed:
 
 Module 3 covers all three lessons (textbook pp. 78–102): 3.1 parallel lines crossed by a transversal, 3.2 proving lines parallel, and 3.3 perpendicular lines and the perpendicular bisector. It follows the seven-stage progression from the module's four-pass concept breakdown (the `module3-handoff` bundle). That progression was derived by reading its "proved from" links bottom-up. Each stage is one chapter:
 
-1. **Foundations.** One crossing (vertical angles and linear pairs as one tool), parallel and perpendicular lines and their marks, the Pythagorean Theorem, reflection.
+1. **Foundations.** One crossing (vertical angles and linear pairs as one tool), and parallel and perpendicular lines with their marks.
 2. **Read the figure.** The transversal, the two questions (interior or exterior; alternate or consecutive), and the five pair names they produce.
 3. **The first assumption.** The Corresponding Angles Postulate, alone.
 4. **Derive and use the angle theorems.** The four theorems, each as the postulate plus one Module 2 step. Then the flow proof, the two-value rule, and solving for an angle.
 5. **Reverse it.** The converse, and why converses have to be earned. The Converse of the Corresponding Angles Postulate, assumed. The four converse theorems, proved from it. Finding x to make lines parallel. The Transitive Property of Parallel Lines, and two lines perpendicular to a third.
 6. **Exactly one line.** The Parallel and Perpendicular Postulates, the parallel-line construction, and the Perpendicular Transversal Theorem.
-7. **The perpendicular bisector.** Equidistance, the theorem and its converse (both proved with the Pythagorean Theorem), the two compass constructions, and length equations.
+7. **The perpendicular bisector.** The Pythagorean Theorem and reflection as tools for distance, equidistance, the theorem and its converse (both proved with the Pythagorean Theorem), the two compass constructions, and length equations.
 
 Practice follows the same stages:
 
@@ -93,7 +93,7 @@ Every generated figure is drawn at its own numbers. In particular, "is there eno
 
 Three judgment calls:
 
-- **Foundations holds the Pythagorean Theorem and reflection**, as the progression puts them, even though nothing uses them until Chapter 13. Their bridges say so, and Chapter 13's bridges call them back. Moving them into Chapter 13 would make a steeper but tighter final chapter.
+- **The Pythagorean Theorem and reflection open the last chapter**, not Foundations, where the progression puts them. Nothing uses them until the perpendicular bisector, and on a path a tool learned five units before it is needed is mostly forgotten.
 - **The Perpendicular Transversal Theorem stays in stage 6**, where the book puts it. The breakdown notes that by dependency it needs only the postulate. Its walkthrough says so; moving it to Chapter 10 would be a one-line change.
 - **The two-value rule gets a name.** The book doesn't name it, but it is the idea most of the module's exercises use.
 

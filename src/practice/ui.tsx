@@ -190,7 +190,7 @@ export function BuildStamp() {
   return <p className="buildstamp">Build {id}</p>;
 }
 
-export type Page = "board" | "concepts" | "practice" | "cards";
+export type Page = "board" | "path" | "concepts" | "practice" | "cards";
 
 /** Which module's material the Concepts, Practice and Cards pages show. */
 export type Module = 2 | 3;
@@ -203,6 +203,12 @@ export type Module = 2 | 3;
  */
 export const SHOWN_MODULES: Module[] = [3];
 export const SHOW_BOARD = false;
+
+/**
+ * The path is the way through; the three study pages are kept as a Library
+ * for looking something up or practising freely.
+ */
+export const SHOW_PATH = true;
 
 export function ModuleSwitch(props: { value: Module; onChange: (m: Module) => void }) {
   const items: { id: Module; label: string; hint: string }[] = [
@@ -232,12 +238,32 @@ export function PageNav(props: {
   onChange: (p: Page) => void;
   compact?: boolean;
 }) {
+  const library: { id: Page; label: string; icon: string }[] = [
+    { id: "concepts", label: "Concepts", icon: "◈" },
+    { id: "practice", label: "Practice", icon: "◎" },
+    { id: "cards", label: "Cards", icon: "▤" },
+  ];
+  const [open, setOpen] = React.useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  // A click anywhere else, or Escape, closes the menu.
+  React.useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const key = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("pointerdown", away);
+      document.removeEventListener("keydown", key);
+    };
+  }, [open]);
   const items: { id: Page; label: string; icon: string }[] = [
     { id: "board" as Page, label: "Board", icon: "◇" },
-    { id: "concepts" as Page, label: "Concepts", icon: "◈" },
-    { id: "practice" as Page, label: "Practice", icon: "◎" },
-    { id: "cards" as Page, label: "Cards", icon: "▤" },
+    ...(SHOW_PATH ? [{ id: "path" as Page, label: "Path", icon: "◉" }] : library),
   ].filter((it) => SHOW_BOARD || it.id !== "board");
+  const inLibrary = library.find((l) => l.id === props.value);
   return (
     <nav
       className={"pagenav" + (props.compact ? " compact" : "")}
@@ -255,6 +281,36 @@ export function PageNav(props: {
           <span className="pagenav-label">{it.label}</span>
         </button>
       ))}
+      {SHOW_PATH && (
+        <div className="pagenav-library" ref={menuRef}>
+          <button
+            className={inLibrary ? "active" : ""}
+            aria-expanded={open}
+            aria-haspopup="menu"
+            onClick={() => setOpen((o) => !o)}
+          >
+            <span aria-hidden="true">▤</span>
+            <span className="pagenav-label">{inLibrary ? "Library · " + inLibrary.label : "Library"} ▾</span>
+          </button>
+          {open && (
+            <div className="pagenav-menu" role="menu">
+              {library.map((it) => (
+                <button
+                  key={it.id}
+                  role="menuitem"
+                  className={props.value === it.id ? "active" : ""}
+                  onClick={() => {
+                    setOpen(false);
+                    props.onChange(it.id);
+                  }}
+                >
+                  <span aria-hidden="true">{it.icon}</span> {it.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </nav>
   );
 }

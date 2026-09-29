@@ -29,6 +29,26 @@ export type WalkStep = {
 
 export type Walkthrough = { conceptId: string; steps: WalkStep[] };
 
+/**
+ * The figure and highlights in effect at a step. A step keeps the figure of
+ * the step before it unless it names its own, and keeps that step's
+ * highlights too: a sentence that makes no new claim about the figure
+ * should leave the eye where it was. Changing the figure clears them.
+ */
+export function walkState(walk: Walkthrough, step: number) {
+  let figure: string | undefined;
+  let marks: NonNullable<WalkStep["marks"]> = [];
+  for (let i = 0; i <= step && i < walk.steps.length; i++) {
+    const s = walk.steps[i];
+    if (s.figure && s.figure !== figure) {
+      figure = s.figure;
+      marks = [];
+    }
+    if (s.marks?.length) marks = s.marks;
+  }
+  return { figure, marks };
+}
+
 const given = (o: ObjId) => ({ obj: o, role: "given" as Role });
 const prove = (o: ObjId) => ({ obj: o, role: "prove" as Role });
 const shared = (o: ObjId) => ({ obj: o, role: "shared" as Role });

@@ -35,7 +35,8 @@ import { type SolveResult } from "./solver";
 import { Practice } from "./practice/Practice";
 import { Concepts } from "./practice/Concepts";
 import { Flashcards } from "./practice/Flashcards";
-import { BuildStamp, ModuleSwitch, PageNav, SHOWN_MODULES, SHOW_BOARD, type Module, type Page } from "./practice/ui";
+import { BuildStamp, ModuleSwitch, PageNav, SHOWN_MODULES, SHOW_BOARD, SHOW_PATH, type Module, type Page } from "./practice/ui";
+import { PathPage } from "./practice/path/PathPage";
 import "./style.css";
 import "./practice/practice.css";
 const KEY = "geometry-whiteboard-v1";
@@ -113,7 +114,7 @@ function App() {
     [live, setLive] = useState<Board | null>(null),
     [selection, setSelection] = useState<Selection>(emptySelection),
     [tool, setTool] = useState<Tool>("select"),
-    [page, setPage] = useState<Page>(SHOW_BOARD ? "board" : "concepts"),
+    [page, setPage] = useState<Page>(SHOW_BOARD ? "board" : SHOW_PATH ? "path" : "concepts"),
     [module, setModuleState] = useState<Module>(() => {
       if (SHOWN_MODULES.length === 1) return SHOWN_MODULES[0];
       try {
@@ -662,6 +663,7 @@ function App() {
         </div>
         {/* Keyed by module: switching starts each page afresh on the other
             module's material rather than carrying positions across. */}
+        {page === "path" && <PathPage />}
         {page === "concepts" && <Concepts key={module} module={module} onModule={setModule} />}
         {page === "practice" && <Practice key={module} module={module} />}
         {page === "cards" && <Flashcards key={module} module={module} />}

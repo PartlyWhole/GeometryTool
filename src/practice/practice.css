@@ -357,6 +357,10 @@
 .role-shared, .fig-edge.role-shared, .fig-arc.role-shared { stroke: var(--shared); }
 .fig-edge.role-given, .fig-edge.role-prove, .fig-edge.role-shared { stroke-width: 3.4; }
 .fig-arc.role-given, .fig-arc.role-prove, .fig-arc.role-shared { stroke-width: 2.6; }
+/* A right angle is drawn as a square, not an arc; picking it out colours the square. */
+.role-given > .fig-right { stroke: var(--given); stroke-width: 2.6; }
+.role-prove > .fig-right { stroke: var(--prove); stroke-width: 2.6; }
+.role-shared > .fig-right { stroke: var(--shared); stroke-width: 2.6; }
 text.role-given, .fig-point.role-given { fill: var(--given); stroke: var(--given); }
 text.role-prove, .fig-point.role-prove { fill: var(--prove); stroke: var(--prove); }
 text.role-shared, .fig-point.role-shared { fill: var(--shared); stroke: var(--shared); }
@@ -1302,3 +1306,105 @@ code.answer.empty { color: var(--muted); font-size: 14px; }
 .two-column.fill .fill-row.wrong td { background: var(--bad-soft); }
 .two-column.fill .fill-note td { font-size: 13px; color: #8f2f28; padding-top: 0; }
 .flow-reason-fixed { font-size: 13.5px; color: var(--muted); }
+
+/* ------------------------------------------------------------ the path */
+
+.pagenav-library { position: relative; display: inline-flex; }
+.pagenav-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  min-width: 170px;
+  padding: 5px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px #2538321f;
+}
+.pagenav-menu button { justify-content: flex-start; }
+
+.page.path { max-width: 640px; }
+.path-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 18px 0 6px; }
+.path-head h1 { margin: 0 0 4px; font-size: 24px; }
+.path-stats { display: flex; gap: 12px; font-weight: 600; font-size: 15px; white-space: nowrap; }
+.path-unit { margin: 26px 0 8px; }
+.path-banner {
+  position: relative;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #fff;
+}
+.path-unit.locked .path-banner { background: #b9b6c9; }
+.path-unit.complete .path-banner { background: var(--ok); }
+.path-unit-n { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; font-weight: 600; }
+.path-banner h2 { margin: 2px 0 6px; font-size: 19px; }
+.path-banner p { margin: 0; font-size: 14.5px; line-height: 1.45; opacity: 0.95; }
+.path-soon {
+  position: absolute; top: 14px; right: 16px;
+  font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+  background: #ffffff33;
+}
+.app-page .path-testout {
+  margin-top: 10px; background: #fff; color: var(--accent); font-weight: 600; min-height: 32px;
+}
+.path-nodes { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.path-nodes li { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.app-page .path-node {
+  width: 66px; height: 66px; border-radius: 50%;
+  font-size: 24px; color: #fff;
+  background: var(--accent);
+  box-shadow: 0 5px 0 #3f3190;
+  transition: transform 0.08s;
+}
+.app-page .path-node:hover:not(:disabled) { background: #6b58d6; }
+.app-page .path-node:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 #3f3190; }
+.app-page .path-node.done { background: var(--ok); box-shadow: 0 5px 0 #1f5a3f; }
+.app-page .path-node.locked { background: #e3e2ea; box-shadow: 0 5px 0 #c9c7d4; color: #9b98ab; opacity: 1; }
+.app-page .path-node.checkpoint.open { background: #d49a1f; box-shadow: 0 5px 0 #9c6f11; }
+.app-page .path-node.here { outline: 4px solid #cfc6f5; outline-offset: 4px; animation: path-pulse 1.8s ease-in-out infinite; }
+@keyframes path-pulse { 50% { outline-color: #a898ec; } }
+.path-node-label { font-size: 13px; color: var(--ink); text-align: center; max-width: 220px; }
+.path-unit.locked .path-node-label { color: var(--muted); }
+.path-start {
+  display: block; font-style: normal; font-weight: 700; color: var(--accent);
+  font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px;
+}
+
+/* A lesson: one question at a time, Duolingo style. */
+.page.lesson { max-width: 760px; padding-top: 8px; }
+.lesson-top { display: flex; align-items: center; gap: 14px; padding: 10px 0 18px; }
+.app-page .lesson-close { font-size: 26px; min-width: 40px; color: var(--muted); }
+.lesson-progress { flex: 1; height: 14px; border-radius: 10px; background: #e7e6ee; overflow: hidden; }
+.lesson-progress span { display: block; height: 100%; background: var(--ok); border-radius: 10px; transition: width 0.3s; }
+.lesson-title { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.pq { display: flex; flex-direction: column; gap: 14px; }
+.pq-prompt { margin: 0; font-size: 21px; line-height: 1.35; }
+.pq-tag {
+  align-self: flex-start; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent); background: var(--accent-soft); padding: 3px 9px; border-radius: 20px;
+}
+.pq-tag.review { color: #9c6f11; background: #faf2e1; margin-bottom: 6px; display: inline-block; }
+.pq-tag.retry { color: var(--bad); background: var(--bad-soft); margin-bottom: 6px; display: inline-block; }
+.pq-answer .choices { max-width: 520px; }
+.pq-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-top: 6px; padding: 14px 16px; border-radius: 14px; background: var(--card);
+  border: 1px solid var(--line);
+}
+.pq-bar > button:only-child { margin-left: auto; }
+.pq-bar.ok { background: var(--ok-soft); border-color: #bfe0cf; }
+.pq-bar.bad { background: var(--bad-soft); border-color: #efc7c3; }
+.pq-verdict { display: flex; flex-direction: column; gap: 3px; line-height: 1.45; }
+.pq-bar.ok .pq-verdict strong { color: var(--ok); }
+.pq-bar.bad .pq-verdict strong { color: var(--bad); }
+.learn-step { margin: 0; font-size: 16.5px; line-height: 1.55; }
+.learn-dots { display: flex; gap: 6px; }
+.learn-dots span { width: 8px; height: 8px; border-radius: 50%; background: #dddbe6; }
+.learn-dots span.past { background: var(--ok); }
+.learn-dots span.on { background: var(--accent); }
+.lesson-done { align-items: flex-start; }
+.lesson-score { margin: 0; font-size: 17px; }

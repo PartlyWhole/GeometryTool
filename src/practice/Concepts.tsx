@@ -12,7 +12,7 @@ import { statementText } from "./notation";
 import { CONCEPTS, type Concept } from "./content/concepts";
 import { CONCEPTS3 } from "./content/concepts3";
 import { LIBRARY } from "./content/library";
-import { WALKTHROUGHS } from "./content/walkthroughs";
+import { WALKTHROUGHS, walkState } from "./content/walkthroughs";
 import { CHAPTERS, ECHOES, NEEDS, placeOf, type Chapter } from "./content/story";
 import { BuildStamp, SHOWN_MODULES, type Module } from "./ui";
 
@@ -59,17 +59,8 @@ export function Concepts(props: { module?: Module; onModule?: (m: Module) => voi
   // out. Changing the figure clears them, since they described the old one.
   const { board, marks } = useMemo(() => {
     if (!walk) return { board: undefined, marks: [] as Highlight[] };
-    let figure: string | undefined;
-    let held: Highlight[] = [];
-    for (let i = 0; i <= step && i < walk.steps.length; i++) {
-      const s = walk.steps[i];
-      if (s.figure && s.figure !== figure) {
-        figure = s.figure;
-        held = [];
-      }
-      if (s.marks?.length) held = s.marks as Highlight[];
-    }
-    return { board: figure ? LIBRARY[figure]() : undefined, marks: held };
+    const { figure, marks: held } = walkState(walk, step);
+    return { board: figure ? LIBRARY[figure]() : undefined, marks: held as Highlight[] };
   }, [walk, step]);
 
   const last = (walk?.steps.length ?? 1) - 1;

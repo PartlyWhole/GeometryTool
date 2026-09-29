@@ -48,6 +48,8 @@ type Props = {
   /** Points the student may drag; all of them when omitted. */
   movable?: string[];
   onPickSegment?: (s: SegId) => void;
+  /** Pick a named line — m, n, t — by clicking it. */
+  onPickLine?: (name: string) => void;
   onPickAngle?: (a: AngId) => void;
   /** Hide point letters, for "what is this called?" prompts. */
   hideLabels?: boolean;
@@ -193,7 +195,9 @@ export function Figure(props: Props) {
               className="fig-edge-hit"
               x1={p.x} y1={p.y} x2={q.x} y2={q.y}
               onClick={
-                props.onPickSegment
+                props.onPickLine && e.label
+                  ? () => props.onPickLine!(e.label!)
+                  : props.onPickSegment
                   ? () => {
                       const ends = endpoints(b, ref);
                       if (ends)
@@ -205,7 +209,9 @@ export function Figure(props: Props) {
                     }
                   : undefined
               }
-              style={{ cursor: props.onPickSegment ? "pointer" : undefined }}
+              style={{
+                cursor: props.onPickSegment || (props.onPickLine && e.label) ? "pointer" : undefined,
+              }}
             />
             <line
               className={"fig-edge" + (e.dashed ? " dashed" : "")}
