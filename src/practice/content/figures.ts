@@ -95,6 +95,27 @@ export class Fig {
     return this;
   }
 
+  /**
+   * A compass arc: centred on a point, with a radius, swept between two
+   * directions. Drawn dashed, as construction marks are.
+   */
+  compass(center: string, r: number, from: number, to: number) {
+    const c = this.b.points.find((p) => p.label === center);
+    if (!c) throw Error("Figure has no point " + center);
+    const rim = polar(c.x, c.y, from, r);
+    const id = uid();
+    this.b.points.push({ id, label: "rim" + this.b.points.length, x: rim.x, y: rim.y, quiet: true });
+    this.b.edges.push({ id: uid(), a: c.id, b: id, kind: "circle", span: [from, to] });
+    return this;
+  }
+
+  /** A segment drawn dashed: added to a figure to explain it, not given. */
+  dashed(a: string, c: string) {
+    this.seg(a, c);
+    this.b.edges[this.b.edges.length - 1].dashed = true;
+    return this;
+  }
+
   /** A construction point: placed, but never drawn or lettered. */
   quiet(label: string, x: number, y: number) {
     return this.at(label, x, y, { quiet: true });

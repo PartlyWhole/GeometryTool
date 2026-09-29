@@ -56,6 +56,14 @@ function termText(t: Term, ctx = 0): string {
     case "div":
       return wrap(termText(t.n, 2) + "/" + termText(t.d, 2), 1);
     case "mul": {
+      // A length times itself is its square: AC², as the Pythagorean
+      // Theorem writes it, not AC · AC.
+      if (
+        t.ts.length === 2 && t.ts[0].k === "len" && t.ts[1].k === "len" &&
+        [t.ts[0].seg.a, t.ts[0].seg.b].sort().join() ===
+          [t.ts[1].seg.a, t.ts[1].seg.b].sort().join()
+      )
+        return termText(t.ts[0], 2) + "²";
       // A coefficient of 1 is not written, and −1 is written as a bare minus.
       const lead = t.ts[0];
       if (t.ts.length === 2 && lead.k === "num" && t.ts[1].k !== "num") {

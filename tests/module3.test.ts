@@ -185,7 +185,7 @@ describe("the parallel-line rules", () => {
     const { stepItems } = await import("../src/practice/content/stepReason");
     const { reasonCheckItems, reasonName } = await import("../src/practice/content/reasonCheck");
     const m3 = new Set(reasonsFor(3).filter((r) => r.module).map((r) => r.name));
-    expect(m3.size).toBe(5);
+    expect(m3.size).toBe(13);
     expect(reasonsFor(2).some((r) => r.module)).toBe(false);
     for (let s = 1; s <= 40; s++) {
       for (const it of stepItems(s, 12)) for (const o of it.options) expect(m3.has(o), it.id + " " + o).toBe(false);
@@ -263,7 +263,8 @@ describe("Module 3 items", () => {
       expect(f.boxes.some((b) => b.reasonId === f.proves), f.id + " cites what it proves").toBe(false);
       for (const box of f.boxes) {
         const s = box.statement;
-        if (s.k !== "cong" || s.l.k !== "ang" || s.r.k !== "ang") continue;
+        // Rows written as text — the Pythagorean steps — are keyed by hand.
+        if (!s || s.k !== "cong" || s.l.k !== "ang" || s.r.k !== "ang") continue;
         if (RULE_FOR[box.reasonId])
           expect(placement(f.figure, s.l, s.r)?.kind, f.id + " " + statementText(s)).toBe(RULE_FOR[box.reasonId]);
         if (box.reasonId === "vertical-angles-theorem")
@@ -324,5 +325,107 @@ describe("Module 3 concepts", () => {
       expect(c.because ?? c.watch, c.id).toBeTruthy();
       expect(WALKTHROUGHS3.some((w) => w.conceptId === c.id), c.id).toBe(true);
     }
+  });
+});
+
+describe("Module 3, Lessons 3.2 and 3.3", () => {
+  const drawnTruthfully = (b: ReturnType<typeof transversal>, name: string, bad: string[]) => {
+    for (const c of b.constraints) {
+      if (c.kind === "angle") {
+        const n = threePointName(b, c.angle);
+        const d = n ? measureOf(b, { k: "ang", name: n }) : undefined;
+        if (d === undefined || Math.abs(d - c.value) > 0.01) bad.push(name + ": prints " + c.value + "° over " + d);
+      }
+      if (c.kind === "equalLength") {
+        const ls = c.segments.map((sg: any) => {
+          const e = b.edges.find((x) => x.id === sg.edge)!;
+          const p = b.points.find((q) => q.id === (sg.a ?? e.a))!, q = b.points.find((x) => x.id === (sg.b ?? e.b))!;
+          return Math.hypot(p.x - q.x, p.y - q.y);
+        });
+        if (Math.max(...ls) - Math.min(...ls) > 0.5) bad.push(name + ": ticks on unequal lengths " + ls.map(Math.round).join(" vs "));
+      }
+    }
+  };
+
+  it("draws every generated figure as its marks and measures say", async () => {
+    const { testItems } = await import("../src/practice/content/tests3");
+    const { bisectorItems } = await import("../src/practice/content/bisector3");
+    const bad: string[] = [];
+    for (let s = 1; s <= 40; s++)
+      for (const it of [...testItems(s), ...bisectorItems(s)]) if (it.figure) drawnTruthfully(it.figure, it.id, bad);
+    expect(bad).toEqual([]);
+  });
+
+  it("answers 'enough to prove m ∥ n?' as the drawing bears out", async () => {
+    const { testItems } = await import("../src/practice/content/tests3");
+    const { provedParallel } = await import("../src/practice/content/pairs3");
+    const m = line("A1", "B1", "m"), n = line("A2", "B2", "n");
+    let yes = 0, no = 0;
+    for (let s = 1; s <= 60; s++)
+      for (const it of testItems(s)) {
+        if (it.kind !== "choice" || it.heading !== "Enough to prove m ∥ n?") continue;
+        const e = it.figure!.edges.filter((x) => x.label === "m" || x.label === "n").map((x) => x.id);
+        const proved = provedParallel(it.figure!, e[0], e[1]);
+        const drawnParallel = holds(it.figure!, { k: "parallel", a: m, b: n });
+        // The lines are drawn parallel exactly when the measures prove it.
+        expect(drawnParallel, it.id + " " + it.why).toBe(proved);
+        const answer = it.choices[it.correct];
+        expect(answer.startsWith("Yes"), it.id + " " + it.why).toBe(proved);
+        proved ? yes++ : no++;
+      }
+    expect(yes).toBeGreaterThan(10);
+    expect(no).toBeGreaterThan(10);
+  });
+
+  it("makes the lines parallel at every 'find x' answer", async () => {
+    const { testItems } = await import("../src/practice/content/tests3");
+    const parse = (g: string) => {
+      const mm = g.match(/m∠(\d) = \((\d*)x(?: ([+−]) (\d+))?\)°/)!;
+      const a = mm[2] ? Number(mm[2]) : 1;
+      const b = mm[4] ? (mm[3] === "−" ? -Number(mm[4]) : Number(mm[4])) : 0;
+      return { n: mm[1], at: (x: number) => a * x + b };
+    };
+    let checked = 0;
+    for (let s = 1; s <= 60; s++)
+      for (const it of testItems(s)) {
+        if (it.kind !== "number") continue;
+        const [p, q] = it.given!.map(parse);
+        const mp = p.at(it.answer), mq = q.at(it.answer);
+        // The figure is drawn at the answer.
+        expect(measureOf(it.figure!, a(p.n))!, it.id).toBeCloseTo(mp, 6);
+        expect(measureOf(it.figure!, a(q.n))!, it.id).toBeCloseTo(mq, 6);
+        const kind = placement(it.figure!, a(p.n), a(q.n))!.kind;
+        const same = kind === "corresponding" || kind === "altInterior" || kind === "altExterior";
+        expect(same ? mp === mq : mp + mq === 180, it.id).toBe(true);
+        checked++;
+      }
+    expect(checked).toBeGreaterThan(20);
+  });
+
+  it("offers distinct options with the right one among them", async () => {
+    const { testItems } = await import("../src/practice/content/tests3");
+    const { bisectorItems } = await import("../src/practice/content/bisector3");
+    for (let s = 1; s <= 30; s++)
+      for (const it of [...testItems(s), ...bisectorItems(s)]) {
+        if (it.kind !== "choice") continue;
+        expect(new Set(it.choices).size, it.id).toBe(it.choices.length);
+        expect(it.correct, it.id).toBeGreaterThanOrEqual(0);
+        expect(it.correct, it.id).toBeLessThan(it.choices.length);
+      }
+  });
+
+  it("names the forward theorem as the trap in 'which test?' items", async () => {
+    const { testItems, FORWARD, CONVERSE } = await import("../src/practice/content/tests3");
+    let seen = 0;
+    for (let s = 1; s <= 30; s++)
+      for (const it of testItems(s)) {
+        if (it.kind !== "choice" || it.heading !== "Which test?") continue;
+        const forward = it.choices.find((c) => Object.values(FORWARD).includes(c))!;
+        expect(forward, it.id).toBeTruthy();
+        expect(it.whyPerChoice?.[it.choices.indexOf(forward)], it.id).toMatch(/converse/);
+        expect(Object.values(CONVERSE).includes(it.choices[it.correct]) || /None/.test(it.choices[it.correct]), it.id).toBe(true);
+        seen++;
+      }
+    expect(seen).toBeGreaterThan(10);
   });
 });

@@ -1285,3 +1285,20 @@ code.answer.empty { color: var(--muted); font-size: 14px; }
   border-bottom: 1px solid var(--line);
   width: 100%;
 }
+
+/* Construction marks: compass arcs and explanatory segments. */
+.fig-compass {
+  fill: none;
+  stroke: #8a8f8d;
+  stroke-width: 1.6;
+  stroke-dasharray: 5 4;
+  pointer-events: none;
+}
+.fig-edge.dashed { stroke-dasharray: 6 5; stroke: #7d8785; stroke-width: 1.8; }
+
+/* Fill-in tables: the reference's two-column proofs with blanks. */
+.two-column.fill .reason select { width: 100%; padding: 5px 8px; font-size: 13px; }
+.two-column.fill .fill-row.right td { background: var(--ok-soft); }
+.two-column.fill .fill-row.wrong td { background: var(--bad-soft); }
+.two-column.fill .fill-note td { font-size: 13px; color: #8f2f28; padding-top: 0; }
+.flow-reason-fixed { font-size: 13.5px; color: var(--muted); }

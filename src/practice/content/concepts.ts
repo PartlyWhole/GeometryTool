@@ -537,9 +537,12 @@ export type Topic =
   | "angle"
   | "algebra"
   | "logic"
-  // Module 3: the names for angle pairs, and what parallel lines make of them.
+  // Module 3: the names for angle pairs, what parallel lines make of them,
+  // the tests that run it backwards, and the perpendicular bisector.
   | "pairs"
-  | "parallel";
+  | "parallel"
+  | "tests"
+  | "perpendicular";
 
 export const TOPIC: Record<string, Topic> = {
   "point-and-line": "space",

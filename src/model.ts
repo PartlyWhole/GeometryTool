@@ -21,6 +21,13 @@ export type Edge = {
   hidden?: boolean;
   /** A single-letter name for a line, drawn near its end: m, n, t. */
   label?: string;
+  /**
+   * Practice figures only. A circle with a span is a compass arc, drawn
+   * between those two directions (degrees, counter-clockwise from rightward).
+   */
+  span?: [number, number];
+  /** Drawn dashed: a construction line, or a segment added to explain. */
+  dashed?: boolean;
 };
 export type SegmentRef = { edge: string; a?: string; b?: string };
 export type JunctionRef =

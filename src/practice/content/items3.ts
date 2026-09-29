@@ -22,7 +22,21 @@ import type { ClaimItem } from "./claims";
 import type { MultiPartItem } from "./multipart";
 import type { NumericItem } from "./numeric";
 import type { ReadItem } from "./translate";
-import { flowProof, parallelMN, parallelUnmarked, transversal, transversalJK } from "./library3";
+import {
+  flowProof,
+  givenAltExterior,
+  givenAltInterior,
+  givenConsInterior,
+  parallelMN,
+  parallelUnmarked,
+  perpBisectorConverse,
+  perpBisectorTheorem,
+  perpTransversal,
+  threeLines,
+  transversal,
+  transversalJK,
+  twoPerpendiculars,
+} from "./library3";
 import { consequence, explainConsequence, relationOf } from "./pairs3";
 import { rng } from "./generators";
 
@@ -138,6 +152,24 @@ export const READ_ITEMS3: ReadItem[] = [
     tags: ["Parallel lines"],
   },
   {
+    id: "m3-read-conv-arcs",
+    prompt: "No arrowheads — but the arcs mark ∠3 ≅ ∠5. Write what follows about m and n.",
+    figure: givenAltInterior(),
+    accept: [mn],
+    why: "∠3 and ∠5 are alternate interior angles, and congruent, so the Converse of the Alternate Interior Angles Theorem makes m ∥ n.",
+    allowForms: ["parallel", "cong", "eq"],
+    tags: ["Reverse it"],
+  },
+  {
+    id: "m3-read-conv-measures",
+    prompt: "m∠4 = 64° and m∠5 = 116°. Write what follows about m and n.",
+    figure: givenConsInterior(),
+    accept: [mn],
+    why: "∠4 and ∠5 are consecutive interior angles and 64 + 116 = 180, so by the Converse of the Consecutive Interior Angles Theorem, m ∥ n.",
+    allowForms: ["parallel", "cong", "eq"],
+    tags: ["Reverse it"],
+  },
+  {
     id: "m3-read-flow",
     prompt: "a ∥ b. Write what the figure gives you about ∠1 and ∠2.",
     figure: flowProof(),
@@ -153,6 +185,20 @@ export const READ_ITEMS3: ReadItem[] = [
 // ---------------------------------------------------------------------------
 
 export const CLAIM_ITEMS3: ClaimItem[] = [
+  {
+    id: "m3-claims-converse",
+    prompt: "There are no arrowheads, but the arcs mark ∠3 ≅ ∠5. Which statements must be true? Select all of them.",
+    figure: givenAltInterior(),
+    claims: [
+      { statement: mn, holds: true },
+      { statement: cong(3, 7), holds: true },
+      { statement: sum180(4, 5), holds: true },
+      { statement: cong(3, 6), holds: false },
+      { statement: { k: "perp", a: M, b: line("T2", "T1", "t") }, holds: false },
+    ],
+    why: "∠3 ≅ ∠5 is an alternate interior pair, so its converse makes m ∥ n — and once the lines are parallel, all of Lesson 3.1 applies: ∠3 ≅ ∠7 as corresponding angles, ∠4 and ∠5 supplementary. ∠3 and ∠6 are consecutive, so they total 180° rather than matching, and nothing marks a right angle.",
+    tags: ["Reverse it"],
+  },
   {
     id: "m3-claims-marked",
     prompt: "m ∥ n is marked. Which statements must be true? Select all of them.",
@@ -665,6 +711,156 @@ const PROOFS3_RAW: ProofProblem[] = [
   },
 ];
 
+// --- Lesson 3.2 and 3.3: proving lines parallel, and perpendicular --------------
+
+const A = line("A1", "B1", "a"), B = line("A2", "B2", "b"), C = line("A3", "B3", "c");
+const P = line("T2", "T1", "p"), T = line("T2", "T1", "t");
+const right = (x: number): Statement => ({ k: "angleClass", ang: a(x), cls: "right" });
+
+PROOFS3_RAW.push(
+  {
+    id: "m3-proof-conv-ait",
+    title: "Converse of the Alternate Interior Angles Theorem",
+    prompt: "The arcs mark ∠3 ≅ ∠5. Prove m ∥ n without citing the converse itself.",
+    figure: givenAltInterior(),
+    givens: [cong(3, 5)],
+    goal: mn,
+    forbid: ["converse-alt-interior"],
+    hints: [
+      "Only one test is available so far: the converse of the postulate, which needs a corresponding pair.",
+      "∠5 has a vertical partner. Is that partner corresponding to ∠3?",
+      "Chain the two congruences, then cite the converse of the postulate.",
+    ],
+    tags: ["Reverse it"],
+    solution: [
+      S(cong(3, 5), "given"),
+      S(vert(5, 7), "def-vertical"),
+      S(cong(5, 7), "vertical-angles-theorem", [2]),
+      S(cong(3, 7), "transitive", [1, 3]),
+      S(mn, "converse-corresponding", [4]),
+    ],
+  },
+  {
+    id: "m3-proof-conv-aet",
+    title: "Converse of the Alternate Exterior Angles Theorem",
+    prompt: "The arcs mark ∠1 ≅ ∠7. Prove m ∥ n without citing the converse itself.",
+    figure: givenAltExterior(),
+    givens: [cong(1, 7)],
+    goal: mn,
+    forbid: ["converse-alt-exterior"],
+    hints: [
+      "Turn the alternate exterior pair into a corresponding pair with one vertical-angle step.",
+      "∠7 and ∠5 are vertical, and ∠5 corresponds to ∠1.",
+    ],
+    tags: ["Reverse it"],
+    solution: [
+      S(cong(1, 7), "given"),
+      S(vert(7, 5), "def-vertical"),
+      S(cong(7, 5), "vertical-angles-theorem", [2]),
+      S(cong(1, 5), "transitive", [1, 3]),
+      S(mn, "converse-corresponding", [4]),
+    ],
+  },
+  {
+    id: "m3-proof-conv-cit",
+    title: "Converse of the Consecutive Interior Angles Theorem",
+    prompt: "∠4 and ∠5 are supplementary. Prove m ∥ n without citing the converse itself.",
+    figure: givenConsInterior(),
+    givens: [supp(4, 5)],
+    goal: mn,
+    forbid: ["converse-cons-interior"],
+    hints: [
+      "∠4 and ∠1 sit side by side on m.",
+      "Then ∠1 and ∠5 are both supplementary to ∠4. Which Module 2 theorem makes them congruent?",
+      "∠1 and ∠5 correspond — cite the converse of the postulate.",
+    ],
+    tags: ["Reverse it"],
+    solution: [
+      S(supp(4, 5), "given"),
+      S(lp(1, 4), "def-linear-pair"),
+      S(supp(1, 4), "linear-pair-theorem", [2]),
+      S(cong(1, 5), "congruent-supplements", [1, 3]),
+      S(mn, "converse-corresponding", [4]),
+    ],
+  },
+  {
+    id: "m3-proof-transitive",
+    title: "Transitive Property of Parallel Lines",
+    prompt: "a ∥ b and b ∥ c. Prove a ∥ c without citing the property itself.",
+    figure: threeLines(),
+    givens: [
+      { k: "parallel", a: A, b: B },
+      { k: "parallel", a: B, b: C },
+    ],
+    goal: { k: "parallel", a: A, b: C },
+    forbid: ["transitive-parallel"],
+    hints: [
+      "t crosses all three lines. ∠1, ∠2 and ∠3 are in the same corner at each crossing.",
+      "Use the postulate twice, forwards — then its converse once.",
+    ],
+    tags: ["Reverse it"],
+    solution: [
+      S({ k: "parallel", a: A, b: B }, "given"),
+      S({ k: "parallel", a: B, b: C }, "given"),
+      S(cong(1, 2), "corresponding-angles-postulate", [1]),
+      S(cong(2, 3), "corresponding-angles-postulate", [2]),
+      S(cong(1, 3), "transitive", [3, 4]),
+      S({ k: "parallel", a: A, b: C }, "converse-corresponding", [5]),
+    ],
+  },
+  {
+    id: "m3-proof-two-perps",
+    title: "Two lines perpendicular to a third",
+    prompt: "m ⊥ p and n ⊥ p. Prove m ∥ n.",
+    figure: twoPerpendiculars(),
+    givens: [
+      { k: "perp", a: M, b: P },
+      { k: "perp", a: N, b: P },
+    ],
+    goal: mn,
+    forbid: ["perp-to-same-line"],
+    hints: [
+      "Perpendicular lines meet at a right angle: ∠1 and ∠5 are right.",
+      "All right angles are congruent — and ∠1 and ∠5 correspond.",
+    ],
+    tags: ["Reverse it"],
+    solution: [
+      S({ k: "perp", a: M, b: P }, "given"),
+      S({ k: "perp", a: N, b: P }, "given"),
+      S(right(1), "def-perpendicular", [1]),
+      S(right(5), "def-perpendicular", [2]),
+      S(cong(1, 5), "right-angle-congruence", [3, 4]),
+      S(mn, "converse-corresponding", [5]),
+    ],
+  },
+  {
+    id: "m3-proof-perp-transversal",
+    title: "Perpendicular Transversal Theorem",
+    prompt: "m ∥ n and t ⊥ m. Prove t ⊥ n without citing the theorem itself.",
+    figure: perpTransversal(),
+    givens: [mn, { k: "perp", a: T, b: M }],
+    goal: { k: "perp", a: T, b: N },
+    forbid: ["perp-transversal"],
+    hints: [
+      "t ⊥ m makes ∠1 a right angle.",
+      "∠1 and ∠5 correspond, and m ∥ n.",
+      "Show m∠5 = 90, then turn that back into t ⊥ n.",
+    ],
+    tags: ["Exactly one line"],
+    solution: [
+      S(mn, "given"),
+      S({ k: "perp", a: T, b: M }, "given"),
+      S(right(1), "def-perpendicular", [2]),
+      S(cong(1, 5), "corresponding-angles-postulate", [1]),
+      S(eqm(1, 5), "def-cong-ang", [4]),
+      S({ k: "eq", l: m(1), r: num(90) }, "def-right-angle", [3]),
+      S({ k: "eq", l: m(5), r: num(90) }, "substitution", [5, 6]),
+      S(right(5), "def-right-angle", [7]),
+      S({ k: "perp", a: T, b: N }, "def-perpendicular", [8]),
+    ],
+  },
+);
+
 export const PROOFS3: ProofProblem[] = PROOFS3_RAW.map((p) => ({ ...p, module: 3 }));
 
 // ---------------------------------------------------------------------------
@@ -675,17 +871,63 @@ export const PROOFS3: ProofProblem[] = PROOFS3_RAW.map((p) => ({ ...p, module: 3
  * A flow proof as the reference draws it: a chain of boxes, each with the
  * reason for it written underneath. The student supplies the reasons.
  */
+export type FlowBox = {
+  /** The line itself, as a statement or — where the notation has none — as text. */
+  statement?: Statement;
+  text?: string;
+  reasonId: string;
+  /** Other reasons that also justify the line. */
+  accept?: string[];
+  /** Shown already filled in, as the reference's tables fill some rows. */
+  shown?: boolean;
+  /** What to say when this row is answered wrongly. */
+  note?: string;
+};
+
 export type FlowItem = {
   id: string;
   title: string;
   figure: Board;
   givens: Statement[];
-  goal: Statement;
+  goal?: Statement;
+  /** For proofs whose given or goal the statement notation cannot write. */
+  givenText?: string[];
+  goalText?: string;
   /** The rule this proof establishes, which may not justify its own box. */
   proves?: string;
-  boxes: { statement: Statement; reasonId: string }[];
+  boxes: FlowBox[];
+  /** A chain of boxes and arrows, or a two-column table with blanks. */
+  layout?: "flow" | "table";
+  /** The reasons offered for a blank; FLOW_REASONS when not given. */
+  reasons?: string[];
   tags?: string[];
 };
+
+/**
+ * Reasons that appear only in the reference's fill-in tables, where the
+ * proof has a Pythagorean step the statement notation does not write.
+ */
+export const TABLE_REASON_NAMES: Record<string, string> = {
+  "def-perp-bisector": "Definition of perpendicular bisector",
+  "def-right-triangle": "Definition of right triangle",
+  pythagorean: "Pythagorean Theorem",
+  "square-root": "If x² = y² and x, y ≥ 0, then x = y",
+  "perpendicular-postulate": "Perpendicular Postulate",
+};
+
+const BISECTOR_REASONS = [
+  "given",
+  "reflexive",
+  "symmetric",
+  "transitive",
+  "substitution",
+  "subtraction-property",
+  "pythagorean",
+  "def-perp-bisector",
+  "def-right-triangle",
+  "square-root",
+  "perpendicular-postulate",
+];
 
 export const FLOW_REASONS = [
   "given",
@@ -756,5 +998,69 @@ export const FLOWS3: FlowItem[] = [
       { statement: cong(2, 6), reasonId: "transitive" },
     ],
     tags: ["Turn and Talk"],
+  },
+  {
+    id: "m3-flow-tiles",
+    title: "Prove the lines parallel",
+    figure: givenAltInterior(),
+    givens: [cong(3, 5)],
+    goal: mn,
+    proves: "converse-alt-interior",
+    layout: "table",
+    reasons: ["given", "vertical-angles-theorem", "transitive", "converse-corresponding", "corresponding-angles-postulate", "alt-interior-angles-theorem", "converse-alt-interior"],
+    boxes: [
+      { statement: cong(3, 5), reasonId: "given", shown: true },
+      { statement: cong(5, 7), reasonId: "vertical-angles-theorem" },
+      { statement: cong(3, 7), reasonId: "transitive" },
+      {
+        statement: mn,
+        reasonId: "converse-corresponding",
+        note: "∠3 and ∠7 are corresponding angles, and congruent — so the test to cite is the converse of the postulate. The forward postulate would need m ∥ n already.",
+      },
+    ],
+    tags: ["The reference's 3.2 Task 3"],
+  },
+  {
+    id: "m3-flow-perp-bisector",
+    title: "Prove the Perpendicular Bisector Theorem",
+    figure: perpBisectorTheorem(),
+    givens: [],
+    givenText: ["CD is the perpendicular bisector of AB"],
+    goalText: "AC = BC",
+    layout: "table",
+    reasons: BISECTOR_REASONS,
+    boxes: [
+      { text: "CD is the perpendicular bisector of AB", reasonId: "given", shown: true },
+      { text: "AD = BD", reasonId: "def-perp-bisector", shown: true },
+      { text: "m∠ADC = m∠BDC = 90°", reasonId: "def-perp-bisector", shown: true },
+      { text: "CD = CD", reasonId: "reflexive", note: "A length equals itself: that is the Reflexive Property. It is how the shared leg CD enters the proof." },
+      { text: "△ADC and △BDC are right triangles", reasonId: "def-right-triangle", shown: true },
+      { text: "AC² = AD² + CD² and BC² = BD² + CD²", reasonId: "pythagorean", note: "Each is a right triangle's hypotenuse squared, equal to the sum of the legs squared: the Pythagorean Theorem." },
+      { text: "BC² = AD² + CD²", reasonId: "substitution", shown: true },
+      { text: "AC² = BC²", reasonId: "transitive", accept: ["substitution"], note: "AC² and BC² are each equal to AD² + CD², so they are equal to each other." },
+      { text: "AC = BC", reasonId: "square-root", shown: true },
+    ],
+    tags: ["The reference's 3.3 Task 1"],
+  },
+  {
+    id: "m3-flow-perp-bisector-converse",
+    title: "Prove the converse",
+    figure: perpBisectorConverse(2)(),
+    givens: [],
+    givenText: ["CA = CB"],
+    goalText: "C is on the perpendicular bisector of AB",
+    layout: "table",
+    reasons: BISECTOR_REASONS,
+    boxes: [
+      { text: "CA = CB", reasonId: "given", shown: true },
+      { text: "Draw CD ⊥ AB, meeting AB at D", reasonId: "perpendicular-postulate", note: "A proof may add a line only when a postulate says it exists. The Perpendicular Postulate guarantees this one." },
+      { text: "△ACD and △BCD are right triangles", reasonId: "def-right-triangle", shown: true },
+      { text: "CA² = AD² + CD² and CB² = BD² + CD²", reasonId: "pythagorean" },
+      { text: "AD² + CD² = BD² + CD²", reasonId: "substitution", note: "CA = CB, so the two squares CA² and CB² are equal: put one right-hand side in for the other." },
+      { text: "AD² = BD²", reasonId: "subtraction-property", note: "CD² is on both sides; subtract it." },
+      { text: "AD = BD", reasonId: "square-root", shown: true },
+      { text: "CD is the perpendicular bisector of AB, so C is on it", reasonId: "def-perp-bisector", note: "CD is perpendicular to AB and meets it at its midpoint: that is what a perpendicular bisector is." },
+    ],
+    tags: ["The reference's 3.3 Task 2"],
   },
 ];

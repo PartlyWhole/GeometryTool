@@ -22,6 +22,8 @@ import {
   type Relation,
 } from "./pairs3";
 import { ang } from "../terms";
+import { type MixedItem, testItems } from "./tests3";
+import { bisectorItems } from "./bisector3";
 import { rng } from "./generators";
 
 const hl = (...ns: string[]) => ns.map((n) => ({ obj: ang(n), role: "given" as const }));
@@ -285,13 +287,39 @@ function reorder(r: () => number, c: LogicCard): LogicCard {
   };
 }
 
+/** A multiple-choice practice item, dealt as a card. */
+const asCard = (it: MixedItem): LogicCard | undefined =>
+  it.kind !== "choice"
+    ? undefined
+    : {
+        id: it.id,
+        tag: it.heading,
+        context: it.context,
+        prompt: it.prompt,
+        choices: it.choices,
+        correct: it.correct,
+        why: it.why,
+        whyPerChoice: it.whyPerChoice,
+        figure: it.figure,
+        highlights: it.highlights,
+      };
+
+/**
+ * The deck follows the whole module: angle-pair cards from Lesson 3.1, and
+ * from the stage exercises, the parallel tests of 3.2 and the perpendicular
+ * bisector of 3.3.
+ */
 export function cards3(seed: number, count = 16): LogicCard[] {
   const r = rng(seed);
   const made: LogicCard[] = [];
-  for (let i = 0; made.length < 8 && i < 80; i++) {
+  for (let i = 0; made.length < 6 && i < 80; i++) {
     const c = (i % 2 ? relateCard : nameCard)(r, "m3c-gen-" + seed + "-" + i);
     if (c) made.push(c);
   }
+  const later = [...testItems(seed, 12), ...bisectorItems(seed, 12)]
+    .map(asCard)
+    .filter((c): c is LogicCard => !!c);
+  made.push(...shuffleIn(r, later).slice(0, 5));
   const authored = shuffleIn(r, AUTHORED)
     .slice(0, count - made.length)
     .map((c) => reorder(r, c));

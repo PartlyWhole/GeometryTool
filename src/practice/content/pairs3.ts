@@ -5,7 +5,8 @@
 // figure in front of the student.
 import type { Board } from "../../model";
 import type { Highlight } from "../Figure";
-import { isLinearPair, isVertical, marked } from "../oracle";
+import { isLinearPair, isVertical, marked, resolveAngle } from "../oracle";
+import { angleKey } from "../../model";
 import { PAIR_NAME } from "../notation";
 import {
   type AngId,
@@ -18,7 +19,7 @@ import {
   num,
   sameStatement,
 } from "../terms";
-import { markedParallel, placement, positionWords } from "../transversal";
+import { markedParallel, placement, positionWords, resolveLine } from "../transversal";
 import { transversal } from "./library3";
 import { rng } from "./generators";
 
@@ -57,7 +58,10 @@ export function consequence(b: Board, x: string, y: string): Consequence {
   if (r === "vertical") return "congruent";
   if (r === "linearPair") return "supplementary";
   const p = placement(b, a(x), a(y));
-  if (!p || !markedParallel(b, p.lines[0], p.lines[1])) return "unknown";
+  // Parallel either because the figure marks it, or because its marked
+  // angles prove it (Lesson 3.2) — the conclusion then carries forward.
+  if (!p || !(markedParallel(b, p.lines[0], p.lines[1]) || provedParallel(b, p.lines[0], p.lines[1])))
+    return "unknown";
   return p.kind === "corresponding" || p.kind === "altInterior" || p.kind === "altExterior"
     ? "congruent"
     : "supplementary";
@@ -90,9 +94,54 @@ function claimOf(s: Statement): { x: AngId; y: AngId; says: "congruent" | "suppl
  */
 export function follows(b: Board, s: Statement): boolean {
   if (marked(b, s)) return true;
+  if (s.k === "parallel" && s.a.k === "line" && s.b.k === "line") {
+    const x = resolveLine(b, s.a),
+      y = resolveLine(b, s.b);
+    return !!x && !!y && provedParallel(b, x, y);
+  }
   const c = claimOf(s);
   if (!c) return false;
   return consequence(b, c.x.name, c.y.name) === c.says;
+}
+
+/**
+ * Do the figure's angle marks force these two lines to be parallel? Lesson
+ * 3.2's question. Two angles at the two crossings of one transversal decide
+ * it: a corresponding or alternate pair must be equal, and any other pair —
+ * consecutive, or one of the unnamed mixed pairs — must total 180°. A pair is
+ * known when both measures are printed, or when matching arcs mark it.
+ */
+export function provedParallel(b: Board, e1: string, e2: string): boolean {
+  const want = [e1, e2].sort().join("|");
+  const numbered = b.angles.filter((x) => x.label).map((x) => x.label!);
+  const measure = new Map<string, number>();
+  for (const c of b.constraints)
+    if (c.kind === "angle") {
+      const n = numbered.find((l) => angleKey(resolveAngle(b, a(l))!, b) === angleKey(c.angle, b));
+      if (n) measure.set(n, c.value);
+    }
+  const arcGroup = new Map<string, string>();
+  for (const c of b.constraints)
+    if (c.kind === "equalAngle")
+      for (const x of c.angles) {
+        const n = numbered.find((l) => angleKey(resolveAngle(b, a(l))!, b) === angleKey(x, b));
+        if (n) arcGroup.set(n, c.id);
+      }
+  for (const x of numbered)
+    for (const y of numbered) {
+      if (x >= y) continue;
+      const p = placement(b, a(x), a(y));
+      if (!p || [...p.lines].sort().join("|") !== want) continue;
+      const sameFamily = p.kind === "corresponding" || p.kind === "altInterior" || p.kind === "altExterior";
+      const mx = measure.get(x),
+        my = measure.get(y);
+      if (mx !== undefined && my !== undefined) {
+        if (sameFamily ? Math.abs(mx - my) < 1e-6 : Math.abs(mx + my - 180) < 1e-6) return true;
+        continue;
+      }
+      if (sameFamily && arcGroup.get(x) && arcGroup.get(x) === arcGroup.get(y)) return true;
+    }
+  return false;
 }
 
 // ---------------------------------------------------------------------------

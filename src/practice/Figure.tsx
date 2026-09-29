@@ -159,6 +159,26 @@ export function Figure(props: Props) {
       role="img"
       aria-label={props.ariaLabel ?? "Geometry figure"}
     >
+      {/* Compass arcs: construction marks, drawn dashed and never pickable. */}
+      {b.edges.map((e) => {
+        if (e.kind !== "circle" || !e.span || e.hidden) return null;
+        const c = b.points.find((p) => p.id === e.a),
+          rim = b.points.find((p) => p.id === e.b);
+        if (!c || !rim) return null;
+        const r = distance(c, rim);
+        const [f, t] = e.span.map((d) => (-d * Math.PI) / 180);
+        const p1 = { x: c.x + r * Math.cos(f), y: c.y + r * Math.sin(f) };
+        const p2 = { x: c.x + r * Math.cos(t), y: c.y + r * Math.sin(t) };
+        const sweepDeg = ((e.span[1] - e.span[0]) % 360 + 360) % 360;
+        return (
+          <path
+            key={"arc" + e.id}
+            className="fig-compass"
+            d={`M ${p1.x} ${p1.y} A ${r} ${r} 0 ${sweepDeg > 180 ? 1 : 0} 0 ${p2.x} ${p2.y}`}
+          />
+        );
+      })}
+
       {/* Edges */}
       {b.edges.map((e) => {
         if (e.hidden || e.kind === "circle") return null;
@@ -187,7 +207,10 @@ export function Figure(props: Props) {
               }
               style={{ cursor: props.onPickSegment ? "pointer" : undefined }}
             />
-            <line className="fig-edge" x1={p.x} y1={p.y} x2={q.x} y2={q.y} />
+            <line
+              className={"fig-edge" + (e.dashed ? " dashed" : "")}
+              x1={p.x} y1={p.y} x2={q.x} y2={q.y}
+            />
           </g>
         );
       })}
@@ -694,11 +717,28 @@ function bounds(b: Board, aspect = 1.7): View {
   // A figure drawn through construction points is framed on what is shown —
   // its crossings — not on the hidden points, which only fix directions and
   // spread out when the figure is turned. Lines run to the frame regardless.
-  const construction = b.points.some((p) => p.quiet);
-  const framed = construction
-    ? b.points.filter((p) => !p.quiet || p.crossing)
-    : b.points;
+  // A figure with no lettered point at all — the transversal figures — is
+  // framed on its crossings, with room round them for the angle numerals:
+  // its construction points only fix directions, and spread out when the
+  // figure is turned. A lettered figure is framed on all its points, the
+  // construction points included, since they are where its lines end.
+  const construction = b.points.length > 0 && b.points.every((p) => p.quiet);
+  const framed: { x: number; y: number }[] = construction
+    ? b.points.filter((p) => p.crossing)
+    : [...b.points];
   const pad = construction ? 100 : PAD;
+  // Compass arcs reach past the points they are drawn from.
+  for (const e of b.edges) {
+    if (e.kind !== "circle" || !e.span) continue;
+    const c = b.points.find((p) => p.id === e.a),
+      rim = b.points.find((p) => p.id === e.b);
+    if (!c || !rim) continue;
+    const r = distance(c, rim);
+    for (let k = 0; k <= 8; k++) {
+      const d = ((e.span[0] + ((e.span[1] - e.span[0] + 360) % 360) * (k / 8)) * Math.PI) / 180;
+      framed.push({ x: c.x + r * Math.cos(-d), y: c.y + r * Math.sin(-d) });
+    }
+  }
   if (framed.length) {
     const xs = framed.map((p) => p.x),
       ys = framed.map((p) => p.y);

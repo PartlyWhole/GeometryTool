@@ -447,8 +447,19 @@ export function marked(b: Board, s: Statement): boolean {
         isBetween(b, s.p, s.seg.a, s.seg.b)
       );
     }
-    case "perp":
-      return b.constraints.some((c) => c.kind === "perpendicular");
+    case "perp": {
+      if (b.constraints.some((c) => c.kind === "perpendicular")) return true;
+      // A right-angle square at the crossing of these two lines marks them
+      // perpendicular, as it does in the reference.
+      const x = lineEdge(b, s.a),
+        y = lineEdge(b, s.b);
+      if (!x || !y) return false;
+      return b.constraints.some(
+        (c) =>
+          c.kind === "angle" && Math.abs(c.value - 90) < 1e-6 &&
+          [c.angle.start.edge, c.angle.end.edge].sort().join() === [x, y].sort().join(),
+      );
+    }
     case "parallel": {
       // These two lines, marked as one parallel class — not merely some
       // parallel mark somewhere on the figure.
@@ -534,9 +545,10 @@ export function holds(b: Board, s: Statement, tol: Tol = EXACT): boolean {
       return m > 90 + tol.deg && m < 180 - tol.deg;
     }
     case "perp": {
-      const a = resolveObj(b, s.a),
-        c = resolveObj(b, s.b);
-      return !!a && !!c && perpendicularByCoords(b, s);
+      // A named line resolves through its points; segments and rays through
+      // the figure's edges.
+      const ok = (o: ObjId) => (o.k === "line" ? !!resolveLine(b, o) : !!resolveObj(b, o));
+      return ok(s.a) && ok(s.b) && perpendicularByCoords(b, s);
     }
     case "parallel":
       return parallelByCoords(b, s);

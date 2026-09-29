@@ -49,7 +49,22 @@ describe("the story", () => {
   it("hands each concept on to the next, and stops at the end of a module", () => {
     expect(placeOf("segment-bisector")!.next!.stop.conceptId).toBe("right");
     expect(placeOf("right-angle-congruence")!.next).toBeUndefined();
-    expect(placeOf("cons-exterior-theorem")!.next).toBeUndefined();
-    expect(placeOf("transversal")!.chapter.id).toBe("transversals");
+    expect(placeOf("length-equations")!.next).toBeUndefined();
+    expect(placeOf("cons-exterior-theorem")!.next!.stop.conceptId).toBe("two-value-rule");
+    expect(placeOf("transversal")!.chapter.id).toBe("m3-read");
+  });
+
+  // Module 3 follows the module breakdown's seven stages, one chapter each.
+  it("tells Module 3 in the seven stages of the progression", () => {
+    const m3 = CHAPTERS.filter((c) => c.module === 3).map((c) => c.title);
+    expect(m3).toEqual([
+      "Foundations",
+      "Read the figure",
+      "The first assumption",
+      "Derive and use the angle theorems",
+      "Reverse it: tests for parallel lines",
+      "Exactly one line",
+      "Distance: the perpendicular bisector",
+    ]);
   });
 });

@@ -963,6 +963,203 @@ R({
 });
 
 // ---------------------------------------------------------------------------
+// Module 3, Lesson 3.2: the converses — angle facts that prove lines parallel
+//
+// The same five positions, with the if–then turned round: now the angle fact
+// is the premise and "m ∥ n" the conclusion. Each rule checks that the cited
+// angles really are in its position and on the two lines it concludes about,
+// and that the angle fact is the right kind — congruent for the corresponding
+// and alternate pairs, supplementary for the consecutive ones.
+// ---------------------------------------------------------------------------
+
+const CONVERSE_NAME: Record<Exclude<Placement["kind"], "none">, string> = {
+  corresponding: "the Converse of the Corresponding Angles Postulate",
+  altInterior: "the Converse of the Alternate Interior Angles Theorem",
+  consInterior: "the Converse of the Consecutive Interior Angles Theorem",
+  altExterior: "the Converse of the Alternate Exterior Angles Theorem",
+  consExterior: "the Converse of the Consecutive Exterior Angles Theorem",
+};
+
+/** The edge a line, or a segment on a line, runs along. */
+function edgeOf(b: Board, o: ObjId): string | undefined {
+  if (o.k === "line") return resolveLine(b, o);
+  return undefined;
+}
+
+/** The two angles a premise relates, and whether it says ≅ or 180°. */
+function angleFact(s: Statement): { a: AngId; b: AngId; says: "congruent" | "supplementary" } | undefined {
+  if (s.k === "cong" && s.l.k === "ang" && s.r.k === "ang") return { a: s.l, b: s.r, says: "congruent" };
+  if (s.k === "supp") return { a: s.a, b: s.b, says: "supplementary" };
+  if (!isEq(s)) return;
+  const angs = distinctObjs(collectMeas(s)) as AngId[];
+  if (angs.length !== 2) return;
+  const [a, b] = angs;
+  if (sameStatement(s, measEq(a, b)) || isFlip(s, measEq(a, b))) return { a, b, says: "congruent" };
+  const eq180: Statement = { k: "eq", l: sum(m(a), m(b)), r: n(180) };
+  if (sameStatement(s, eq180) || isFlip(s, eq180)) return { a, b, says: "supplementary" };
+  return;
+}
+
+function parallelTest(
+  kind: Exclude<Placement["kind"], "none">,
+  needs: "congruent" | "supplementary",
+): Reason["check"] {
+  return (c, p, ctx) => {
+    if (c.k !== "parallel") return no("This rule concludes that two lines are parallel.");
+    if (!ctx.board) return no("This rule reads where the angles sit from the figure.");
+    const board = ctx.board;
+    const want = [edgeOf(board, c.a), edgeOf(board, c.b)];
+    if (want.some((x) => !x)) return no("Name the two lines, as in m ∥ n.");
+    const wantKey = [...want].sort().join("|");
+    const facts = p.map(angleFact).filter(Boolean) as NonNullable<ReturnType<typeof angleFact>>[];
+    if (!facts.length)
+      return no("Cite the line giving the angle fact the test needs.");
+    let why = "";
+    for (const f of facts) {
+      const where = placement(board, f.a, f.b);
+      const pair = "∠" + f.a.name + " and ∠" + f.b.name;
+      if (!where) {
+        why = pair + " are at one crossing, so they say nothing about whether the two lines are parallel.";
+        continue;
+      }
+      if ([...where.lines].sort().join("|") !== wantKey) {
+        why = pair + " do not sit on the two lines this concludes about.";
+        continue;
+      }
+      if (where.kind !== kind) {
+        why =
+          where.kind === "none"
+            ? pair + " are not one of the named pairs, so no test applies to them directly."
+            : pair + " are " + PAIR_NAME[where.kind] + ", so the test to cite is " + CONVERSE_NAME[where.kind] + ".";
+        continue;
+      }
+      if (f.says !== needs) {
+        why =
+          PAIR_NAME[kind].charAt(0).toUpperCase() + PAIR_NAME[kind].slice(1) +
+          " prove lines parallel when they are " + needs + ", not " + f.says + ".";
+        continue;
+      }
+      return OK;
+    }
+    return no(why);
+  };
+}
+
+R({
+  id: "converse-corresponding",
+  name: "Converse of the Corresponding Angles Postulate",
+  kind: "postulate",
+  module: 3,
+  short: "If corresponding angles are congruent, then the lines are parallel.",
+  cites: [1, 1],
+  check: parallelTest("corresponding", "congruent"),
+});
+R({
+  id: "converse-alt-interior",
+  name: "Converse of the Alternate Interior Angles Theorem",
+  kind: "theorem",
+  module: 3,
+  short: "If alternate interior angles are congruent, then the lines are parallel.",
+  cites: [1, 1],
+  check: parallelTest("altInterior", "congruent"),
+});
+R({
+  id: "converse-alt-exterior",
+  name: "Converse of the Alternate Exterior Angles Theorem",
+  kind: "theorem",
+  module: 3,
+  short: "If alternate exterior angles are congruent, then the lines are parallel.",
+  cites: [1, 1],
+  check: parallelTest("altExterior", "congruent"),
+});
+R({
+  id: "converse-cons-interior",
+  name: "Converse of the Consecutive Interior Angles Theorem",
+  kind: "theorem",
+  module: 3,
+  short: "If consecutive interior angles are supplementary, then the lines are parallel.",
+  cites: [1, 1],
+  check: parallelTest("consInterior", "supplementary"),
+});
+R({
+  id: "converse-cons-exterior",
+  name: "Converse of the Consecutive Exterior Angles Theorem",
+  kind: "theorem",
+  module: 3,
+  short: "If consecutive exterior angles are supplementary, then the lines are parallel.",
+  cites: [1, 1],
+  check: parallelTest("consExterior", "supplementary"),
+});
+
+/** Two statements about lines, as edge-id pairs, when a figure resolves them. */
+const linePair = (b: Board, s: Statement, k: "parallel" | "perp") =>
+  s.k === k ? ([edgeOf(b, s.a), edgeOf(b, s.b)] as (string | undefined)[]) : undefined;
+
+R({
+  id: "transitive-parallel",
+  name: "Transitive Property of Parallel Lines",
+  kind: "theorem",
+  module: 3,
+  short: "If two lines are parallel to the same line, then they are parallel to each other.",
+  cites: [2, 2],
+  check(c, p, ctx) {
+    if (c.k !== "parallel" || !ctx.board) return no("This concludes that two lines are parallel.");
+    const [x, y] = [edgeOf(ctx.board, c.a), edgeOf(ctx.board, c.b)];
+    const ps = p.map((s) => linePair(ctx.board!, s, "parallel")).filter(Boolean) as string[][];
+    if (ps.length !== 2) return no("Cite two lines, each saying a line is parallel to a third.");
+    const [u, v] = ps;
+    const shared = u.find((e) => v.includes(e));
+    if (!shared) return no("The two cited lines must share a line — both parallel to the same one.");
+    const ends = [u.find((e) => e !== shared), v.find((e) => e !== shared)].sort().join();
+    if (ends === [x, y].sort().join()) return OK;
+    return no("Chaining through the shared line gives a different pair of lines.");
+  },
+});
+
+R({
+  id: "perp-to-same-line",
+  name: "Two lines perpendicular to the same line are parallel",
+  kind: "theorem",
+  module: 3,
+  short: "If two lines are perpendicular to the same line, then they are parallel.",
+  cites: [2, 2],
+  check(c, p, ctx) {
+    if (c.k !== "parallel" || !ctx.board) return no("This concludes that two lines are parallel.");
+    const [x, y] = [edgeOf(ctx.board, c.a), edgeOf(ctx.board, c.b)];
+    const ps = p.map((s) => linePair(ctx.board!, s, "perp")).filter(Boolean) as string[][];
+    if (ps.length !== 2) return no("Cite two lines, each saying a line is perpendicular to a third.");
+    const [u, v] = ps;
+    const shared = u.find((e) => v.includes(e));
+    if (!shared) return no("Both lines must be perpendicular to the same line.");
+    const ends = [u.find((e) => e !== shared), v.find((e) => e !== shared)].sort().join();
+    if (ends === [x, y].sort().join()) return OK;
+    return no("Those are not the two lines perpendicular to the shared one.");
+  },
+});
+
+R({
+  id: "perp-transversal",
+  name: "Perpendicular Transversal Theorem",
+  kind: "theorem",
+  module: 3,
+  short: "If a line is perpendicular to one of two parallel lines, then it is perpendicular to the other.",
+  cites: [2, 2],
+  check(c, p, ctx) {
+    if (c.k !== "perp" || !ctx.board) return no("This concludes that two lines are perpendicular.");
+    const concl = [edgeOf(ctx.board, c.a), edgeOf(ctx.board, c.b)];
+    const par = p.map((s) => linePair(ctx.board!, s, "parallel")).find(Boolean);
+    const per = p.map((s) => linePair(ctx.board!, s, "perp")).find(Boolean);
+    if (!par || !per) return no("Cite that two lines are parallel, and that a third is perpendicular to one of them.");
+    const t = per.find((e) => !par.includes(e));
+    const first = per.find((e) => par.includes(e));
+    if (!t || !first) return no("The perpendicular line must meet one of the parallel pair.");
+    const other = par.find((e) => e !== first);
+    if ([t, other].sort().join() === [...concl].sort().join()) return OK;
+    return no("The theorem concludes that the same line is perpendicular to the other parallel line.");
+  },
+});
+
+// ---------------------------------------------------------------------------
 // Properties of equality
 // ---------------------------------------------------------------------------
 
