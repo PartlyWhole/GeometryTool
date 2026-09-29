@@ -219,7 +219,7 @@ function SimpleQuestion(props: Props) {
             ))}
           </div>
         )}
-        {q.kind === "number" && <NumberEntry value={entry} onChange={setEntry} unit={q.unit} disabled={done} />}
+        {q.kind === "number" && <NumberEntry value={entry} onChange={setEntry} unit={q.unit} disabled={done} onEnter={check} />}
         {q.kind === "tapAngle" && (
           <p className="muted">
             {taps.length

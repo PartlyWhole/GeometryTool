@@ -204,6 +204,7 @@ function MultiPartBoard(props: {
                   onChange={(v) => set({ entry: v })}
                   unit={part.body.unit}
                   disabled={outcome === "right"}
+                  onEnter={check}
                 />
               ) : (
                 <div className="selectall">

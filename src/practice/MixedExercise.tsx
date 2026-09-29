@@ -136,6 +136,7 @@ export function MixedExercise(props: {
                 onChange={(v) => set({ entry: v })}
                 unit={item.unit}
                 disabled={w.result === "right"}
+                onEnter={check}
               />
               <div className="row">
                 <button

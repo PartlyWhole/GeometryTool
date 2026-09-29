@@ -46,8 +46,8 @@ const addDays = (day: string, n: number) => {
   return today(d);
 };
 
-/** Review gaps by strength: a weak idea comes back tomorrow, a strong one in two weeks. */
-const GAP = [1, 1, 3, 7, 14, 14];
+/** Review gaps by strength: a missed idea is due again today, a strong one in two weeks. */
+const GAP = [0, 1, 3, 7, 14, 14];
 
 export function recordAnswer(p: Progress, concepts: string[], correct: boolean): Progress {
   const skill = { ...p.skill };
@@ -59,16 +59,49 @@ export function recordAnswer(p: Progress, concepts: string[], correct: boolean):
   return { ...p, skill };
 }
 
-export function finishLesson(p: Progress, lessonId: string, xp: number): Progress {
+/** Today counts toward the streak: one more day if yesterday did too. */
+function onStreak(p: Progress): Progress["streak"] {
   const t = today();
-  const yesterday = addDays(t, -1);
-  const days = p.streak.last === t ? p.streak.days : p.streak.last === yesterday ? p.streak.days + 1 : 1;
+  const days = p.streak.last === t ? p.streak.days : p.streak.last === addDays(t, -1) ? p.streak.days + 1 : 1;
+  return { days, last: t };
+}
+
+export function finishLesson(p: Progress, lessonId: string, xp: number): Progress {
   return {
     ...p,
     done: { ...p.done, [lessonId]: (p.done[lessonId] ?? 0) + 1 },
     xp: p.xp + xp,
-    streak: { days, last: t },
+    streak: onStreak(p),
   };
+}
+
+/** One answer in endless practice, kept at once: its concepts, a point for a right one, and the day. */
+export function practiceAnswer(p: Progress, concepts: string[], correct: boolean): Progress {
+  const next = recordAnswer(p, concepts, correct);
+  return { ...next, xp: p.xp + (correct ? 1 : 0), streak: onStreak(p) };
+}
+
+/** Is this learned concept due for review today — or never practised at all? */
+export const isDue = (p: Progress, concept: string) => !p.skill[concept] || p.skill[concept].due <= today();
+
+const CHOSEN_KEY = "geometry-path-m3-endless";
+
+/** The concepts last chosen for endless practice, if any. */
+export function loadChosen(): string[] {
+  try {
+    const raw = localStorage.getItem(CHOSEN_KEY);
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveChosen(ids: string[]) {
+  try {
+    localStorage.setItem(CHOSEN_KEY, JSON.stringify(ids));
+  } catch {
+    // The choice simply is not remembered.
+  }
 }
 
 export function passUnits(p: Progress, units: Unit[]): Progress {

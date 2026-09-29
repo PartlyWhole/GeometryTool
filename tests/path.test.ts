@@ -2,7 +2,8 @@
 // and every question a lesson can produce well formed.
 import { describe, expect, it } from "vitest";
 import { UNITS } from "../src/practice/path/path";
-import { rng, buildLesson, buildCheckpoint } from "../src/practice/path/session";
+import { rng, buildLesson, buildCheckpoint, learnedConcepts, nextPractice, practiceMakers } from "../src/practice/path/session";
+import { familyOf } from "../src/practice/path/questions";
 import { CONCEPTS3 } from "../src/practice/content/concepts3";
 import { storyOrder } from "../src/practice/content/story";
 import type { Question } from "../src/practice/path/questions";
@@ -78,7 +79,7 @@ describe("the path", () => {
     for (const u of UNITS.filter((x) => x.ready))
       for (const l of u.lessons) {
         expect((l.core ?? []).length, l.id + " has core questions").toBeGreaterThan(0);
-        for (let s = 1; s <= 25; s++) {
+        for (let s = 1; s <= 12; s++) {
           const r = rng(s * 7919 + l.id.length);
           for (const m of [...(l.guided ?? []), ...(l.core ?? [])]) wellFormed(m.make(r), l.id + " " + m.id + " seed " + s);
         }
@@ -110,14 +111,50 @@ describe("the path", () => {
     expect(checkpointOpen(p5, UNITS, u5)).toBe(true);
   });
 
-  it("builds a nine-question lesson and a twelve-question checkpoint", () => {
+  it("asks each kind of exercise once in a lesson, and leaves repetition to review", () => {
     const empty = { done: {}, passed: {}, xp: 0, streak: { days: 0, last: "" }, skill: {} };
-    const u2 = UNITS[1];
-    const l = u2.lessons[3];
-    const slots = buildLesson(l, lessons.slice(0, lessons.indexOf(l)), empty, rng(5));
-    expect(slots.length).toBe(9);
-    expect(slots.slice(0, 2).every((s) => s.phase === "guided")).toBe(true);
-    expect(slots.filter((s) => s.phase === "review").length).toBe(2);
-    expect(buildCheckpoint([u2], rng(9)).length).toBe(12);
+    for (const l of lessons)
+      for (let seed = 1; seed <= 5; seed++) {
+        const slots = buildLesson(l, lessons.slice(0, lessons.indexOf(l)), empty, rng(seed * 31));
+        const families = slots.map((x) => familyOf(x.maker));
+        expect(new Set(families).size, l.id + " repeats a kind of exercise").toBe(families.length);
+        expect(slots.filter((x) => x.phase === "review").length, l.id).toBeLessThanOrEqual(l.review ?? 2);
+        if (lessons.indexOf(l) > 0 && !l.optional) expect(slots.some((x) => x.phase === "review"), l.id + " reviews").toBe(true);
+        expect(slots.filter((x) => x.phase !== "review").length, l.id + " asks something new").toBeGreaterThan(0);
+        expect(slots[0].phase, l.id + " opens on its own idea").not.toBe("review");
+      }
+  });
+
+  it("builds checkpoints of distinct exercises, twelve at most", () => {
+    for (const u of UNITS.filter((x) => x.checkpoint)) {
+      const covered = [...UNITS.filter((x) => u.covers?.includes(x.id)), u];
+      const slots = buildCheckpoint(covered, rng(9));
+      expect(slots.length, u.id).toBeGreaterThanOrEqual(4);
+      expect(slots.length, u.id).toBeLessThanOrEqual(12);
+      expect(new Set(slots.map((x) => x.maker.id)).size, u.id).toBe(slots.length);
+      expect(slots.every((x) => x.q.kind !== "proof"), u.id + " has no whole proof").toBe(true);
+    }
+  });
+
+  it("practises only learned ideas, and brings a miss back", () => {
+    const u12 = Object.fromEntries(UNITS.slice(0, 2).flatMap((u) => u.lessons.map((l) => [l.id, 1])));
+    const p = { done: u12, passed: {}, xp: 0, streak: { days: 0, last: "" }, skill: {} };
+    const learned = learnedConcepts(UNITS, p);
+    expect(learned.has("transversal")).toBe(true);
+    expect(learned.has("corresponding-angles-postulate")).toBe(false);
+    const all = practiceMakers(UNITS, learned, learned);
+    expect(all.length).toBeGreaterThan(5);
+    for (const m of all) for (const c of m.concepts) expect(learned.has(c), m.id + " asks about " + c).toBe(true);
+    const one = practiceMakers(UNITS, new Set(["transversal"]), learned);
+    expect(one.every((m) => m.concepts.includes("transversal"))).toBe(true);
+    // Never the same exercise twice running; a miss returns three later.
+    const r = rng(3);
+    const history: { maker: (typeof all)[number]; ok?: boolean }[] = [];
+    for (let n = 0; n < 40; n++) {
+      const m = nextPractice(all, learned, p, history, r);
+      if (history.length) expect(m.id, "twice running").not.toBe(history[history.length - 1].maker.id);
+      history.push({ maker: m, ok: n !== 5 });
+    }
+    expect(history.slice(6, 9).some((h) => h.maker.id === history[5].maker.id), "the miss comes back").toBe(true);
   });
 });

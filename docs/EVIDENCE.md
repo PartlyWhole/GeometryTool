@@ -422,8 +422,8 @@ missed three whole answer formats and one problem type. All four are built.
 
 - **Numeric answers.** Nothing in the app had ever asked for a number, while
   seven of the paper's thirteen questions do. A new Solve mode takes an answer
-  on a keypad — no typing, for the same reason statements are built from a
-  palette. All seven Form A numeric questions are present, plus generators for
+  typed into a number field (first a keypad; replaced, since typing a number
+  is quicker and a phone brings up its own number keyboard). All seven Form A numeric questions are present, plus generators for
   linear pairs, complements, crossings, whole-minus-part and solve-then-
   substitute. An item may declare the value of x separately: a student who
   enters x is told exactly that, which is the trap the reference says these

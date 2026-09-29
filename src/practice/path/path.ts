@@ -2,9 +2,10 @@
 //
 // docs/PATH-PLAN.md sets out the design. One new idea per lesson, taught
 // just before it is practised; guided questions (few options, the angles
-// highlighted) before core ones (all options, varied figures); a few review
-// questions from earlier lessons; misses come back before the lesson ends.
-// Units whose lessons have no recipe yet are shown on the path but locked.
+// highlighted) before core ones (all options, varied figures), each kind of
+// exercise asked once; a couple of review questions from earlier lessons.
+// Drilling is left to review and endless practice, which draw on the core
+// makers. Units whose lessons have no recipe yet are shown but locked.
 import { CHAPTERS } from "../content/story";
 import { CONCEPTS3 } from "../content/concepts3";
 import { conceptQuestions } from "../content/conceptQuiz";
@@ -75,8 +76,8 @@ export type Lesson = {
    * never locks the next lesson, and its proofs are not drawn for review.
    */
   optional?: boolean;
-  /** How many guided, core and review questions, when not 2, 5 and 2. */
-  shape?: { guided: number; core: number; review: number };
+  /** How many review questions from earlier lessons, when not 2. */
+  review?: number;
 };
 
 export type Unit = {
@@ -98,6 +99,7 @@ const ALL_PAIRS = ["corresponding", "altInterior", "consInterior", "altExterior"
 /** A full naming, partner or relate question from the Angle pairs generator. */
 const anyPair = (mode: "name" | "find" | "relate"): Maker => ({
   id: "any-pair-" + mode,
+  family: mode === "name" ? "name-pair" : mode === "find" ? "find-partner" : "relate",
   concepts:
     mode === "relate"
       ? ["two-value-rule"]
@@ -111,6 +113,7 @@ const ALL: PairKind[] = [C, AI, AE, CI, CE];
 /** A definition question drawn from one unit's concepts only. */
 const definitions = (id: string, ids: string[]): Maker => ({
   id,
+  family: "definitions",
   concepts: ids,
   make: (r) => {
     const qs = conceptQuestions(Math.floor(r() * 1e9), 6, CONCEPTS3.filter((c) => ids.includes(c.id)));
@@ -234,7 +237,6 @@ export const UNITS: Unit[] = [
         id: "4.2",
         title: "Boxes and arrows",
         learn: ["flow-proof"],
-        shape: { guided: 1, core: 3, review: 1 },
         guided: [authoredFlow("flow-book", ["flow-proof", "alt-interior-theorem"], ["m3-flow-book"], FLOW_REASONS_EARLY)],
         core: [
           flowFor("flow-ait", [AI], FLOW_REASONS_EARLY),
@@ -282,7 +284,7 @@ export const UNITS: Unit[] = [
         title: "Prove it",
         learn: [],
         optional: true,
-        shape: { guided: 1, core: 2, review: 0 },
+        review: 0,
         guided: [oneStep("step-forward", ["flow-proof"], ["m3-proof-ait", "m3-proof-aet", "m3-proof-cit", "m3-proof-cet", "m3-proof-none"])],
         core: [buildProof("prove-forward", ["flow-proof", "angle-equations"], ["m3-proof-aet", "m3-proof-cit", "m3-proof-cet", "m3-proof-none", "m3-proof-solve"])],
       },
@@ -342,7 +344,7 @@ export const UNITS: Unit[] = [
         title: "Prove it",
         learn: [],
         optional: true,
-        shape: { guided: 1, core: 2, review: 0 },
+        review: 0,
         guided: [oneStep("step-converse", ["converse-cap"], ["m3-proof-conv-ait", "m3-proof-conv-aet", "m3-proof-conv-cit", "m3-proof-transitive", "m3-proof-two-perps"])],
         core: [buildProof("prove-converse", ["converse-cap", "transitive-parallel", "perp-to-same-line"], ["m3-proof-conv-ait", "m3-proof-conv-aet", "m3-proof-conv-cit", "m3-proof-transitive", "m3-proof-two-perps"])],
       },
@@ -380,7 +382,7 @@ export const UNITS: Unit[] = [
         title: "Prove it",
         learn: [],
         optional: true,
-        shape: { guided: 1, core: 1, review: 0 },
+        review: 0,
         guided: [oneStep("step-ptt", ["perp-transversal-theorem"], ["m3-proof-perp-transversal"])],
         core: [buildProof("prove-ptt", ["perp-transversal-theorem"], ["m3-proof-perp-transversal"])],
       },

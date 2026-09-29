@@ -111,10 +111,20 @@ export type ProofContext = {
 
 export type Maker = {
   id: string;
+  /**
+   * The kind of exercise, shared by its easy and full forms: a lesson asks
+   * each family once, and leaves repetition to review and endless practice.
+   * Defaults to the id.
+   */
+  family?: string;
+  /** A whole proof: too long for review or endless practice. */
+  heavy?: boolean;
   /** The concepts a question from this maker exercises. */
   concepts: string[];
   make: (r: () => number) => Question;
 };
+
+export const familyOf = (m: Maker) => m.family ?? m.id;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -168,6 +178,7 @@ const PHIS = [58, 64, 70, 110, 116, 122];
 /** "∠1 = 64°. What is m∠3?" with the answer among four numbers. */
 export const crossingGuided: Maker = {
   id: "crossing-guided",
+  family: "crossing-find",
   concepts: ["angles-at-a-crossing"],
   make(r) {
     const phi = pick(r, PHIS);
@@ -191,6 +202,7 @@ export const crossingGuided: Maker = {
 /** The same, answered on the keypad. */
 export const crossingCore: Maker = {
   id: "crossing-core",
+  family: "crossing-find",
   concepts: ["angles-at-a-crossing"],
   make(r) {
     const phi = pick(r, PHIS);
@@ -353,6 +365,7 @@ export const tapSameSide: Maker = {
 export function namePair(id: string, kinds: Relation[], options: Relation[], count: number, o: { standard?: boolean } = {}): Maker {
   return {
     id,
+    family: "name-pair",
     concepts: kinds.map(conceptOfRelation).filter(Boolean) as string[],
     make(r) {
       const b = o.standard ? transversal({ cross: 64, tilt: [8, -4] }) : variant(r).board;
@@ -376,6 +389,7 @@ export function namePair(id: string, kinds: Relation[], options: Relation[], cou
 export function findPartner(id: string, kinds: PairKind[], o: { standard?: boolean } = {}): Maker {
   return {
     id,
+    family: "find-partner",
     concepts: kinds.map(conceptOfRelation).filter(Boolean) as string[],
     make(r) {
       const b = o.standard ? transversal({ cross: 64, tilt: [8, -4] }) : variant(r).board;

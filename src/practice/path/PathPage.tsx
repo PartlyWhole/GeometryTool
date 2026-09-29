@@ -12,15 +12,22 @@ import {
   passUnits,
   recordAnswer,
   saveProgress,
+  isDue,
+  loadChosen,
+  practiceAnswer,
+  saveChosen,
   unitComplete,
   unitOpen,
 } from "./progress";
-import { type Slot, PASS_MARK, buildCheckpoint, buildLesson, rng } from "./session";
+import { type Slot, PASS_MARK, buildCheckpoint, buildLesson, learnedConcepts, rng } from "./session";
 import { LessonPlayer, type Outcome } from "./LessonPlayer";
+import { EndlessPlayer, EndlessSetup } from "./Endless";
 
 type Running =
   | { kind: "lesson"; unit: Unit; lesson: Lesson; slots: Slot[] }
-  | { kind: "checkpoint"; units: Unit[]; slots: Slot[]; title: string; passes: Unit[] };
+  | { kind: "checkpoint"; units: Unit[]; slots: Slot[]; title: string; passes: Unit[] }
+  | { kind: "setup" }
+  | { kind: "endless"; chosen: string[] };
 
 /** The lessons before this one, across every unit, for review to draw on. */
 function earlierThan(lesson: Lesson): Lesson[] {
@@ -50,6 +57,7 @@ export function PathPage() {
   const exit = (o: Outcome | null) => {
     const r = running!;
     setRunning(null);
+    if (r.kind !== "lesson" && r.kind !== "checkpoint") return;
     if (!o) return;
     let next = p;
     for (const a of o.answers) next = recordAnswer(next, a.concepts, a.correct);
@@ -61,6 +69,38 @@ export function PathPage() {
     update(next);
   };
 
+  if (running?.kind === "setup")
+    return (
+      <EndlessSetup
+        units={UNITS}
+        progress={p}
+        initial={loadChosen()}
+        onBack={() => setRunning(null)}
+        onStart={(chosen) => {
+          saveChosen(chosen);
+          setRunning({ kind: "endless", chosen });
+        }}
+      />
+    );
+
+  if (running?.kind === "endless")
+    return (
+      <EndlessPlayer
+        units={UNITS}
+        progress={p}
+        chosen={running.chosen}
+        // Kept as each answer comes in: stopping part-way loses nothing.
+        onAnswer={(concepts, ok) =>
+          setP((cur) => {
+            const next = practiceAnswer(cur, concepts, ok);
+            saveProgress(next);
+            return next;
+          })
+        }
+        onExit={() => setRunning(null)}
+      />
+    );
+
   if (running)
     return (
       <LessonPlayer
@@ -68,13 +108,14 @@ export function PathPage() {
         learn={running.kind === "lesson" && !p.done[running.lesson.id] ? running.lesson.learn : []}
         slots={running.slots}
         checkpoint={running.kind === "checkpoint"}
-        retry={(s) => ({ maker: s.maker, phase: "retry", q: s.maker.make(seed()) })}
         onExit={exit}
       />
     );
 
   // The first unit not yet complete is where the student is.
   const current = UNITS.find((u) => !unitComplete(p, u));
+  const learned = learnedConcepts(UNITS, p);
+  const due = [...learned].filter((c) => isDue(p, c)).length;
   let k = 0;
 
   return (
@@ -89,6 +130,20 @@ export function PathPage() {
           <span title="Experience">⭐ {p.xp} XP</span>
         </div>
       </header>
+
+      {learned.size > 0 && (
+        <div className="path-practice">
+          <div>
+            <strong>Endless practice</strong>
+            <span className="muted">
+              {due ? due + " idea" + (due > 1 ? "s" : "") + " due for review" : "Nothing due — practise anything you have learned"}
+            </span>
+          </div>
+          <button className="primary" onClick={() => setRunning({ kind: "setup" })}>
+            ∞ Practise
+          </button>
+        </div>
+      )}
 
       {UNITS.map((u, ui) => {
         const open = unitOpen(p, UNITS, u);

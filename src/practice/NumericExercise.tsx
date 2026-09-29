@@ -125,6 +125,7 @@ export function NumericExercise(props: {
             onChange={(v) => set({ entry: v })}
             unit={item.unit}
             disabled={result !== null}
+            onEnter={check}
           />
 
           <div className="row">

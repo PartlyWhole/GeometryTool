@@ -112,6 +112,7 @@ function pairsOf(b: Board, kinds: PairKind[]): [string, string][] {
 export function relate(id: string, kinds: PairKind[], o: { standard?: boolean; options?: 2 | 3; unmarked?: number } = {}): Maker {
   return {
     id,
+    family: "relate",
     concepts: kinds.map((k) => THEOREM[k]),
     make(r) {
       const unmarked = r() < (o.unmarked ?? 0.2);
@@ -138,6 +139,7 @@ export function relate(id: string, kinds: PairKind[], o: { standard?: boolean; o
 export function findAngle(id: string, kinds: PairKind[] | "any", o: { standard?: boolean } = {}): Maker {
   return {
     id,
+    family: "find-angle",
     concepts: kinds === "any" ? ["two-value-rule"] : kinds.map((k) => THEOREM[k]),
     make(r) {
       const f = markedFigure(r, { standard: o.standard, renumber: !o.standard });
@@ -181,6 +183,7 @@ export function findAngle(id: string, kinds: PairKind[] | "any", o: { standard?:
 export function whichRule(id: string, kinds: PairKind[]): Maker {
   return {
     id,
+    family: "which-rule",
     concepts: kinds.map((k) => THEOREM[k]),
     make(r) {
       const f = markedFigure(r, { renumber: true });
@@ -212,6 +215,7 @@ export function whichRule(id: string, kinds: PairKind[]): Maker {
 export function tapFamily(id: string, want: "congruent" | "supplementary", o: { standard?: boolean } = {}): Maker {
   return {
     id,
+    family: "tap-family",
     concepts: ["two-value-rule"],
     make(r) {
       const f = markedFigure(r, { standard: o.standard, renumber: !o.standard });
@@ -245,6 +249,7 @@ const lin = (a: number, b: number) => (a === 1 ? "" : String(a)) + "x" + (b === 
 export function angleAlgebra(id: string, kinds: PairKind[]): Maker {
   return {
     id,
+    family: "angle-algebra",
     concepts: ["angle-equations", ...kinds.map((k) => THEOREM[k])],
     make(r) {
       const f = markedFigure(r, { renumber: false });
@@ -296,6 +301,7 @@ export function angleAlgebra(id: string, kinds: PairKind[]): Maker {
 export function authoredNumber(id: string, concepts: string[], ids: string[]): Maker {
   return {
     id,
+    family: "authored-number",
     concepts,
     make(r) {
       const want = pick(r, ids);
@@ -383,6 +389,7 @@ const FLOW_REASONS_LATER = [...FLOW_REASONS_EARLY, "alt-exterior-angles-theorem"
 export function flowFor(id: string, kinds: Exclude<PairKind, "corresponding">[], reasons = FLOW_REASONS_LATER): Maker {
   return {
     id,
+    family: "flow",
     concepts: ["flow-proof", ...kinds.map((k) => THEOREM[k])],
     make(r) {
       const b = transversal({ marked: true, tilt: [8, 8], cross: 64 });
@@ -398,6 +405,7 @@ export function flowFor(id: string, kinds: Exclude<PairKind, "corresponding">[],
 export function authoredFlow(id: string, concepts: string[], ids: string[], reasons?: string[]): Maker {
   return {
     id,
+    family: "flow",
     concepts,
     make(r) {
       const want = pick(r, ids);
@@ -421,6 +429,7 @@ export const fromFlow = (item: FlowItem): Question => ({
 export function oneStep(id: string, concepts: string[], proofIds: string[]): Maker {
   return {
     id,
+    family: "one-step",
     concepts,
     make(r) {
       const proofs = PROOFS3.filter((p) => proofIds.includes(p.id));
@@ -450,6 +459,8 @@ export function oneStep(id: string, concepts: string[], proofIds: string[]): Mak
 export function buildProof(id: string, concepts: string[], proofIds: string[]): Maker {
   return {
     id,
+    family: "proof",
+    heavy: true,
     concepts,
     make(r) {
       const want = pick(r, proofIds);
@@ -534,6 +545,7 @@ const fromMixed = (r: () => number, it: MixedItem): Question => {
 export function whichTestFor(id: string, kinds: PairKind[], among = kinds): Maker {
   return {
     id,
+    family: "which-test",
     concepts: kinds.map((k) => CONVERSE_CONCEPT[k]),
     make: (r) => fromMixed(r, whichTest(r, id, kinds, among)),
   };
@@ -543,6 +555,7 @@ export function whichTestFor(id: string, kinds: PairKind[], among = kinds): Make
 export function enoughFor(id: string, kinds: PairKind[], among?: PairKind[]): Maker {
   return {
     id,
+    family: "enough",
     concepts: kinds.map((k) => CONVERSE_CONCEPT[k]),
     make: (r) => fromMixed(r, enough(r, id, kinds, among)),
   };
@@ -650,6 +663,7 @@ export function orderSteps(id: string, concepts: string[], which: Construction):
   const spec = CONSTRUCTIONS[which];
   return {
     id,
+    family: "order",
     concepts,
     make: () => ({ kind: "order", prompt: spec.prompt, figure: spec.figure(), steps: spec.steps, why: spec.why }),
   };
@@ -660,6 +674,7 @@ export function nextStep(id: string, concepts: string[], which: Construction): M
   const spec = CONSTRUCTIONS[which];
   return {
     id,
+    family: "next-step",
     concepts,
     make(r) {
       const k = 1 + Math.floor(r() * (spec.steps.length - 1));
@@ -876,6 +891,7 @@ export const isEquidistant: Maker = {
 export function bisectorLengths(id: string, o: { converse?: boolean } = {}): Maker {
   return {
     id,
+    family: "bisector-lengths",
     concepts: o.converse === undefined ? ["length-equations"] : [o.converse ? "converse-perp-bisector" : "perp-bisector-theorem"],
     make: (r) => fromMixed(r, lengths(r, id, o)),
   };
@@ -905,7 +921,7 @@ export const onBisector: Maker = {
 
 /** Is what is marked enough to put B on the ⊥ bisector? — the book's five cases. */
 export function bisectorEnoughFor(id: string, concepts: string[], cases = BISECTOR_CASES): Maker {
-  return { id, concepts, make: (r) => fromMixed(r, bisectorEnough(r, id, cases)) };
+  return { id, family: "bisector-enough", concepts, make: (r) => fromMixed(r, bisectorEnough(r, id, cases)) };
 }
 
 /** One of the authored bisector items, by id. */

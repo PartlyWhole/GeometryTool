@@ -26,8 +26,13 @@ Built so far, in `src/practice/path/`:
 - `path.ts`: units → lessons, giving the concepts each lesson teaches and its guided and core makers.
   - A lesson may set its own size, e.g. 4.2 has 1 guided, 3 core and 1 review.
   - A lesson may be marked optional.
-- `session.ts`: a lesson is 2 guided + 5 core + 2 review from earlier lessons, weakest concept first. A miss comes back once as "One more try", except a whole proof. A lesson never asks the same question twice.
-- `progress.ts`: done lessons, passed units, XP, streak and a strength and review date per concept, kept in the browser (`geometry-path-m3-v1`).
+- `session.ts`: how a run of questions is made.
+  - A lesson asks each kind of exercise (a maker's `family`) once, the guided form first, then two review questions from earlier lessons on the concepts most in need. Drilling is left to review and endless practice.
+  - A checkpoint asks each of its units' exercises once, up to twelve.
+  - Endless practice picks the next exercise weighted toward the weakest and most overdue of the chosen concepts. It never repeats the last exercise, avoids the same kind twice running, and brings a miss back three questions later.
+- `Endless.tsx`: choose the concepts (by unit, "due for review", or everything learned), then practise until you stop. Every answer is saved as it comes in.
+- Any answered question in a lesson, checkpoint or practice run can be gone back to with ‹ ›, and the end screen lists every answer as a link back to its question.
+- `progress.ts`: done lessons, passed units, XP, streak and a strength and review date per concept, kept in the browser (`geometry-path-m3-v1`). A missed concept is due again the same day; review gaps then run 1, 3, 7 and 14 days.
 - `PathPage.tsx`, `LessonPlayer.tsx`, `QuestionView.tsx`.
 
 `tests/path.test.ts` checks these things:
@@ -37,7 +42,9 @@ Built so far, in `src/practice/path/`:
 - every question from every lesson is well formed across 25 seeds; every whole proof replays through the checker, and every flow blank's answer is among the reasons offered;
 - every generated flow proof replays as a two-column proof;
 - optional lessons never lock the next lesson or the checkpoint;
-- a lesson has nine questions and a checkpoint twelve.
+- a lesson never repeats a kind of exercise, and reviews after the first lesson;
+- checkpoints are distinct exercises, twelve at most, with no whole proof;
+- endless practice asks only about learned concepts, never repeats the last exercise, and brings a miss back.
 
 Next, if wanted:
 - replay levels (harder variants on a second pass);
