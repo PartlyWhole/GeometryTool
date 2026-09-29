@@ -27,6 +27,8 @@ import {
 import { nearlyParallel, oneCrossing, parallelMN, parallelUnmarked, transversal, transversalJK } from "../content/library3";
 import { LIBRARY } from "../content/library";
 import type { ConceptQuestion } from "../content/conceptQuiz";
+import type { FlowItem } from "../content/items3";
+import type { ProofProblem } from "../proof";
 
 export type Question =
   | {
@@ -39,6 +41,8 @@ export type Question =
       correct: number;
       why: string;
       whyPerChoice?: Record<number, string>;
+      /** One line of a proof, with the lines above it, for "which reason?". */
+      proof?: ProofContext;
     }
   | {
       kind: "number";
@@ -72,7 +76,38 @@ export type Question =
       highlights?: Highlight[];
       answer: string;
       why: string;
+    }
+  | {
+      /** Put the steps in order: tap them from a shuffled bank. */
+      kind: "order";
+      prompt: string;
+      figure?: Board;
+      /** In the right order. */
+      steps: string[];
+      why: string;
+    }
+  | {
+      /** A flow proof or reason table with blanks: choose each reason. */
+      kind: "flow";
+      prompt: string;
+      item: FlowItem;
+      why: string;
+    }
+  | {
+      /** Build a whole proof, every line checked. */
+      kind: "proof";
+      prompt: string;
+      problem: ProofProblem;
+      why: string;
     };
+
+export type ProofContext = {
+  givens: string[];
+  goal: string;
+  rows: { n: number; text: string; reason: string; cited: boolean }[];
+  asking: { n: number; text: string };
+  help: string;
+};
 
 export type Maker = {
   id: string;

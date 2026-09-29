@@ -2,31 +2,47 @@
 
 ## Status
 
-**Units 1 and 2 are playable; Units 3–7 are on the path, marked "Coming next".** The path is the home page. Concepts, Practice and Cards live under a Library menu. The six decisions below were settled on the recommended side:
+**All seven units are playable**: 36 lessons, three of them optional "Prove it" lessons, and six checkpoints. The path is the home page. Concepts, Practice and Cards live under a Library menu. The six decisions below were settled on the recommended side:
 
 1. The Pythagorean Theorem and reflection are taught at 7.1, where they are first used.
-2. Unit 3 is one lesson, with no checkpoint.
+2. Unit 3 is one lesson, with no checkpoint; Unit 4's checkpoint covers it.
 3. Lessons are locked until the one before is done, and a unit's banner offers "Test out to here" (a 12-question checkpoint over the skipped units, 80% to pass).
 4. Streak and XP, no hearts.
 5. The old pages are in the Library.
-6. The full proof builder is saved for checkpoints and optional "Prove it" lessons (not yet built).
+6. The full proof builder is used only in the optional "Prove it" lessons (4.8, 5.8, 6.4). They never lock the path, and their proofs are not drawn for review. Checkpoints were also meant to include a proof. They don't: one full proof in a 12-question check is too heavy on a phone. Checkpoints use flow proofs and one-step proofs instead.
 
 Built so far, in `src/practice/path/`:
 
-- `questions.ts`: one question type for the path (choice, number, tap an angle, tap a line), makers tagged with the concepts they use, and adapters from the existing generators.
-- `path.ts`: units → lessons → the concepts each lesson teaches and its guided and core makers.
-- `session.ts`: a lesson is 2 guided + 5 core + 2 review from earlier lessons, weakest concept first. A miss comes back once as "One more try".
+- `questions.ts`: the question shapes, plus the Unit 1–2 makers.
+  - Shapes: choice (optionally with a proof's lines above it, for "which reason?"), number, tap an angle, tap a line, put steps in order, flow proof / reason table, and a whole proof.
+  - Makers: small generators, each tagged with the concepts it uses.
+- `makers.ts`: the Unit 3–7 makers.
+  - Relate, find the angle and which rule, each for the pair kinds taught so far.
+  - Tap every congruent or supplementary angle, and angle algebra drawn at the answer.
+  - Generated flow proofs, with a replayable two-column proof behind each.
+  - Which test / enough / find x for parallel lines, and "which is the converse?" and "is the converse true?".
+  - Forwards or backwards, how many lines through P, and the construction steps (order them, or say which comes next).
+  - Pythagorean lengths, reflection, "is P equidistant?", the perpendicular bisector lengths and cases.
+- `path.ts`: units → lessons, giving the concepts each lesson teaches and its guided and core makers.
+  - A lesson may set its own size, e.g. 4.2 has 1 guided, 3 core and 1 review.
+  - A lesson may be marked optional.
+- `session.ts`: a lesson is 2 guided + 5 core + 2 review from earlier lessons, weakest concept first. A miss comes back once as "One more try", except a whole proof. A lesson never asks the same question twice.
 - `progress.ts`: done lessons, passed units, XP, streak and a strength and review date per concept, kept in the browser (`geometry-path-m3-v1`).
 - `PathPage.tsx`, `LessonPlayer.tsx`, `QuestionView.tsx`.
 
-`tests/path.test.ts` checks four things:
+`tests/path.test.ts` checks these things:
 
 - every Module 3 concept is taught exactly once, in the story's order;
 - no question asks about a concept before its lesson;
-- every playable question is well formed across 25 seeds;
+- every question from every lesson is well formed across 25 seeds; every whole proof replays through the checker, and every flow blank's answer is among the reasons offered;
+- every generated flow proof replays as a two-column proof;
+- optional lessons never lock the next lesson or the checkpoint;
 - a lesson has nine questions and a checkpoint twelve.
 
-Next: recipes for Units 3–7, the "put steps in order" and "is the converse true?" types, and the length and equidistance generators for Unit 7.
+Next, if wanted:
+- replay levels (harder variants on a second pass);
+- a module review after Unit 7;
+- review scheduled by due date across sessions, not only inside lessons.
 
 ## Why a path
 

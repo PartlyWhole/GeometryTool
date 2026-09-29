@@ -67,8 +67,9 @@ export function LessonPlayer(props: {
     setAnswers((a) => [...a, { concepts: slot.maker.concepts, correct: ok }]);
     if (slot.phase !== "retry") setFirstTry((f) => ({ ...f, correct: f.correct + (ok ? 1 : 0) }));
     // A miss comes back before the lesson ends — once per question, and not
-    // in a checkpoint, where the score is the point.
-    if (!ok && !props.checkpoint && slot.phase !== "retry" && !retried.has(at)) {
+    // in a checkpoint, where the score is the point. A whole proof does not
+    // come back: a second one is a lesson's worth of work, not a retry.
+    if (!ok && !props.checkpoint && slot.phase !== "retry" && slot.q.kind !== "proof" && !retried.has(at)) {
       setRetried((s) => new Set(s).add(at));
       setQueue((q) => [...q, props.retry(slot)]);
     }
@@ -79,7 +80,7 @@ export function LessonPlayer(props: {
   const progress = learning ? 0 : Math.min(1, at / queue.length);
 
   return (
-    <div className="page lesson">
+    <div className={"page lesson" + (!learning && !finished && queue[at].q.kind === "proof" ? " wide" : "")}>
       <div className="lesson-top">
         <button className="lesson-close" onClick={() => props.onExit(null)} aria-label="Leave the lesson">×</button>
         <div className="lesson-progress" role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100}>

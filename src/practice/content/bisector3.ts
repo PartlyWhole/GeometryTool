@@ -29,7 +29,7 @@ const YES_CONVERSE = "Yes — B is equidistant from A and C (Converse of the Per
 const YES_DEF = "Yes — BD is marked as the perpendicular bisector of AC";
 const NO = "No — what is marked does not put B on it";
 
-type Case = {
+export type Case = {
   marks: { equal?: boolean; halves?: boolean; right?: boolean; apex?: number; foot?: number };
   answer: string;
   why: string;
@@ -64,8 +64,9 @@ const CASES: Case[] = [
   },
 ];
 
-function enough(r: () => number, id: string): MixedItem {
-  const c = pick(r, CASES);
+/** `cases` limits which markings are shown: the theorem's, the converse's, or both. */
+export function enough(r: () => number, id: string, cases: Case[] = CASES): MixedItem {
+  const c = pick(r, cases);
   const choices = shuffle(r, [YES_CONVERSE, YES_DEF, NO]);
   return {
     id,
@@ -86,8 +87,9 @@ const lin = (a: number, b: number, v = "x") =>
  * Length equations. Either the converse (BA = BC marked, BD ⊥ AC: so D is
  * the midpoint) or the theorem (BD marked as the ⊥ bisector: so BA = BC).
  */
-function lengths(r: () => number, id: string): MixedItem {
-  const converse = r() < 0.5;
+export function lengths(r: () => number, id: string, o: { converse?: boolean } = {}): MixedItem {
+  const roll = r() < 0.5;
+  const converse = o.converse ?? roll;
   const v = pick(r, ["x", "a", "s", "w", "d"]);
   let a = 0, b = 0, c = 0, d = 0, x0 = 0, L = 0;
   for (let t = 0; t < 200; t++) {

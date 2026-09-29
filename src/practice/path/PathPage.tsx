@@ -117,20 +117,21 @@ export function PathPage() {
               {u.lessons.map((l, li) => {
                 const done = !!p.done[l.id];
                 const avail = lessonOpen(p, UNITS, u, li);
-                const here = avail && !done && u === current;
+                const here = avail && !done && !l.optional && u === current;
                 const off = OFFSETS[k++ % OFFSETS.length];
                 return (
                   <li key={l.id} style={{ transform: `translateX(${off}px)` }}>
                     <button
-                      className={"path-node" + (done ? " done" : avail ? " open" : " locked") + (here ? " here" : "")}
+                      className={"path-node" + (done ? " done" : avail ? " open" : " locked") + (here ? " here" : "") + (l.optional ? " optional" : "")}
                       disabled={!avail}
                       onClick={() => startLesson(u, l)}
                       aria-label={l.id + " " + l.title + (done ? ", done" : avail ? "" : ", locked")}
                     >
-                      <span aria-hidden="true">{done ? "✓" : avail ? "★" : "🔒"}</span>
+                      <span aria-hidden="true">{done ? "✓" : avail ? (l.optional ? "✎" : "★") : "🔒"}</span>
                     </button>
                     <span className="path-node-label">
                       <b>{l.id}</b> {l.title}
+                      {l.optional && <em className="path-optional">Optional</em>}
                       {here && <em className="path-start">Start</em>}
                     </span>
                   </li>
@@ -141,7 +142,11 @@ export function PathPage() {
                   <button
                     className={"path-node checkpoint" + (p.passed[u.id] ? " done" : checkpointOpen(p, UNITS, u) ? " open here" : " locked")}
                     disabled={!checkpointOpen(p, UNITS, u)}
-                    onClick={() => startCheckpoint([u], "Unit " + u.n + " checkpoint", [u])}
+                    onClick={() => {
+                      // A checkpoint covers any earlier unit without one of its own.
+                      const covered = [...UNITS.filter((x) => u.covers?.includes(x.id)), u];
+                      startCheckpoint(covered, "Unit " + u.n + " checkpoint", covered);
+                    }}
                     aria-label={"Unit " + u.n + " checkpoint"}
                   >
                     <span aria-hidden="true">🏆</span>

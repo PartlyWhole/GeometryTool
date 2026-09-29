@@ -6,6 +6,13 @@ import { rng, buildLesson, buildCheckpoint } from "../src/practice/path/session"
 import { CONCEPTS3 } from "../src/practice/content/concepts3";
 import { storyOrder } from "../src/practice/content/story";
 import type { Question } from "../src/practice/path/questions";
+import { derivation, FLOW_REASONS_EARLY } from "../src/practice/path/makers";
+import { lessonOpen, checkpointOpen, unitComplete } from "../src/practice/path/progress";
+import { replaySolution } from "../src/practice/proof";
+import { reasonById } from "../src/practice/reasons";
+import { TABLE_REASON_NAMES } from "../src/practice/content/items3";
+import { placement } from "../src/practice/transversal";
+import { ang } from "../src/practice/terms";
 
 const lessons = UNITS.flatMap((u) => u.lessons);
 
@@ -26,6 +33,20 @@ function wellFormed(q: Question, where: string) {
   }
   if (q.kind === "tapLine") expect(q.figure.edges.some((e) => e.label === q.answer), where).toBe(true);
   if (q.kind === "number") expect(Number.isFinite(q.answer), where).toBe(true);
+  if (q.kind === "order") {
+    expect(q.steps.length, where).toBeGreaterThanOrEqual(3);
+    expect(new Set(q.steps).size, where + " distinct steps").toBe(q.steps.length);
+  }
+  if (q.kind === "flow") {
+    const open = q.item.boxes.filter((b) => !b.shown);
+    expect(open.length, where + " has blanks").toBeGreaterThan(0);
+    const offered = q.item.reasons ?? [];
+    // Every blank's answer must be among the reasons offered for it.
+    if (q.item.reasons) for (const b of open) expect(offered, where + " offers " + b.reasonId).toContain(b.reasonId);
+    for (const id of offered) expect(!!reasonById(id) || !!TABLE_REASON_NAMES[id], where + " names " + id).toBe(true);
+  }
+  if (q.kind === "proof") expect(replaySolution(q.problem), where + " replays").toBeUndefined();
+  if (q.kind === "choice" && q.proof) expect(q.proof.asking.text.length, where).toBeGreaterThan(0);
 }
 
 describe("the path", () => {
@@ -62,6 +83,31 @@ describe("the path", () => {
           for (const m of [...(l.guided ?? []), ...(l.core ?? [])]) wellFormed(m.make(r), l.id + " " + m.id + " seed " + s);
         }
       }
+  });
+
+  it("replays every generated flow proof through the checker", () => {
+    const b = derivation("altInterior", "3", "5", FLOW_REASONS_EARLY).item.figure;
+    for (const kind of ["altInterior", "altExterior", "consInterior", "consExterior"] as const)
+      for (let x = 1; x <= 8; x++)
+        for (let y = 1; y <= 8; y++) {
+          if (placement(b, ang(String(x)), ang(String(y)))?.kind !== kind) continue;
+          const { problem } = derivation(kind, String(x), String(y), FLOW_REASONS_EARLY);
+          expect(replaySolution(problem), kind + " " + x + "," + y).toBeUndefined();
+        }
+  });
+
+  it("lets an optional lesson be skipped, and never lets it lock the path", () => {
+    const empty = { done: {}, passed: {}, xp: 0, streak: { days: 0, last: "" }, skill: {} };
+    const u4 = UNITS.find((u) => u.id === "u4")!;
+    const done = Object.fromEntries(UNITS.slice(0, 3).flatMap((u) => u.lessons.map((l) => [l.id, 1])));
+    const passed = { u1: true, u2: true };
+    const p = { ...empty, done: { ...done, ...Object.fromEntries(u4.lessons.filter((l) => !l.optional).map((l) => [l.id, 1])) }, passed };
+    expect(unitComplete(p, UNITS[2]), "Unit 3 is done without a checkpoint").toBe(true);
+    expect(checkpointOpen(p, UNITS, u4), "4.8 is optional").toBe(true);
+    const u5 = UNITS.find((u) => u.id === "u5")!;
+    const p5 = { ...p, passed: { ...passed, u4: true }, done: { ...p.done, "5.1": 1, "5.2": 1, "5.3": 1, "5.4": 1, "5.5": 1, "5.6": 1, "5.7": 1 } };
+    expect(lessonOpen(p5, UNITS, u5, u5.lessons.findIndex((l) => l.id === "5.8"))).toBe(true);
+    expect(checkpointOpen(p5, UNITS, u5)).toBe(true);
   });
 
   it("builds a nine-question lesson and a twelve-question checkpoint", () => {

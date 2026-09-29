@@ -76,7 +76,8 @@ export function passUnits(p: Progress, units: Unit[]): Progress {
   const done = { ...p.done };
   for (const u of units) {
     passed[u.id] = true;
-    for (const l of u.lessons) done[l.id] = Math.max(done[l.id] ?? 0, 1);
+    // Testing out skips the lessons it covers, but not the optional proofs.
+    for (const l of u.lessons) if (!l.optional) done[l.id] = Math.max(done[l.id] ?? 0, 1);
   }
   return { ...p, passed, done };
 }
@@ -84,7 +85,7 @@ export function passUnits(p: Progress, units: Unit[]): Progress {
 // --- What is open -------------------------------------------------------------
 
 export function unitComplete(p: Progress, u: Unit) {
-  return u.checkpoint ? !!p.passed[u.id] : u.lessons.every((l) => p.done[l.id]);
+  return u.checkpoint ? !!p.passed[u.id] : u.lessons.every((l) => l.optional || p.done[l.id]);
 }
 
 export function unitOpen(p: Progress, units: Unit[], u: Unit) {
@@ -92,12 +93,14 @@ export function unitOpen(p: Progress, units: Unit[], u: Unit) {
   return u.ready && (i === 0 || unitComplete(p, units[i - 1]));
 }
 
+/** Open once the lesson before is done — passing over optional "Prove it" lessons. */
 export function lessonOpen(p: Progress, units: Unit[], u: Unit, index: number) {
-  return unitOpen(p, units, u) && (index === 0 || !!p.done[u.lessons[index - 1].id]);
+  const before = u.lessons.slice(0, index).filter((l) => !l.optional);
+  return unitOpen(p, units, u) && (before.length === 0 || !!p.done[before[before.length - 1].id]);
 }
 
 export function checkpointOpen(p: Progress, units: Unit[], u: Unit) {
-  return unitOpen(p, units, u) && u.lessons.every((l) => p.done[l.id]);
+  return unitOpen(p, units, u) && u.lessons.every((l) => l.optional || p.done[l.id]);
 }
 
 /** The streak as it stands today: broken if the last lesson was before yesterday. */

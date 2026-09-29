@@ -74,7 +74,7 @@ export function ProofExercise(props: { module?: 2 | 3 }) {
  * coming back to it finds the lines you had already written: half a proof is
  * too much work to throw away for looking at the next one.
  */
-type Work = {
+export type Work = {
   lines: ProofLine[];
   draft: Draft;
   reasonId: string;
@@ -85,7 +85,7 @@ type Work = {
   revealed: boolean;
   scored: boolean;
 };
-const blankWork = (): Work => ({
+export const blankWork = (): Work => ({
   lines: [],
   draft: newDraft("eq"),
   reasonId: "given",
@@ -145,7 +145,7 @@ function ProofBuilder(props: { module: 2 | 3 }) {
   );
 }
 
-function ProofBoard(props: {
+export function ProofBoard(props: {
   problem: ProofProblem;
   problems: ProofProblem[];
   module: 2 | 3;
@@ -155,6 +155,11 @@ function ProofBoard(props: {
   onPick: (i: number) => void;
   onMore?: () => void;
   nav: React.ReactNode;
+  /**
+   * Played as one question of a lesson: no picker, score or "next proof",
+   * and the lesson told once the goal is reached — cleanly, or with help.
+   */
+  inline?: { onSolved: (clean: boolean) => void };
 }) {
   const { problem } = props;
   const { lines, draft, reasonId, cites, error, note, hintsShown, revealed, scored } =
@@ -196,7 +201,9 @@ function ProofBoard(props: {
       error: null,
       scored: scored || reachedGoal(problem, next),
     });
-    if (!scored && reachedGoal(problem, next)) {
+    if (!scored && reachedGoal(problem, next) && props.inline) {
+      props.inline.onSolved(hintsShown === 0 && !revealed);
+    } else if (!scored && reachedGoal(problem, next)) {
       const t = record(tally, hintsShown === 0 && !revealed);
       setTally(t);
       saveTally("proof", t);
@@ -242,7 +249,7 @@ function ProofBoard(props: {
             {problem.tags?.map((t) => <span key={t} className="tag">{t}</span>)}
           </div>
         </div>
-        <div className="head-right">
+        {!props.inline && <div className="head-right">
           {props.nav}
           <Scoreboard tally={tally} />
           <label className="picker">
@@ -263,7 +270,7 @@ function ProofBoard(props: {
               New generated set
             </button>
           )}
-        </div>
+        </div>}
       </header>
 
       <div className="proof-body">
@@ -368,7 +375,7 @@ function ProofBoard(props: {
                   " " + loose.length + " line" + (loose.length === 1 ? "" : "s") +
                   " no later step used — a correct proof can still carry dead weight."}
               </Verdict>
-              <div className="row">
+              {!props.inline && <div className="row">
                 <button
                   className="primary"
                   onClick={() => props.onPick(Math.min(props.index + 1, props.problems.length - 1))}
@@ -389,7 +396,7 @@ function ProofBoard(props: {
                 >
                   Prove it again
                 </button>
-              </div>
+              </div>}
             </div>
           ) : (
             <div className="composer">

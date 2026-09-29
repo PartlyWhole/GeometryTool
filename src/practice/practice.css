@@ -1408,3 +1408,39 @@ code.answer.empty { color: var(--muted); font-size: 14px; }
 .learn-dots span.on { background: var(--accent); }
 .lesson-done { align-items: flex-start; }
 .lesson-score { margin: 0; font-size: 17px; }
+
+/* Optional "Prove it" lessons sit on the path, smaller, and never lock it. */
+.app-page .path-node.optional { width: 54px; height: 54px; font-size: 20px; }
+.app-page .path-node.optional.open { background: #fff; color: var(--accent); border: 2px solid var(--accent); box-shadow: 0 4px 0 #cfc6f5; }
+.path-optional {
+  display: block; font-style: normal; font-weight: 600; color: var(--muted);
+  font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px;
+}
+
+/* A whole proof needs the room the builder has on the Practice page. */
+.page.lesson.wide { max-width: 1160px; }
+.pq-wide .exercise.proof { padding: 0; border: 0; box-shadow: none; background: none; }
+
+/* Which reason? — the proof so far, above the choices. */
+.pq-proof { display: flex; flex-direction: column; gap: 10px; }
+.pq-proof .givens { margin: 0; }
+
+/* Put the steps in order: tap from the bank, tap again to take back. */
+.order { display: flex; flex-direction: column; gap: 14px; }
+.order-built { list-style: none; margin: 0; padding: 10px; display: flex; flex-direction: column; gap: 6px; min-height: 52px; border: 2px dashed var(--line); border-radius: 12px; }
+.app-page .order-built li button {
+  width: 100%; justify-content: flex-start; text-align: left; gap: 10px; padding: 10px 12px;
+  background: var(--accent-soft); border: 1px solid #d9d2f7; border-radius: 10px; white-space: normal; line-height: 1.4;
+}
+.app-page .order-built li.right button { background: var(--ok-soft); border-color: #bfe0cf; color: var(--ink); }
+.app-page .order-built li.wrong button { background: var(--bad-soft); border-color: #efc7c3; color: var(--ink); }
+.order-n { font-weight: 700; color: var(--accent); min-width: 1.2em; }
+.order-empty { padding: 6px 4px; font-size: 14px; }
+.order-bank { display: flex; flex-direction: column; gap: 6px; }
+.app-page .order-step {
+  justify-content: flex-start; text-align: left; white-space: normal; line-height: 1.4;
+  padding: 10px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+}
+.app-page .order-step:hover:not(:disabled) { border-color: var(--accent); }
+/* A placed step leaves its outline behind, so the bank does not jump. */
+.app-page .order-step:disabled { color: transparent; background: #f1f0f5; border-style: dashed; opacity: 1; }

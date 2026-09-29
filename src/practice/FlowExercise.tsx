@@ -16,16 +16,16 @@ import { ItemNav, Scoreboard, Verdict } from "./ui";
 type Work = { chosen: string[]; checked: boolean; scored: boolean };
 const blank = (): Work => ({ chosen: [], checked: false, scored: false });
 
-const reasonName = (id: string) => reasonById(id)?.name ?? TABLE_REASON_NAMES[id] ?? id;
-const lineText = (b: FlowBox) => b.text ?? (b.statement ? statementText(b.statement) : "");
-const isRight = (b: FlowBox, chosen: string | undefined) =>
+export const reasonName = (id: string) => reasonById(id)?.name ?? TABLE_REASON_NAMES[id] ?? id;
+export const lineText = (b: FlowBox) => b.text ?? (b.statement ? statementText(b.statement) : "");
+export const isRight = (b: FlowBox, chosen: string | undefined) =>
   !!chosen && (chosen === b.reasonId || !!b.accept?.includes(chosen));
 
 const angPair = (s?: Statement): [string, string] | undefined =>
   s && s.k === "cong" && s.l.k === "ang" && s.r.k === "ang" ? [s.l.name, s.r.name] : undefined;
 
 /** Why the reason chosen for row `i` is wrong, in terms of that row. */
-function flowNote(item: FlowItem, i: number, chosen: string): string {
+export function flowNote(item: FlowItem, i: number, chosen: string): string {
   const box = item.boxes[i];
   if (isRight(box, chosen)) return reasonById(box.reasonId)?.short ?? "";
   if (box.note) return box.note;

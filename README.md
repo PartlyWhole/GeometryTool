@@ -40,7 +40,7 @@ The deliberately simplified board UI has no Ray, Line, Circle, Text, Bisect, Rig
 
 ## The path
 
-Only Module 3 is on show, and its home page is a Duolingo-style path. It has seven units, one per stage of the story. Each lesson teaches its new ideas with the concept walkthroughs, then asks nine questions: two guided, five core, and two reviewing earlier lessons. A missed question comes back once before the lesson ends. Each unit closes with a 12-question checkpoint that needs 80% to pass, and a unit's banner offers "Test out to here". Progress, XP and the streak are kept in the browser. Units 1 and 2 are playable so far; the plan and its status are in [docs/PATH-PLAN.md](docs/PATH-PLAN.md). The Concepts, Practice and Cards pages remain under the Library menu.
+Only Module 3 is on show, and its home page is a Duolingo-style path. It has seven units, one per stage of the story. Each lesson teaches its new ideas with the concept walkthroughs, then asks nine questions: two guided, five core, and two reviewing earlier lessons. A missed question comes back once before the lesson ends. Each unit closes with a 12-question checkpoint that needs 80% to pass, and a unit's banner offers "Test out to here". Progress, XP and the streak are kept in the browser. All seven units are playable. The later units add flow proofs to fill in, construction steps to put in order, and "is the converse true?". Three optional "Prove it" lessons use the full proof builder. The plan and its status are in [docs/PATH-PLAN.md](docs/PATH-PLAN.md). The Concepts, Practice and Cards pages remain under the Library menu.
 
 ## Practice
 
@@ -68,4 +68,4 @@ Statements are never typed. They are assembled by clicking: pick the form of the
 
 ## Verification
 
-`npm run check` runs **168 tests**, TypeScript and the production build. The suite replays every authored proof and 120 generated ones through the same strict validator a student faces, so an unsolvable problem fails the build. Module 3's classifier is checked against the reference's table for all 28 pairs, and again over randomly turned and renumbered figures; every Module 3 claim and accepted answer is checked against what the marks license, and every printed measure against the drawing. See [docs/EVIDENCE.md](docs/EVIDENCE.md) for browser checks and limitations.
+`npm run check` runs **170 tests**, TypeScript and the production build. The suite replays every authored proof and 120 generated ones through the same strict validator a student faces, so an unsolvable problem fails the build. Module 3's classifier is checked against the reference's table for all 28 pairs, and again over randomly turned and renumbered figures; every Module 3 claim and accepted answer is checked against what the marks license, and every printed measure against the drawing. See [docs/EVIDENCE.md](docs/EVIDENCE.md) for browser checks and limitations.

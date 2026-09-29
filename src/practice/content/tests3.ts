@@ -98,17 +98,23 @@ function pairsOf(kind: PairKind): [string, string][] {
   return out;
 }
 
-/** "∠3 ≅ ∠5. Which rule proves m ∥ n?" — and sometimes the fact is the wrong kind. */
-function whichTest(r: () => number, id: string): MixedItem {
-  const kind = pick(r, KINDS);
+/**
+ * "∠3 ≅ ∠5. Which rule proves m ∥ n?" — and sometimes the fact is the wrong
+ * kind. `kinds` limits the pairs asked about, and `among` the tests offered
+ * as wrong answers, so a lesson asks only about what it has taught.
+ */
+export function whichTest(r: () => number, id: string, kinds: PairKind[] = KINDS, among: PairKind[] = KINDS): MixedItem {
+  const kind = pick(r, kinds);
   const [x, y] = pick(r, pairsOf(kind));
   // One time in four, state the fact the test does not accept.
   const wrongFact = r() < 0.25;
   const saysCongruent = congruentKind(kind) !== wrongFact;
   const fact = saysCongruent ? "∠" + x + " ≅ ∠" + y : "∠" + x + " and ∠" + y + " are supplementary";
   const NONE = "None of these: that fact does not prove m ∥ n";
-  const others = shuffle(r, KINDS.filter((k) => k !== kind)).slice(0, 2).map((k) => CONVERSE[k]);
-  const choices = shuffle(r, [CONVERSE[kind], FORWARD[kind], ...others.slice(0, wrongFact ? 1 : 2), ...(wrongFact ? [NONE] : [])]);
+  const others = shuffle(r, among.filter((k) => k !== kind)).slice(0, 2).map((k) => CONVERSE[k]);
+  // With fewer tests to offer, "none of these" stays in as a live option.
+  const withNone = wrongFact || others.length < 2;
+  const choices = shuffle(r, [CONVERSE[kind], FORWARD[kind], ...others.slice(0, wrongFact ? 1 : 2), ...(withNone ? [NONE] : [])]);
   const correct = choices.indexOf(wrongFact ? NONE : CONVERSE[kind]);
   const name = PAIR_NAME[kind];
   const whyPerChoice: Record<number, string> = {
@@ -138,7 +144,7 @@ function whichTest(r: () => number, id: string): MixedItem {
  * "Is there enough information?" Two printed measures, drawn truthfully:
  * the lines come out parallel exactly when the measures say they must be.
  */
-function enough(r: () => number, id: string): MixedItem {
+export function enough(r: () => number, id: string, kinds: PairKind[] = KINDS, among?: PairKind[]): MixedItem {
   const roll = r();
   let x: string, y: string, mx: number, my: number, board: Board;
   if (roll < 0.2) {
@@ -151,7 +157,7 @@ function enough(r: () => number, id: string): MixedItem {
     // lines that are not parallel, and the drawing shows that.
     board = transversal({ tilt: [0, 9], cross: d, measures: { [x]: mx, [y]: my }, title: "One crossing measured" });
   } else {
-    const kind = pick(r, KINDS);
+    const kind = pick(r, kinds);
     [x, y] = pick(r, pairsOf(kind));
     const works = r() < 0.55;
     mx = pick(r, [47, 58, 63, 72, 77, 108, 117, 122, 130]);
@@ -164,10 +170,19 @@ function enough(r: () => number, id: string): MixedItem {
   const rel = relationOf(board, x, y);
   const kind = rel && rel !== "none" && rel !== "vertical" && rel !== "linearPair" ? (rel as PairKind) : undefined;
   const NO = "No — these two angles do not prove it";
-  const tests = shuffle(r, KINDS.filter((k) => k !== kind)).slice(0, kind && yes ? 2 : 3).map((k) => "Yes — by the " + CONVERSE[k]);
   const right = yes && kind ? "Yes — by the " + CONVERSE[kind] : NO;
-  const choices = shuffle(r, [...new Set([right, ...tests, NO])]).slice(0, 4);
-  if (!choices.includes(right)) choices[3] = right;
+  let choices: string[];
+  if (among) {
+    // A lesson that has taught few tests offers those, and the forward rule —
+    // the one that assumes what is to be proved — as the trap.
+    const tests = among.filter((k) => k !== kind).map((k) => "Yes — by the " + CONVERSE[k]);
+    const forward = "Yes — by the " + FORWARD[kind ?? pick(r, among)];
+    choices = shuffle(r, [...new Set([right, NO, forward, ...shuffle(r, tests).slice(0, 1)])]);
+  } else {
+    const tests = shuffle(r, KINDS.filter((k) => k !== kind)).slice(0, kind && yes ? 2 : 3).map((k) => "Yes — by the " + CONVERSE[k]);
+    choices = shuffle(r, [...new Set([right, ...tests, NO])]).slice(0, 4);
+    if (!choices.includes(right)) choices[3] = right;
+  }
   const both = "∠" + x + " and ∠" + y;
   const why =
     rel === "vertical" || rel === "linearPair"
@@ -197,8 +212,8 @@ const show = (a: number, b: number) =>
   (a === 1 ? "" : String(a)) + "x" + (b === 0 ? "" : b > 0 ? " + " + b : " − " + -b);
 
 /** "What value of x makes m ∥ n?" — the figure drawn at that value. */
-function findX(r: () => number, id: string): MixedItem {
-  const kind = pick(r, KINDS);
+export function findX(r: () => number, id: string, kinds: PairKind[] = KINDS): MixedItem {
+  const kind = pick(r, kinds);
   const [x, y] = pick(r, pairsOf(kind));
   let a = 0, c = 0, b = 0, d = 0, x0 = 0, mx = 0;
   for (let t = 0; t < 200; t++) {
