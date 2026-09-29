@@ -195,6 +195,15 @@ export type Page = "board" | "concepts" | "practice" | "cards";
 /** Which module's material the Concepts, Practice and Cards pages show. */
 export type Module = 2 | 3;
 
+/**
+ * What the app shows. Module 2 and the whiteboard are still built, tested and
+ * one edit away; while Module 3 is the focus they are simply not offered.
+ * With one module shown there is no module switch, and chapters are
+ * numbered from 1 within it.
+ */
+export const SHOWN_MODULES: Module[] = [3];
+export const SHOW_BOARD = false;
+
 export function ModuleSwitch(props: { value: Module; onChange: (m: Module) => void }) {
   const items: { id: Module; label: string; hint: string }[] = [
     { id: 2, label: "Module 2", hint: "Points, segments, angles, reasoning and proof" },
@@ -224,11 +233,11 @@ export function PageNav(props: {
   compact?: boolean;
 }) {
   const items: { id: Page; label: string; icon: string }[] = [
-    { id: "board", label: "Board", icon: "◇" },
-    { id: "concepts", label: "Concepts", icon: "◈" },
-    { id: "practice", label: "Practice", icon: "◎" },
-    { id: "cards", label: "Cards", icon: "▤" },
-  ];
+    { id: "board" as Page, label: "Board", icon: "◇" },
+    { id: "concepts" as Page, label: "Concepts", icon: "◈" },
+    { id: "practice" as Page, label: "Practice", icon: "◎" },
+    { id: "cards" as Page, label: "Cards", icon: "▤" },
+  ].filter((it) => SHOW_BOARD || it.id !== "board");
   return (
     <nav
       className={"pagenav" + (props.compact ? " compact" : "")}

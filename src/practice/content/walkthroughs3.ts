@@ -150,7 +150,7 @@ export const WALKTHROUGHS3: Walkthrough[] = [
       { text: "∠2 and ∠6 correspond, so m∠2 = m∠6.", marks: both(given, 2, 6), show: { k: "eq", l: meas("2"), r: meas("6") } },
       { text: "∠6 and ∠7 form a linear pair, so m∠6 + m∠7 = 180.", marks: both(given, 6, 7), show: { k: "eq", l: add(meas("6"), meas("7")), r: num(180) }, assert: [{ statement: { k: "linearPair", a: a(6), b: a(7) }, holds: true }] },
       { text: "Substitute: m∠2 + m∠7 = 180. They are supplementary.", marks: both(prove, 2, 7), show: { k: "eq", l: add(meas("2"), meas("7")), r: num(180) }, assert: [{ statement: { k: "supp", a: a(2), b: a(7) }, holds: true }] },
-      { text: "That is the last of the four theorems — every one the postulate plus a single Module 2 step. What they say together is simpler than any of them." },
+      { text: "That is the last of the four theorems — every one the postulate plus a single step you already had. What they say together is simpler than any of them." },
     ],
   },
   {
@@ -168,7 +168,7 @@ export const WALKTHROUGHS3: Walkthrough[] = [
   {
     conceptId: "angles-at-a-crossing",
     steps: [
-      { text: "One crossing, four angles. Module 2 already says everything about them; here it is as a single tool.", figure: "crossingOneMeasure", marks: [given(a(1))] },
+      { text: "One crossing, four angles. You already know everything about them; here it is as a single tool.", figure: "crossingOneMeasure", marks: [given(a(1))] },
       { text: "∠1 and ∠3 are vertical angles, so ∠3 measures 64° too.", marks: both(given, 1, 3), assert: [{ statement: { k: "vertical", a: a(1), b: a(3) }, holds: true }, { statement: cong(1, 3), holds: true }] },
       { text: "∠1 and ∠2 form a linear pair, so ∠2 = 180° − 64° = 116°, and ∠4, vertical to ∠2, is 116° as well.", marks: [...both(given, 1, 3), ...both(shared, 2, 4)], assert: [{ statement: { k: "supp", a: a(1), b: a(2) }, holds: true }] },
       { text: "Two values, x and 180° − x, and never more. Hold on to that: once two lines are parallel, the same two values reach across to a second crossing." },

@@ -31,7 +31,7 @@ export const CONCEPTS3: M3[] = [
     definition: "Where two lines meet, opposite angles are congruent and neighbouring angles total 180°, so one measure fixes the rest.",
     brief: "Opposite angles equal, neighbours total 180°",
     because:
-      "It is Module 2's two theorems working together: the Vertical Angles Theorem gives the opposite angle, and the Linear Pair Theorem gives the two beside it.",
+      "It is two theorems you already have, working together: the Vertical Angles Theorem gives the opposite angle, and the Linear Pair Theorem gives the two beside it.",
     examples: [
       { figure: "crossingOneMeasure", caption: "∠1 = 64°, so ∠3 = 64° and ∠2 = ∠4 = 116°." },
       { text: "m∠1 = 64°, so m∠3 = 64° and m∠2 = m∠4 = 180° − 64° = 116°." },

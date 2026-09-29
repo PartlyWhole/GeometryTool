@@ -361,7 +361,7 @@ export const NUMERIC_ITEMS3: NumericItem[] = [
     unit: "°",
     why: "∠5 and ∠7 are vertical angles, so they are congruent with or without parallel lines. What the missing arrowheads rule out is getting from ∠5 to any angle at the top crossing.",
     trap: { value: 116, note: "116° is the supplement. ∠5 and ∠7 sit opposite each other at one crossing: vertical angles, which are congruent." },
-    hints: ["∠5 and ∠7 are at the same crossing. Which Module 2 pair are they?"],
+    hints: ["∠5 and ∠7 are at the same crossing. Which pair at one crossing are they?"],
     tags: ["Parallel lines"],
   },
   {
@@ -771,7 +771,7 @@ PROOFS3_RAW.push(
     forbid: ["converse-cons-interior"],
     hints: [
       "∠4 and ∠1 sit side by side on m.",
-      "Then ∠1 and ∠5 are both supplementary to ∠4. Which Module 2 theorem makes them congruent?",
+      "Then ∠1 and ∠5 are both supplementary to ∠4. Which theorem about supplements makes them congruent?",
       "∠1 and ∠5 correspond — cite the converse of the postulate.",
     ],
     tags: ["Reverse it"],

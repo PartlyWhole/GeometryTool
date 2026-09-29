@@ -13,8 +13,12 @@ import { CONCEPTS, type Concept } from "./content/concepts";
 import { CONCEPTS3 } from "./content/concepts3";
 import { LIBRARY } from "./content/library";
 import { WALKTHROUGHS } from "./content/walkthroughs";
-import { CHAPTERS, ECHOES, NEEDS, chapterNumber, placeOf } from "./content/story";
-import { BuildStamp, type Module } from "./ui";
+import { CHAPTERS, ECHOES, NEEDS, placeOf, type Chapter } from "./content/story";
+import { BuildStamp, SHOWN_MODULES, type Module } from "./ui";
+
+/** Chapters are numbered across the modules on show, so Module 3 alone runs 1–7. */
+const SHOWN_CHAPTERS = CHAPTERS.filter((c) => SHOWN_MODULES.includes(c.module));
+const chapterNumber = (c: Chapter) => SHOWN_CHAPTERS.indexOf(c) + 1;
 
 /** Every concept in both modules: a Module 3 concept can build on Module 2's. */
 const ALL: Concept[] = [...CONCEPTS, ...CONCEPTS3];
@@ -79,8 +83,11 @@ export function Concepts(props: { module?: Module; onModule?: (m: Module) => voi
     else setStep(step + 1);
   };
 
-  const links = (ids: string[], label: string) =>
-    ids.length > 0 && (
+  const links = (all: string[], label: string) => {
+    // A link into a module that is not on show would lead somewhere the
+    // student cannot otherwise reach.
+    const ids = all.filter((n) => SHOWN_MODULES.includes(moduleOf(n)));
+    return ids.length > 0 && (
       <div className="concept-links">
         <span className="concept-links-label">{label}</span>
         {ids.map((n) => (
@@ -98,6 +105,7 @@ export function Concepts(props: { module?: Module; onModule?: (m: Module) => voi
         ))}
       </div>
     );
+  };
 
   return (
     <div className="page concepts">
@@ -106,7 +114,7 @@ export function Concepts(props: { module?: Module; onModule?: (m: Module) => voi
           <h1>Concepts</h1>
           <p className="muted">
             {module === 3
-              ? "The story continues from Module 2: a second crossing, the names for the angles it makes, and what parallel lines make of them."
+              ? "Parallel and perpendicular lines, one idea at a time, each built from the ones before it. Work through a concept here, then drill it in Practice."
               : "One idea at a time, each built from the ones before it. Work through a concept here, then drill it in Practice."}
           </p>
         </div>

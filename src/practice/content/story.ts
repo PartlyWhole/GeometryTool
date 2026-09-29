@@ -271,7 +271,7 @@ export const CHAPTERS: Chapter[] = [
     title: "Foundations",
     question: "Module 3 is about lines that never meet and lines that meet square. What does it lean on that you already have?",
     stops: [
-      { conceptId: "angles-at-a-crossing", bridge: "Start from one crossing, where Module 2 already said everything: know one angle and you know all four." },
+      { conceptId: "angles-at-a-crossing", bridge: "Start from one crossing, where you already know everything: know one angle and you know all four." },
       { conceptId: "parallel-lines", bridge: "Now the lines this module is named for: two that never meet. Like ticks and arcs, they have a mark of their own." },
       { conceptId: "perpendicular-lines", bridge: "And the other kind: two lines that meet square. It is the four-angles fact again, at the one value where x and 180° − x agree." },
       { conceptId: "pythagorean", bridge: "One tool from outside the module: a right angle, turned into a fact about lengths. Nothing needs it until the last chapter, and then everything there does." },
@@ -300,17 +300,17 @@ export const CHAPTERS: Chapter[] = [
     id: "m3-first",
     module: 3,
     title: "The first assumption",
-    question: "No Module 2 tool reaches from one crossing to another. What is the least that has to be assumed?",
+    question: "Nothing you have yet reaches from one crossing to another. What is the least that has to be assumed?",
     stops: [
       { conceptId: "corresponding-angles-postulate", bridge: "One statement, accepted without proof: on parallel lines, the angle in the same corner at each crossing is the same angle. Everything in the next chapter is built from it." },
     ],
-    close: "One pair of angles now reaches across the two lines. At each crossing, Module 2's theorems already reach everywhere else — so the rest should follow.",
+    close: "One pair of angles now reaches across the two lines. At each crossing, vertical angles and linear pairs already reach everywhere else — so the rest should follow.",
   },
   {
     id: "m3-derive",
     module: 3,
     title: "Derive and use the angle theorems",
-    question: "With the postulate carrying one angle across, how far can Module 2's two theorems take it?",
+    question: "With the postulate carrying one angle across, how far can vertical angles and linear pairs take it?",
     stops: [
       { conceptId: "alt-interior-theorem", bridge: "One step across with the postulate, one step within a crossing with vertical angles — and a new theorem." },
       { conceptId: "flow-proof", bridge: "The same proof drawn as boxes and arrows, the way the reference writes it, so its shape can be seen at once." },

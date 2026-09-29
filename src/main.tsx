@@ -35,7 +35,7 @@ import { type SolveResult } from "./solver";
 import { Practice } from "./practice/Practice";
 import { Concepts } from "./practice/Concepts";
 import { Flashcards } from "./practice/Flashcards";
-import { BuildStamp, ModuleSwitch, PageNav, type Module, type Page } from "./practice/ui";
+import { BuildStamp, ModuleSwitch, PageNav, SHOWN_MODULES, SHOW_BOARD, type Module, type Page } from "./practice/ui";
 import "./style.css";
 import "./practice/practice.css";
 const KEY = "geometry-whiteboard-v1";
@@ -113,8 +113,9 @@ function App() {
     [live, setLive] = useState<Board | null>(null),
     [selection, setSelection] = useState<Selection>(emptySelection),
     [tool, setTool] = useState<Tool>("select"),
-    [page, setPage] = useState<Page>("board"),
+    [page, setPage] = useState<Page>(SHOW_BOARD ? "board" : "concepts"),
     [module, setModuleState] = useState<Module>(() => {
+      if (SHOWN_MODULES.length === 1) return SHOWN_MODULES[0];
       try {
         return localStorage.getItem(MODULE_KEY) === "2" ? 2 : 3;
       } catch {
@@ -657,7 +658,7 @@ function App() {
       <div className="app-page">
         <div className="app-page-nav">
           <PageNav value={page} onChange={setPage} />
-          <ModuleSwitch value={module} onChange={setModule} />
+          {SHOWN_MODULES.length > 1 && <ModuleSwitch value={module} onChange={setModule} />}
         </div>
         {/* Keyed by module: switching starts each page afresh on the other
             module's material rather than carrying positions across. */}
