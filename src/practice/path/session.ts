@@ -114,9 +114,14 @@ export function allMakers(units: Unit[]): Maker[] {
     .filter((m) => !m.heavy && (seen.has(m.id) ? false : (seen.add(m.id), true)));
 }
 
-/** The concepts taught by the lessons done so far. */
+/**
+ * The concepts open to practice: those of the lessons done, and of the
+ * lessons skipped to. A learner who skips ahead is taken at their word that
+ * they know what they skipped; the strength bars start empty, so those ideas
+ * come up often until the answers say otherwise.
+ */
 export function learnedConcepts(units: Unit[], p: Progress): Set<string> {
-  return new Set(units.flatMap((u) => u.lessons.filter((l) => p.done[l.id]).flatMap((l) => l.learn)));
+  return new Set(units.flatMap((u) => u.lessons.filter((l) => p.done[l.id] || p.unlocked?.[l.id]).flatMap((l) => l.learn)));
 }
 
 /** The exercises that practise the chosen concepts and ask about nothing unlearned. */

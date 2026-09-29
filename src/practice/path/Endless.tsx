@@ -7,6 +7,7 @@ import type { Unit } from "./path";
 import { type Progress, isDue } from "./progress";
 import { type Slot, freshQuestion, learnedConcepts, nextPractice, practiceMakers, rng } from "./session";
 import { RunReview, StackNav, StackView, useStack } from "./LessonPlayer";
+import { useHold } from "./hold";
 
 const term = (id: string) => CONCEPTS3.find((c) => c.id === id)?.term ?? id;
 
@@ -28,8 +29,14 @@ export function EndlessSetup(props: {
   initial: string[];
   onStart: (chosen: string[]) => void;
   onBack: () => void;
+  /** Skip ahead to this lesson on the path: the hold on a locked idea. */
+  onUnlock: (lessonId: string) => void;
 }) {
   const { units, progress: p } = props;
+  const bind = useHold();
+  const [ask, setAsk] = useState<string | null>(null);
+  const [tip, setTip] = useState<string | null>(null);
+  const lessonOf = (c: string) => units.flatMap((u) => u.lessons).find((l) => l.learn.includes(c))!;
   const learned = useMemo(() => learnedConcepts(units, p), [units, p]);
   const due = [...learned].filter((c) => isDue(p, c));
   const [chosen, setChosen] = useState<Set<string>>(() => {
@@ -104,12 +111,54 @@ export function EndlessSetup(props: {
                     {isDue(p, c) && <em className="endless-due">due</em>}
                   </button>
                 ) : (
-                  <span key={c} className="endless-chip locked" title="Not learned yet — its lesson is further along the path">
+                  <button
+                    key={c}
+                    className="endless-chip locked"
+                    aria-disabled="true"
+                    {...bind({
+                      locked: true,
+                      title: "Not learned yet. Press and hold to unlock.",
+                      onTap: () => {
+                        setAsk(null);
+                        setTip(c);
+                      },
+                      onHold: () => {
+                        setTip(null);
+                        setAsk(c);
+                      },
+                    })}
+                  >
                     🔒 {term(c)}
-                  </span>
+                  </button>
                 ),
               )}
             </div>
+            {ideas.includes(tip ?? "") && (
+              <p className="path-tip" role="status">
+                {term(tip!)} is not learned yet — its lesson, {lessonOf(tip!).id}, is further along the path.
+              </p>
+            )}
+            {ideas.includes(ask ?? "") && (
+              <div className="path-skip" role="dialog" aria-label={"Unlock " + term(ask!)}>
+                <p>
+                  Unlock {term(ask!)}? This skips ahead to lesson {lessonOf(ask!).id} on the path, opening it and everything before it, so its ideas can be practised. The lessons stay unfinished.
+                </p>
+                <div className="row">
+                  <button
+                    className="primary"
+                    onClick={() => {
+                      const c = ask!;
+                      props.onUnlock(lessonOf(c).id);
+                      setChosen((s) => new Set(s).add(c));
+                      setAsk(null);
+                    }}
+                  >
+                    Unlock
+                  </button>
+                  <button onClick={() => setAsk(null)}>Cancel</button>
+                </div>
+              </div>
+            )}
           </section>
         );
       })}
@@ -117,7 +166,7 @@ export function EndlessSetup(props: {
       <div className="endless-start">
         <span className="muted">
           {!learned.size
-            ? "Finish a lesson first: practice draws only on what you have learned."
+            ? "Finish a lesson first: practice draws only on what you have learned or skipped past."
             : chosen.size
               ? chosen.size + " idea" + (chosen.size > 1 ? "s" : "") + " chosen · " + makers.length + " kinds of exercise"
               : "Choose at least one idea."}

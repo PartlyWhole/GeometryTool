@@ -111,7 +111,7 @@ describe("the path", () => {
     expect(checkpointOpen(p5, UNITS, u5)).toBe(true);
   });
 
-  it("skips ahead: opens a place and all before it, without counting it learned", () => {
+  it("skips ahead: opens a place and all before it, open to practice but not done", () => {
     const empty = { done: {}, passed: {}, xp: 0, streak: { days: 0, last: "" }, skill: {} };
     const u5 = UNITS.find((u) => u.id === "u5")!;
     const at = u5.lessons.findIndex((l) => l.id === "5.3");
@@ -121,7 +121,10 @@ describe("the path", () => {
     expect(checkpointOpen(p, UNITS, UNITS[1]), "and earlier checkpoints").toBe(true);
     expect(lessonOpen(p, UNITS, u5, at + 1), "but not the next one").toBe(false);
     expect(lessonOpen({ ...p, done: { "5.3": 1 } }, UNITS, u5, at + 1), "until the skipped-to lesson is done").toBe(true);
-    expect(learnedConcepts(UNITS, p).size, "nothing learned by skipping").toBe(0);
+    const open = learnedConcepts(UNITS, p);
+    expect(open.has("converse-ait") && open.has("transversal"), "skipped ideas can be practised").toBe(true);
+    expect(open.has("converse-cit"), "later ones cannot").toBe(false);
+    expect(Object.keys(p.done).length, "nothing is marked done").toBe(0);
     expect(lessonOpen(relock(p), UNITS, u5, at)).toBe(false);
   });
 

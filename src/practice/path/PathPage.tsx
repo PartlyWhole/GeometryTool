@@ -1,6 +1,7 @@
 // The path: Module 3's units as a winding column of lessons, each unlocked
 // by the one before, with a checkpoint closing each unit.
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
+import { useHold } from "./hold";
 import { type Lesson, type Unit, UNITS } from "./path";
 import {
   type Progress,
@@ -47,8 +48,7 @@ export function PathPage() {
   const [skipAsk, setSkipAsk] = useState<string | null>(null);
   const [tip, setTip] = useState<string | null>(null);
   const [askAll, setAskAll] = useState(false);
-  const timer = useRef<number | undefined>(undefined);
-  const held = useRef(false);
+  const bind = useHold();
   const seed = () => rng(Math.floor(Math.random() * 1e9));
 
   const update = (next: Progress) => {
@@ -82,6 +82,7 @@ export function PathPage() {
       <EndlessSetup
         units={UNITS}
         progress={p}
+        onUnlock={(lessonId) => update(unlockThrough(p, UNITS, lessonId))}
         initial={loadChosen()}
         onBack={() => setRunning(null)}
         onStart={(chosen) => {
@@ -132,35 +133,16 @@ export function PathPage() {
    * tap says it is locked, and pressing and holding (or right-clicking)
    * offers to skip ahead to it.
    */
-  const hold = (key: string, open: boolean, start: () => void) => ({
-    title: open ? undefined : "Locked. Press and hold to skip ahead.",
-    onClick: () => {
-      if (held.current) {
-        held.current = false;
-        return;
-      }
-      if (open) start();
-      else setTip(key);
-    },
-    onPointerDown: () => {
-      if (open) return;
-      clearTimeout(timer.current);
-      timer.current = window.setTimeout(() => {
-        held.current = true;
+  const hold = (key: string, open: boolean, start: () => void) =>
+    bind({
+      locked: !open,
+      title: "Locked. Press and hold to skip ahead.",
+      onTap: () => (open ? start() : setTip(key)),
+      onHold: () => {
         setTip(null);
         setSkipAsk(key);
-      }, 550);
-    },
-    onPointerUp: () => clearTimeout(timer.current),
-    onPointerLeave: () => clearTimeout(timer.current),
-    onContextMenu: (e: React.MouseEvent) => {
-      if (open) return;
-      e.preventDefault();
-      clearTimeout(timer.current);
-      setTip(null);
-      setSkipAsk(key);
-    },
-  });
+      },
+    });
 
   const skipPrompt = (key: string, name: string) =>
     skipAsk === key ? (
@@ -201,19 +183,21 @@ export function PathPage() {
         </div>
       </header>
 
-      {learned.size > 0 && (
-        <div className="path-practice">
-          <div>
-            <strong>Endless practice</strong>
-            <span className="muted">
-              {due ? due + " idea" + (due > 1 ? "s" : "") + " due for review" : "Nothing due — practise anything you have learned"}
-            </span>
-          </div>
-          <button className="primary" onClick={() => setRunning({ kind: "setup" })}>
-            ∞ Practise
-          </button>
+      <div className="path-practice">
+        <div>
+          <strong>Endless practice</strong>
+          <span className="muted">
+            {!learned.size
+              ? "Practise anything you have learned — once there is something"
+              : due
+                ? due + " idea" + (due > 1 ? "s" : "") + " due for review"
+                : "Nothing due — practise anything you have learned"}
+          </span>
         </div>
-      )}
+        <button className={learned.size ? "primary" : ""} onClick={() => setRunning({ kind: "setup" })}>
+          ∞ Practise
+        </button>
+      </div>
 
       {UNITS.map((u, ui) => {
         const open = unitOpen(p, UNITS, u);
